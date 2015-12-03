@@ -1,0 +1,9 @@
+﻿<root>
+  <Framerate>60</Framerate>
+  <PicDir>
+    <dir>F:\sample folder</dir>
+  </PicDir>
+  <Music>
+    <dir>F:\sample folder BGM</dir>
+  </Music>
+</root>

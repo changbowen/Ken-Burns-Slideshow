@@ -1,0 +1,19 @@
+﻿<Window x:Class="MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="MainWindow" Height="350" Width="525" AllowsTransparency="True" WindowStyle="None" Background="{x:Null}" Loaded="Window_Loaded" WindowState="Maximized">
+    <Grid x:Name="mainGrid">
+        <Image x:Name="slide_img0" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+        <Image x:Name="slide_img1" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <TextBlock x:Name="tb_date0" HorizontalAlignment="Left" VerticalAlignment="Top" FontFamily="Georgia" FontStyle="Italic" Foreground="White">
+            <TextBlock.Effect>
+                <DropShadowEffect ShadowDepth="2" Opacity="0.8"/>
+            </TextBlock.Effect>
+        </TextBlock>
+        <TextBlock x:Name="tb_date1" HorizontalAlignment="Left" VerticalAlignment="Top" FontFamily="Georgia" FontStyle="Italic" Foreground="White">
+            <TextBlock.Effect>
+                <DropShadowEffect ShadowDepth="2" Opacity="0.8"/>
+            </TextBlock.Effect>
+        </TextBlock>
+    </Grid>
+</Window>
