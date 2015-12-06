@@ -6,21 +6,25 @@ Class MainWindow
     Dim ListOfMusic As New List(Of String)
     Dim framerate As Integer = 60
     Dim ran As New Random
-    'Dim easefunction = New Animation.SineEase With {.EasingMode = Animation.EasingMode.EaseInOut}
     Dim anim_fadein As New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 1)))
     Dim anim_fadeout As New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1)))
     Dim player As New System.Windows.Media.MediaPlayer
     Dim playing As Integer = 0
-    Dim w As Double = Me.Width
-    Dim h As Double = Me.Height
+    Dim w, h As Double
     Dim position As Integer = 0
     Dim picmove_sec As Integer = 5
     Dim m As Integer = 0, mm As Integer = 0
-    Dim pic As BitmapImage
+    Dim pic As Object
+    Dim verticalLock As Boolean = True
+    Dim resolutionLock As Boolean = True
+    Dim verticalOptimize As Boolean = True
+    Dim horizontalOptimize As Boolean = True
 
     Private Sub Window_Loaded(sender As Object, e As RoutedEventArgs)
         Me.Background = Brushes.Black
         Me.Topmost = False
+        w = Me.Width
+        h = Me.Height
 
         Dim config As XElement
         If My.Computer.FileSystem.FileExists("config.xml") Then
@@ -42,11 +46,12 @@ Class MainWindow
                     Dim filename = IO.Path.GetFileNameWithoutExtension(filefullname)
                     Dim ext = IO.Path.GetExtension(filefullname)
                     If PicFormats.Contains(ext.ToLower) Then
-                        Try
-                            ListOfPic.Add(Date.Parse(filename).ToString, f)
-                        Catch
+                        Dim tmpdate As Date
+                        If DateTime.TryParse(filename, tmpdate) Then
+                            ListOfPic.Add(DateTime.Parse(filename).ToString, f)
+                        Else
                             ListOfPic.Add("NON-DATE_" & filename, f)
-                        End Try
+                        End If
                     End If
                 Next
             End If
@@ -75,21 +80,35 @@ Class MainWindow
                                           End Sub
         End If
 
+        If config.Elements("Duration").Any Then
+            Dim tmp = CInt(config.Element("Duration").Value)
+            If tmp >= 4 Then picmove_sec = tmp
+        End If
+        If config.Elements("VerticalLock").Any AndAlso config.Element("VerticalLock").Value.ToLower = "false" Then
+            verticalLock = False
+        End If
+        If config.Elements("ResolutionLock").Any AndAlso config.Element("ResolutionLock").Value.ToLower = "false" Then
+            resolutionLock = False
+        End If
+        If config.Elements("VerticalOptimize").Any AndAlso config.Element("VerticalOptimize").Value.ToLower = "false" Then
+            verticalOptimize = False
+        End If
+        If config.Elements("HorizontalOptimize").Any AndAlso config.Element("HorizontalOptimize").Value.ToLower = "false" Then
+            horizontalOptimize = False
+        End If
+
         tb_date0.FontSize = Me.Height / 12
         tb_date1.FontSize = Me.Height / 12
 
         'loading first picture
-        pic = New BitmapImage
-        pic.BeginInit()
-        pic.CacheOption = BitmapCacheOption.OnLoad
-        pic.StreamSource = New IO.FileStream(ListOfPic.Values(position), IO.FileMode.Open, IO.FileAccess.Read)
-        pic.EndInit()
-        pic.Freeze()
+        LoadNextImg()
         position += 1
+        'CType(mainGrid.FindName("slide_img0"), Image).Source = pic
+        'CType(mainGrid.FindName("slide_img1"), Image).Source = pic
 
         Dim worker_pic As New Thread(AddressOf mainThrd)
         worker_pic.IsBackground = True
-        worker_pic.Priority = ThreadPriority.Lowest
+        worker_pic.Priority = ThreadPriority.BelowNormal
         worker_pic.Start()
     End Sub
 
@@ -163,24 +182,23 @@ Class MainWindow
         Dim tgt_img As Image
         Dim delta As Double
         Dim tbchkpoint As Integer = 1
-        Dispatcher.Invoke(Sub()
-                              w = Me.Width
-                              h = Me.Height
-                          End Sub)
+
         Do
-            If position = tbchkpoint Then
+            If position >= tbchkpoint Then
                 Task.Run(Sub() textThrd(position, tbchkpoint))
             End If
+
+            'switch target
+            If m = 0 Then
+                m = 1
+            Else
+                m = 0
+            End If
+
             Dispatcher.Invoke(
                 Sub()
-                    'switch target
-                    If m = 0 Then
-                        m = 1
-                    Else
-                        m = 0
-                    End If
-
                     tgt_img = CType(mainGrid.FindName("slide_img" & m), Image)
+
                     If pic.PixelWidth / pic.PixelHeight > w / h Then
                         'width is the longer edge comparing to the size of the monitor
                         tgt_img.Height = h
@@ -188,20 +206,19 @@ Class MainWindow
                         delta = tgt_img.Width - w
                         'second = Math.Abs(delta) / 40
                         'If second < 5 Then second = 5
+
+                        Dim startpoint As Double
+                        If horizontalOptimize AndAlso delta > w / 2 Then
+                            startpoint = -delta / 2
+                        Else
+                            startpoint = 0
+                        End If
                         If ran.Next(0, 2) = 0 Then 'means 0<=ran<2
                             tgt_img.HorizontalAlignment = Windows.HorizontalAlignment.Left
-                            If delta > w / 2 Then
-                                anim_move = New Animation.ThicknessAnimation(New Thickness(-delta / 2, 0, 0, 0), New Thickness(-delta, 0, 0, 0), New Duration(New TimeSpan(0, 0, picmove_sec)))
-                            Else
-                                anim_move = New Animation.ThicknessAnimation(New Thickness(0, 0, 0, 0), New Thickness(-delta, 0, 0, 0), New Duration(New TimeSpan(0, 0, picmove_sec)))
-                            End If
+                            anim_move = New Animation.ThicknessAnimation(New Thickness(startpoint, 0, 0, 0), New Thickness(-delta, 0, 0, 0), New Duration(New TimeSpan(0, 0, picmove_sec)))
                         Else
                             tgt_img.HorizontalAlignment = Windows.HorizontalAlignment.Right
-                            If delta > w / 2 Then
-                                anim_move = New Animation.ThicknessAnimation(New Thickness(0, 0, -delta / 2, 0), New Thickness(0, 0, -delta, 0), New Duration(New TimeSpan(0, 0, picmove_sec)))
-                            Else
-                                anim_move = New Animation.ThicknessAnimation(New Thickness(0, 0, 0, 0), New Thickness(0, 0, -delta, 0), New Duration(New TimeSpan(0, 0, picmove_sec)))
-                            End If
+                            anim_move = New Animation.ThicknessAnimation(New Thickness(0, 0, startpoint, 0), New Thickness(0, 0, -delta, 0), New Duration(New TimeSpan(0, 0, picmove_sec)))
                         End If
                     Else
                         'height is the longer edge comparing to the size of the monitor
@@ -210,23 +227,29 @@ Class MainWindow
                         delta = tgt_img.Height - h
                         'second = Math.Abs(delta) / 40
                         'If second < 5 Then second = 5
-                        If delta > h / 2 Then
+
+                        Dim startpoint As Double
+                        If verticalOptimize AndAlso delta > h / 2 Then
+                            startpoint = -delta / 2
+                        Else
+                            startpoint = 0
+                        End If
+                        If verticalLock Then
                             'only move down for pics with height larger than 1.5 * screen height after converted to same width as screen
                             tgt_img.VerticalAlignment = Windows.VerticalAlignment.Bottom
-                            anim_move = New Animation.ThicknessAnimation(New Thickness(0, 0, 0, -delta / 2), New Thickness(0, 0, 0, -delta), New Duration(New TimeSpan(0, 0, picmove_sec)))
+                            anim_move = New Animation.ThicknessAnimation(New Thickness(0, 0, 0, startpoint), New Thickness(0, 0, 0, -delta), New Duration(New TimeSpan(0, 0, picmove_sec)))
                         Else
                             If ran.Next(0, 2) = 0 Then
                                 tgt_img.VerticalAlignment = Windows.VerticalAlignment.Top
-                                anim_move = New Animation.ThicknessAnimation(New Thickness(0, 0, 0, 0), New Thickness(0, -delta, 0, 0), New Duration(New TimeSpan(0, 0, picmove_sec)))
+                                anim_move = New Animation.ThicknessAnimation(New Thickness(0, startpoint, 0, 0), New Thickness(0, -delta, 0, 0), New Duration(New TimeSpan(0, 0, picmove_sec)))
                             Else
                                 tgt_img.VerticalAlignment = Windows.VerticalAlignment.Bottom
-                                anim_move = New Animation.ThicknessAnimation(New Thickness(0, 0, 0, 0), New Thickness(0, 0, 0, -delta), New Duration(New TimeSpan(0, 0, picmove_sec)))
+                                anim_move = New Animation.ThicknessAnimation(New Thickness(0, 0, 0, startpoint), New Thickness(0, 0, 0, -delta), New Duration(New TimeSpan(0, 0, picmove_sec)))
                             End If
                         End If
-
                     End If
                     Animation.Timeline.SetDesiredFrameRate(anim_move, framerate)
-                    'anim_move.EasingFunction = easefunction
+                    tgt_img.Source = pic
 
                     If ran.Next(0, 2) = 0 Then
                         'zoom in
@@ -254,7 +277,6 @@ Class MainWindow
                         '    tgt_img.RenderTransform = tgt_trasform
                     End If
 
-                    tgt_img.Source = pic
                     tgt_img.BeginAnimation(Image.MarginProperty, anim_move, Animation.HandoffBehavior.Compose)
                     tgt_img.BeginAnimation(Image.OpacityProperty, anim_fadein, Animation.HandoffBehavior.Compose)
                 End Sub)
@@ -262,45 +284,73 @@ Class MainWindow
 
             Dim loadtask = Task.Run(
                     Sub()
+                        'Thread.CurrentThread.Priority = ThreadPriority.Lowest
                         If position = ListOfPic.Count Then
                             position = 0
                             tbchkpoint = 1
                         End If
                         Try
-                            pic = New BitmapImage
-                            pic.BeginInit()
-                            pic.CacheOption = BitmapCacheOption.OnLoad
-                            'reading next picture gentaly
-                            'pic.StreamSource = New IO.FileStream(ListOfPic.Values(position), IO.FileMode.Open, IO.FileAccess.Read, IO.FileShare.None)
-                            Using stream = New IO.FileStream(ListOfPic.Values(position), IO.FileMode.Open, IO.FileAccess.Read)
-                                Dim blocksize As Long = Math.Ceiling(stream.Length / 200)
-                                Dim content(stream.Length - 1) As Byte
-                                Do
-                                    If stream.Length - stream.Position < blocksize Then
-                                        stream.Read(content, stream.Position, stream.Length - stream.Position)
-                                    Else
-                                        stream.Read(content, stream.Position, blocksize)
-                                    End If
-                                    Thread.Sleep(10)
-                                Loop Until stream.Position = stream.Length
-                                stream.Position = 0
-                                pic.StreamSource = stream
-                                pic.EndInit()
-                            End Using
-                        Catch ex As Exception
-                            MsgBox("Error loading picture file " & ListOfPic.Values(position) & "." & vbCrLf & ex.Message, MsgBoxStyle.Critical)
-                            Dispatcher.BeginInvoke(Sub() Me.Close())
+                            LoadNextImg()
+                        Catch
+                            pic = BitmapSource.Create(64, 64, 96, 96, PixelFormats.Indexed1, BitmapPalettes.BlackAndWhite, New Byte(64 * 8) {}, 8)
                         Finally
+                            position += 1
                             pic.Freeze()
                         End Try
-                        position += 1
                     End Sub)
 
             Thread.Sleep((picmove_sec - 2) * 1000)
             Dispatcher.Invoke(Sub()
-                                  tgt_img.BeginAnimation(Image.OpacityProperty, anim_fadeout, Animation.HandoffBehavior.Compose)
+                                  tgt_img.BeginAnimation(Image.OpacityProperty, anim_fadeout, Animation.HandoffBehavior.SnapshotAndReplace)
                               End Sub)
             loadtask.Wait()
         Loop
+    End Sub
+
+    Private Sub LoadNextImg()
+        Dim s As Size
+        Using strm = New IO.FileStream(ListOfPic.Values(position), IO.FileMode.Open, IO.FileAccess.Read)
+            Dim frame = BitmapFrame.Create(strm, BitmapCreateOptions.DelayCreation, BitmapCacheOption.None)
+            s = New Size(frame.PixelWidth, frame.PixelHeight)
+        End Using
+
+        pic = New BitmapImage
+        pic.BeginInit()
+        If resolutionLock Then
+            If s.Width > s.Height Then
+                If s.Height > h * 1.2 Then
+                    pic.DecodePixelHeight = h * 1.2
+                End If
+            Else
+                If s.Width > w * 1.2 Then
+                    pic.DecodePixelWidth = w * 1.2
+                End If
+            End If
+        End If
+        pic.CacheOption = BitmapCacheOption.OnLoad
+        Using strm = New IO.FileStream(ListOfPic.Values(position), IO.FileMode.Open, IO.FileAccess.Read)
+            pic.StreamSource = strm
+            pic.EndInit()
+        End Using
+
+        'reading next picture gentaly proved to be futile
+        'pic.StreamSource = New IO.FileStream(ListOfPic.Values(0), IO.FileMode.Open, IO.FileAccess.Read, IO.FileShare.None)
+        'pic.EndInit()
+        'Using stream = New IO.FileStream(ListOfPic.Values(position), IO.FileMode.Open, IO.FileAccess.Read)
+        '    Dim blocksize As Long = Math.Ceiling(stream.Length / 200)
+        '    Dim content(stream.Length - 1) As Byte
+        '    Do
+        '        If stream.Length - stream.Position < blocksize Then
+        '            stream.Read(content, stream.Position, stream.Length - stream.Position)
+        '        Else
+        '            stream.Read(content, stream.Position, blocksize)
+        '        End If
+        '        Thread.Sleep(10)
+        '    Loop Until stream.Position = stream.Length
+        '    stream.Position = 0
+        '    pic.StreamSource = stream
+        '    pic.EndInit()
+        'End Using
+        pic.Freeze()
     End Sub
 End Class

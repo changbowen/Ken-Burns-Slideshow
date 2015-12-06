@@ -13,9 +13,9 @@ Imports System.Windows
 
 <Assembly: AssemblyTitle("Ken_Burns_Slideshow")> 
 <Assembly: AssemblyDescription("")> 
-<Assembly: AssemblyCompany("")> 
+<Assembly: AssemblyCompany("Microsoft")> 
 <Assembly: AssemblyProduct("Ken_Burns_Slideshow")> 
-<Assembly: AssemblyCopyright("")> 
+<Assembly: AssemblyCopyright("Copyright © Microsoft 2015")> 
 <Assembly: AssemblyTrademark("")> 
 <Assembly: ComVisible(false)>
 
@@ -42,7 +42,7 @@ Imports System.Windows
 
 
 '如果此项目向 COM 公开，则下列 GUID 用于类型库的 ID
-<Assembly: Guid("5bb685fa-d09b-455e-a339-f7acd5d11166")> 
+<Assembly: Guid("be34a229-a269-4069-ad57-fc27b8a17c99")> 
 
 ' 程序集的版本信息由下面四个值组成: 
 '
