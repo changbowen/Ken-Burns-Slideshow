@@ -1,0 +1,25 @@
+﻿<Window x:Class="OptWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Runtime Options" Height="259.55" Width="329.213" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded">
+    <Grid>
+        <GroupBox Header="Profiles" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="57" Width="295">
+            <Grid>
+                <RadioButton x:Name="RB_Perf" Content="Performance" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+                <RadioButton x:Name="RB_Qlty" Content="Quality" HorizontalAlignment="Left" Margin="135,10,0,0" VerticalAlignment="Top"/>
+                <RadioButton x:Name="RB_Custom" Content="Custom" HorizontalAlignment="Left" Margin="215,10,0,0" VerticalAlignment="Top" IsChecked="True"/>
+            </Grid>
+        </GroupBox>
+        <GroupBox Header="Details" HorizontalAlignment="Left" Margin="10,72,0,0" VerticalAlignment="Top" Height="139" Width="224">
+            <Grid>
+                <CheckBox x:Name="CB_VerOptm" Content="Vertical Optimize" HorizontalAlignment="Left" Margin="10,49,0,0" VerticalAlignment="Top" ToolTip="Whether to only show the upper / lower part (depending on movement direction) for images with height larger than screen height * 1.5. This is to avoid image moving too fast thus less elegant." IsChecked="True"/>
+                <CheckBox x:Name="CB_HorOptm" Content="Horizontal Optimize" HorizontalAlignment="Left" Margin="10,70,0,0" VerticalAlignment="Top" ToolTip="Whether to only show the left / right part (depending on movement direction) for images with width larger than screen width * 1.5. This is to avoid image moving too fast thus less elegant." IsChecked="True"/>
+                <CheckBox x:Name="CB_VerLk" Content="Vertical Lock" HorizontalAlignment="Left" Margin="10,91,0,0" VerticalAlignment="Top" ToolTip="Whether to lock movement direction to &quot;down only&quot; for images with height larger than screen height * 1.5. This setting suits better for portraits that usually have faces at the upper part of the image." IsChecked="True"/>
+                <CheckBox x:Name="CB_ResLk" Content="Resolution Lock" HorizontalAlignment="Left" Margin="10,7,0,0" VerticalAlignment="Top" ToolTip="Whether to use reduced resolution for images whose longer edge is larger than 1.2 times of screen height / width. This is to reduce flickering when a new image is shown." IsChecked="True"/>
+                <CheckBox x:Name="CB_Fadeout" Content="Use fadeout" HorizontalAlignment="Left" Margin="10,28,0,0" VerticalAlignment="Top" ToolTip="Fading out animation consume more CPU resource but the animation would look better when the next image is extra large. If fadeout is disabled and the program is waiting for the next image to load, instead of a black screen, the last still frame of the last image will be shown." IsChecked="True"/>
+            </Grid>
+        </GroupBox>
+        <Button x:Name="Btn_OK" Content="OK" HorizontalAlignment="Left" Margin="239,149,0,0" VerticalAlignment="Top" Width="66" Height="28" IsDefault="True"/>
+        <Button x:Name="Btn_Cancel" Content="Cancel" HorizontalAlignment="Left" Margin="239,182,0,0" VerticalAlignment="Top" Width="66" Height="28" IsCancel="True"/>
+    </Grid>
+</Window>

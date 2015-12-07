@@ -15,10 +15,11 @@ Class MainWindow
     Dim picmove_sec As Integer = 5
     Dim m As Integer = 0, mm As Integer = 0
     Dim pic As Object
-    Dim verticalLock As Boolean = True
-    Dim resolutionLock As Boolean = True
-    Dim verticalOptimize As Boolean = True
-    Dim horizontalOptimize As Boolean = True
+    Public Shared verticalLock As Boolean = True
+    Public Shared resolutionLock As Boolean = True
+    Public Shared verticalOptimize As Boolean = True
+    Public Shared horizontalOptimize As Boolean = True
+    Public Shared fadeout As Boolean = True
 
     Private Sub Window_Loaded(sender As Object, e As RoutedEventArgs)
         Me.Background = Brushes.Black
@@ -96,6 +97,9 @@ Class MainWindow
         If config.Elements("HorizontalOptimize").Any AndAlso config.Element("HorizontalOptimize").Value.ToLower = "false" Then
             horizontalOptimize = False
         End If
+        If config.Elements("Fadeout").Any AndAlso config.Element("Fadeout").Value.ToLower = "false" Then
+            fadeout = False
+        End If
 
         tb_date0.FontSize = Me.Height / 12
         tb_date1.FontSize = Me.Height / 12
@@ -112,7 +116,7 @@ Class MainWindow
         worker_pic.Start()
     End Sub
 
-    Private Function RandomNum(min As UInteger, max As UInteger, neg As Boolean)
+    Public Function RandomNum(min As UInteger, max As UInteger, neg As Boolean)
         If neg Then
             If ran.Next(0, 2) = 0 Then
                 Return -ran.Next(min, max)
@@ -176,9 +180,6 @@ Class MainWindow
     End Sub
 
     Private Sub mainThrd()
-        Dim anim_move As Animation.ThicknessAnimation
-        Dim anim_zoomx As Animation.DoubleAnimation
-        Dim anim_zoomy As Animation.DoubleAnimation
         Dim tgt_img As Image
         Dim delta As Double
         Dim tbchkpoint As Integer = 1
@@ -188,24 +189,46 @@ Class MainWindow
                 Task.Run(Sub() textThrd(position, tbchkpoint))
             End If
 
-            'switch target
-            If m = 0 Then
-                m = 1
-            Else
-                m = 0
-            End If
-
             Dispatcher.Invoke(
                 Sub()
-                    tgt_img = CType(mainGrid.FindName("slide_img" & m), Image)
+                    Panel.SetZIndex(tb_date0, 2)
+                    Panel.SetZIndex(tb_date1, 3)
+                    Dim tgt_trasform As ScaleTransform
+                    Dim anim_move As Animation.ThicknessAnimation
+                    Dim anim_zoomx As Animation.DoubleAnimation
+                    Dim anim_zoomy As Animation.DoubleAnimation
 
+                    'switch target
+                    If m = 0 Then
+                        m = 1
+                        tgt_img = slide_img1
+                        Panel.SetZIndex(slide_img0, 0)
+                        Panel.SetZIndex(slide_img1, 1)
+                    Else
+                        m = 0
+                        tgt_img = slide_img0
+                        Panel.SetZIndex(slide_img1, 0)
+                        Panel.SetZIndex(slide_img0, 1)
+                    End If
                     If pic.PixelWidth / pic.PixelHeight > w / h Then
                         'width is the longer edge comparing to the size of the monitor
                         tgt_img.Height = h
                         tgt_img.Width = tgt_img.Height * pic.PixelWidth / pic.PixelHeight
-                        delta = tgt_img.Width - w
-                        'second = Math.Abs(delta) / 40
-                        'If second < 5 Then second = 5
+                        If ran.Next(0, 2) = 0 Then
+                            'zoom in
+                            delta = tgt_img.Width * 1.2 - w
+                            anim_zoomx = New Animation.DoubleAnimation(1.2, New Duration(New TimeSpan(0, 0, picmove_sec)))
+                            anim_zoomy = New Animation.DoubleAnimation(1.2, New Duration(New TimeSpan(0, 0, picmove_sec)))
+                            tgt_trasform = New ScaleTransform(1, 1)
+                            tgt_img.RenderTransform = tgt_trasform
+                        Else
+                            'zoom out
+                            delta = tgt_img.Width - w
+                            anim_zoomx = New Animation.DoubleAnimation(1, New Duration(New TimeSpan(0, 0, picmove_sec)))
+                            anim_zoomy = New Animation.DoubleAnimation(1, New Duration(New TimeSpan(0, 0, picmove_sec)))
+                            tgt_trasform = New ScaleTransform(1.2, 1.2)
+                            tgt_img.RenderTransform = tgt_trasform
+                        End If
 
                         Dim startpoint As Double
                         If horizontalOptimize AndAlso delta > w / 2 Then
@@ -215,18 +238,32 @@ Class MainWindow
                         End If
                         If ran.Next(0, 2) = 0 Then 'means 0<=ran<2
                             tgt_img.HorizontalAlignment = Windows.HorizontalAlignment.Left
+                            tgt_img.RenderTransformOrigin = New Point(0, 0.5)
                             anim_move = New Animation.ThicknessAnimation(New Thickness(startpoint, 0, 0, 0), New Thickness(-delta, 0, 0, 0), New Duration(New TimeSpan(0, 0, picmove_sec)))
                         Else
                             tgt_img.HorizontalAlignment = Windows.HorizontalAlignment.Right
+                            tgt_img.RenderTransformOrigin = New Point(1, 0.5)
                             anim_move = New Animation.ThicknessAnimation(New Thickness(0, 0, startpoint, 0), New Thickness(0, 0, -delta, 0), New Duration(New TimeSpan(0, 0, picmove_sec)))
                         End If
                     Else
                         'height is the longer edge comparing to the size of the monitor
                         tgt_img.Width = w
                         tgt_img.Height = tgt_img.Width / pic.PixelWidth * pic.PixelHeight
-                        delta = tgt_img.Height - h
-                        'second = Math.Abs(delta) / 40
-                        'If second < 5 Then second = 5
+                        If ran.Next(0, 2) = 0 Then
+                            'zoom in
+                            delta = tgt_img.Height * 1.2 - h
+                            anim_zoomx = New Animation.DoubleAnimation(1.2, New Duration(New TimeSpan(0, 0, picmove_sec)))
+                            anim_zoomy = New Animation.DoubleAnimation(1.2, New Duration(New TimeSpan(0, 0, picmove_sec)))
+                            tgt_trasform = New ScaleTransform(1, 1)
+                            tgt_img.RenderTransform = tgt_trasform
+                        Else
+                            'zoom out
+                            delta = tgt_img.Height - h
+                            anim_zoomx = New Animation.DoubleAnimation(1, New Duration(New TimeSpan(0, 0, picmove_sec)))
+                            anim_zoomy = New Animation.DoubleAnimation(1, New Duration(New TimeSpan(0, 0, picmove_sec)))
+                            tgt_trasform = New ScaleTransform(1.2, 1.2)
+                            tgt_img.RenderTransform = tgt_trasform
+                        End If
 
                         Dim startpoint As Double
                         If verticalOptimize AndAlso delta > h / 2 Then
@@ -237,46 +274,27 @@ Class MainWindow
                         If verticalLock Then
                             'only move down for pics with height larger than 1.5 * screen height after converted to same width as screen
                             tgt_img.VerticalAlignment = Windows.VerticalAlignment.Bottom
+                            tgt_img.RenderTransformOrigin = New Point(0.5, 1) 'this and above line is to make transform align with bottom
                             anim_move = New Animation.ThicknessAnimation(New Thickness(0, 0, 0, startpoint), New Thickness(0, 0, 0, -delta), New Duration(New TimeSpan(0, 0, picmove_sec)))
                         Else
                             If ran.Next(0, 2) = 0 Then
                                 tgt_img.VerticalAlignment = Windows.VerticalAlignment.Top
+                                tgt_img.RenderTransformOrigin = New Point(0.5, 0) 'this and above line is to make transform align with top
                                 anim_move = New Animation.ThicknessAnimation(New Thickness(0, startpoint, 0, 0), New Thickness(0, -delta, 0, 0), New Duration(New TimeSpan(0, 0, picmove_sec)))
                             Else
                                 tgt_img.VerticalAlignment = Windows.VerticalAlignment.Bottom
+                                tgt_img.RenderTransformOrigin = New Point(0.5, 1)
                                 anim_move = New Animation.ThicknessAnimation(New Thickness(0, 0, 0, startpoint), New Thickness(0, 0, 0, -delta), New Duration(New TimeSpan(0, 0, picmove_sec)))
                             End If
                         End If
                     End If
-                    Animation.Timeline.SetDesiredFrameRate(anim_move, framerate)
                     tgt_img.Source = pic
 
-                    If ran.Next(0, 2) = 0 Then
-                        'zoom in
-                        anim_zoomx = New Animation.DoubleAnimation(1.2, New Duration(New TimeSpan(0, 0, picmove_sec)))
-                        anim_zoomy = New Animation.DoubleAnimation(1.2, New Duration(New TimeSpan(0, 0, picmove_sec)))
-                        Animation.Timeline.SetDesiredFrameRate(anim_zoomx, framerate)
-                        Animation.Timeline.SetDesiredFrameRate(anim_zoomy, framerate)
-                        Dim tgt_trasform = New ScaleTransform(1, 1, tgt_img.Width / 2, tgt_img.Height / 2)
-                        tgt_img.RenderTransform = tgt_trasform
-                        tgt_trasform.BeginAnimation(ScaleTransform.ScaleXProperty, anim_zoomx)
-                        tgt_trasform.BeginAnimation(ScaleTransform.ScaleYProperty, anim_zoomy)
-                    Else
-                        'zoom out
-                        anim_zoomx = New Animation.DoubleAnimation(1, New Duration(New TimeSpan(0, 0, picmove_sec)))
-                        anim_zoomy = New Animation.DoubleAnimation(1, New Duration(New TimeSpan(0, 0, picmove_sec)))
-                        Animation.Timeline.SetDesiredFrameRate(anim_zoomx, framerate)
-                        Animation.Timeline.SetDesiredFrameRate(anim_zoomy, framerate)
-                        Dim tgt_trasform = New ScaleTransform(1.2, 1.2, tgt_img.Width / 2, tgt_img.Height / 2)
-                        tgt_img.RenderTransform = tgt_trasform
-                        tgt_trasform.BeginAnimation(ScaleTransform.ScaleXProperty, anim_zoomx)
-                        tgt_trasform.BeginAnimation(ScaleTransform.ScaleYProperty, anim_zoomy)
-                        'Else
-                        '    'no zoom
-                        '    Dim tgt_trasform = New ScaleTransform(1, 1, tgt_img.Width / 2, tgt_img.Height / 2)
-                        '    tgt_img.RenderTransform = tgt_trasform
-                    End If
-
+                    Animation.Timeline.SetDesiredFrameRate(anim_move, framerate)
+                    Animation.Timeline.SetDesiredFrameRate(anim_zoomx, framerate)
+                    Animation.Timeline.SetDesiredFrameRate(anim_zoomy, framerate)
+                    tgt_trasform.BeginAnimation(ScaleTransform.ScaleXProperty, anim_zoomx)
+                    tgt_trasform.BeginAnimation(ScaleTransform.ScaleYProperty, anim_zoomy)
                     tgt_img.BeginAnimation(Image.MarginProperty, anim_move, Animation.HandoffBehavior.Compose)
                     tgt_img.BeginAnimation(Image.OpacityProperty, anim_fadein, Animation.HandoffBehavior.Compose)
                 End Sub)
@@ -300,9 +318,11 @@ Class MainWindow
                     End Sub)
 
             Thread.Sleep((picmove_sec - 2) * 1000)
-            Dispatcher.Invoke(Sub()
-                                  tgt_img.BeginAnimation(Image.OpacityProperty, anim_fadeout, Animation.HandoffBehavior.SnapshotAndReplace)
-                              End Sub)
+            If fadeout Then
+                Dispatcher.Invoke(Sub()
+                                      tgt_img.BeginAnimation(Image.OpacityProperty, anim_fadeout, Animation.HandoffBehavior.Compose)
+                                  End Sub)
+            End If
             loadtask.Wait()
         Loop
     End Sub
@@ -352,5 +372,13 @@ Class MainWindow
         '    pic.EndInit()
         'End Using
         pic.Freeze()
+    End Sub
+
+    Private Sub Window_PreviewKeyUp(sender As Object, e As KeyEventArgs)
+        If e.Key = Key.F12 Then
+            Dim optwin As New OptWindow
+            optwin.ShowDialog()
+            optwin.Close()
+        End If
     End Sub
 End Class
