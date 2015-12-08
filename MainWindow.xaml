@@ -3,8 +3,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="MainWindow" Height="350" Width="525" Background="{x:Null}" Loaded="Window_Loaded" WindowState="Maximized" AllowsTransparency="True" WindowStyle="None" PreviewKeyUp="Window_PreviewKeyUp">
     <Grid x:Name="mainGrid">
-        <Image x:Name="slide_img0" VerticalAlignment="Top" HorizontalAlignment="Left"/>
-        <Image x:Name="slide_img1" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+        <Image x:Name="slide_img0" VerticalAlignment="Top" HorizontalAlignment="Left" RenderOptions.BitmapScalingMode="HighQuality"/>
+        <Image x:Name="slide_img1" VerticalAlignment="Top" HorizontalAlignment="Left" RenderOptions.BitmapScalingMode="HighQuality"/>
         <TextBlock x:Name="tb_date0" HorizontalAlignment="Left" VerticalAlignment="Top" FontFamily="Georgia" FontStyle="Italic" Foreground="White">
             <TextBlock.Effect>
                 <DropShadowEffect ShadowDepth="2" Opacity="0.8"/>

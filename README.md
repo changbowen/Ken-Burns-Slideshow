@@ -19,6 +19,11 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
 </ul>
 ## Updates
 <ul>
+	<li>2015-12-08
+	<ul>
+		<li>Changed bitmap scaling option to high quality.</li>
+	</ul>
+	</li>
 	<li>2015-12-07
 	<ul>
 		<li>Fixed images not being displayed fully.</li>
