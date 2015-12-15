@@ -47,4 +47,8 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
 <ul>
 	<li>The config.xml file serves as a configuration that is loaded at program start. Paths and other settings can be changed to local / relative path according to the location of the folders on your system.</li>
 	<li>Press F12 at runtime for options.</li>
+	<li>Please enclose the folder path with <![CDATA[        ]]> when the path contains markup chars in XML like &. Example:</li>
+	<ul>
+		<li><![CDATA[F:\folder with & in name\images]]></li>
+	</ul>
 </ul>
