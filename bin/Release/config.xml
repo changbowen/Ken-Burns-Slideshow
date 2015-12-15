@@ -2,14 +2,20 @@
 <root>
   <Framerate>60</Framerate>
   <PicDir>
-    <dir>F:\sample folder</dir>
+    <dir>
+      <![CDATA[F:\folder 1]]>
+    </dir>
+    <dir>
+      <![CDATA[F:\folder 2]]>
+    </dir>
   </PicDir>
   <Music>
-    <dir>F:\sample folder BGM</dir>
+    <dir>
+      <![CDATA[F:\folder bgm]]>
+    </dir>
   </Music>
   <!--Duration for each image. Takes integers that are equals or larger than 4. If not, program will use default 5.-->
   <Duration>6</Duration>
-  
   <!--The following options can be changed by pressing F12 at runtime.-->
   <!--Whether to only show the upper / lower part (depending on movement direction) for images with height larger than screen height * 1.5. This is to avoid image moving too fast thus less elegant.-->
   <VerticalOptimize>True</VerticalOptimize>
@@ -20,5 +26,5 @@
   <!--Whether to use reduced resolution for images whose longer edge is larger than 1.2 times of screen height / width. This is to reduce flickering when a new image is shown.-->
   <ResolutionLock>True</ResolutionLock>
   <!--Fading out animation consume more CPU resource but the animation would look better when the next image is extra large. If fadeout is disabled and the program is waiting for the next image to load, instead of a black screen, the last still frame of the last image will be shown.-->
-  <Fadeout>True</Fadeout>
+  <Fadeout>False</Fadeout>
 </root>
