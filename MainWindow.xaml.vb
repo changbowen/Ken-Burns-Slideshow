@@ -134,10 +134,14 @@ Class MainWindow
             'determining future pics with same year and month
             Dim tmpdate = Date.Parse(ListOfPic.Keys(pos - 1)).ToString("yyyy.M")
             Dim tbmove_sec = picmove_sec
-            For n = 1 To ListOfPic.Count - pos
+            For n = 1 To ListOfPic.Count - pos 'not running if it is the last pic as ListOfPic.Count-pos=0
                 If Not ListOfPic.Keys(pos - 1 + n).StartsWith("NON-DATE_") Then
                     If Date.Parse(ListOfPic.Keys(pos - 1 + n)).ToString("yyyy.M") = tmpdate Then
                         tbmove_sec += (picmove_sec - 1)
+                        output = pos + n
+                        If output = ListOfPic.Count Then
+                            output = ListOfPic.Count + 1
+                        End If
                     Else
                         output = pos + n
                         Exit For
