@@ -2,8 +2,11 @@
 Create instant & real-time full-screen slideshow with the Ken Burns effect for a set of images.
 ## Motivation
 This idea came to me while watching a slideshow on iPad. How nice would it be if we can create instant slideshows on a Windows machine with only a single executable and a folder of images.
-## Screenshot
-<img class="alignnone size-full wp-image-8" src="http://carlchang.blog.com/files/2015/12/无标题.png" alt="" width="649" height="366" />
+## Preview
+- <img class="alignnone size-full wp-image-8" src="http://carlchang.blog.com/files/2015/12/无标题.png" alt="" width="649" height="366" />
+- Youtube video
+  - https://youtu.be/zyt4tWciIdQ
+
 ## Language &amp; Requirement
 - WPF application written in VB.net
 - .Net framework 4.5 or above.
