@@ -37,3 +37,4 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
 - Press F12 at runtime for options.
 - Please enclose the folder path with `<![CDATA[     ]]>` when the path contains markup chars in XML like &.
   - Example: `<![CDATA[F:\Folder with & in name\images]]>`
+- Animation is not as smooth when Windows Aero is turned off on Windows 7.
