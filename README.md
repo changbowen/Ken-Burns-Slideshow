@@ -6,6 +6,8 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
 - <img class="alignnone size-full wp-image-8" src="http://carlchang.blog.com/files/2015/12/无标题.png" alt="" width="649" height="366" />
 - Youtube video
   - https://youtu.be/zyt4tWciIdQ
+- Youku video (for China)
+  - http://v.youku.com/v_show/id_XMTQzODcxNDc4MA==.html
 
 ## Language &amp; Requirement
 - WPF application written in VB.net
