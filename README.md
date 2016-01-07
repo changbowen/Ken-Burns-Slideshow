@@ -16,6 +16,8 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
 - Options to load large images at lower resolution to improve performance.
 
 ## Updates
+- 2016-01-06
+  - Now mouse cursor will be hidden while slideshow is playing.
 - 2015-12-08
   - Changed bitmap scaling option to high quality.
 - 2015-12-07
