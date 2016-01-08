@@ -296,7 +296,7 @@ Class MainWindow
                         Else
                             startpoint = 0
                         End If
-                        If verticalLock Then
+                        If verticalLock AndAlso tgt_img.Height > h * 1.5 Then
                             'only move down for pics with height larger than 1.5 * screen height after converted to same width as screen
                             tgt_img.VerticalAlignment = Windows.VerticalAlignment.Bottom
                             tgt_img.RenderTransformOrigin = New Point(0.5, 1) 'this and above line is to make transform align with bottom

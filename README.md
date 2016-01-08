@@ -1,4 +1,4 @@
-# Ken Burns Slideshow
+﻿# Ken Burns Slideshow
 Create instant & real-time full-screen slideshow with the Ken Burns effect for a set of images.
 ## Motivation
 This idea came to me while watching a slideshow on iPad. How nice would it be if we can create instant slideshows on a Windows machine with only a single executable and a folder of images.
@@ -23,6 +23,7 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
 ## Updates
 - 2016-01-08
   - Fixed animation not being displayed correctly when last few dates share the same month value.
+  - Fixed animation not being displayed correctly when vertical lock is on.
 - 2016-01-06
   - Now mouse cursor will be hidden while slideshow is playing.
 - 2015-12-08
