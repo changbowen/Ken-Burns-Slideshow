@@ -20,6 +20,22 @@ Class MainWindow
     Public Shared verticalOptimize As Boolean = True
     Public Shared horizontalOptimize As Boolean = True
     Public Shared fadeout As Boolean = True
+    Private Declare Function SetThreadExecutionState Lib "kernel32" (ByVal esFlags As EXECUTION_STATE) As EXECUTION_STATE
+    Dim ExecState_Set As Boolean
+    Private Enum EXECUTION_STATE As Integer
+        ''' <summary>
+        ''' Informs the system that the state being set should remain in effect until the next call that uses ES_CONTINUOUS and one of the other state flags is cleared.
+        ''' </summary>
+        ES_CONTINUOUS = &H80000000
+        ''' <summary>
+        ''' Forces the display to be on by resetting the display idle timer.
+        ''' </summary>
+        ES_DISPLAY_REQUIRED = &H2
+        ''' <summary>
+        ''' Forces the system to be in the working state by resetting the system idle timer.
+        ''' </summary>
+        ES_SYSTEM_REQUIRED = &H1
+    End Enum
 
     Private Sub Window_Loaded(sender As Object, e As RoutedEventArgs)
         Me.Background = Brushes.Black
@@ -114,6 +130,11 @@ Class MainWindow
         worker_pic.IsBackground = True
         worker_pic.Priority = ThreadPriority.BelowNormal
         worker_pic.Start()
+
+        'disabling sleep / screensaver
+        'this seems to be unnecessary on the dev PC as the sleep timers are ignored anyway without the following two lines.
+        SetThreadExecutionState(EXECUTION_STATE.ES_SYSTEM_REQUIRED Or EXECUTION_STATE.ES_DISPLAY_REQUIRED Or EXECUTION_STATE.ES_CONTINUOUS)
+        ExecState_Set = True
     End Sub
 
     Public Function RandomNum(min As UInteger, max As UInteger, neg As Boolean)
@@ -384,5 +405,9 @@ Class MainWindow
             optwin.ShowDialog()
             optwin.Close()
         End If
+    End Sub
+
+    Private Sub Window_Closing(sender As Object, e As ComponentModel.CancelEventArgs)
+        If ExecState_Set Then SetThreadExecutionState(EXECUTION_STATE.ES_CONTINUOUS)
     End Sub
 End Class
