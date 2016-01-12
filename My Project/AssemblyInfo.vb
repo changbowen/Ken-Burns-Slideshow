@@ -13,7 +13,7 @@ Imports System.Windows
 
 <Assembly: AssemblyTitle("Ken_Burns_Slideshow")> 
 <Assembly: AssemblyDescription("")> 
-<Assembly: AssemblyCompany("Microsoft")> 
+<Assembly: AssemblyCompany("")> 
 <Assembly: AssemblyProduct("Ken_Burns_Slideshow")> 
 <Assembly: AssemblyCopyright("Copyright © Microsoft 2015")> 
 <Assembly: AssemblyTrademark("")> 

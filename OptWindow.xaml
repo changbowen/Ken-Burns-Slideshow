@@ -1,25 +1,61 @@
-﻿<Window x:Class="OptWindow"
+﻿<Window
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="Runtime Options" Height="259.55" Width="329.213" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded">
-    <Grid>
-        <GroupBox Header="Profiles" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="57" Width="295">
-            <Grid>
-                <RadioButton x:Name="RB_Perf" Content="Performance" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-                <RadioButton x:Name="RB_Qlty" Content="Quality" HorizontalAlignment="Left" Margin="135,10,0,0" VerticalAlignment="Top"/>
-                <RadioButton x:Name="RB_Custom" Content="Custom" HorizontalAlignment="Left" Margin="215,10,0,0" VerticalAlignment="Top" IsChecked="True"/>
+    xmlns:local="clr-namespace:Ken_Burns_Slideshow" x:Class="OptWindow"
+    Title="Options" Height="394.55" Width="422.213" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded">
+    <Canvas>
+        <GroupBox Header="Profiles" HorizontalAlignment="Left" VerticalAlignment="Top" Height="79" Width="108" Canvas.Left="287" Canvas.Top="161">
+            <StackPanel>
+                <RadioButton x:Name="RB_Perf" Content="Performance" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,2,0,0"/>
+                <RadioButton x:Name="RB_Qlty" Content="Quality" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Column="1" Margin="0,2,0,0"/>
+                <RadioButton x:Name="RB_Custom" Content="Custom" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Column="2" IsChecked="True" Margin="0,2,0,0"/>
+            </StackPanel>
+        </GroupBox>
+        <GroupBox Header="Details" HorizontalAlignment="Left" VerticalAlignment="Top" Height="187" Width="272" Canvas.Left="10" Canvas.Top="161">
+            <Grid Margin="5,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="149*"/>
+                    <ColumnDefinition Width="101*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Framerate" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,5"/>
+                <TextBox x:Name="TB_Framerate" VerticalAlignment="Center" Width="42" HorizontalAlignment="Right" Padding="1,0" Margin="0,0,10,0" ToolTip="Normally changing FPS will only make it worse."/>
+                <TextBlock Text="Duration (&gt;4s)" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="1" Margin="0,5"/>
+                <TextBox x:Name="TB_Duration" VerticalAlignment="Center" Width="42" HorizontalAlignment="Right" Padding="1,0" Grid.Row="1" ToolTip="Determine FOR THE NEXT RUN how long in seconds each image will be shown (including fade time)." Margin="0,0,10,0"/>
+                <CheckBox x:Name="CB_ResLk" Content="Resolution Lock" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Whether to use reduced resolution for images whose longer edge is larger than 1.2 times of screen height / width.&#10;This is to reduce flickering when a new image is shown." IsChecked="True" Grid.Row="2"/>
+                <CheckBox x:Name="CB_Fadeout" Content="Use fadeout" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Fading out animation consumes more CPU resource&#10;but the animation would look better when the next image is extra large.&#10;If fadeout is disabled and the program is waiting for the next image to load,&#10;instead of a black screen, the last still frame of the last image will be shown." IsChecked="True" Grid.Row="3"/>
+                <CheckBox x:Name="CB_VerOptm" Content="Vertical Optimize" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Whether to only show the upper / lower part (depending on movement direction)&#10;for movement distance of animation larger than screen height / 1.5.&#10;This is to avoid image moving too fast thus less elegant." IsChecked="True" Grid.Row="4"/>
+                <CheckBox x:Name="CB_HorOptm" Content="Horizontal Optimize" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Whether to only show the left / right part (depending on movement direction)&#10;for movement distance of animation larger than screen height / 1.5.&#10;This is to avoid image moving too fast thus less elegant." IsChecked="True" Grid.Row="5"/>
+                <CheckBox x:Name="CB_VerLk" Content="Vertical Lock" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Whether to lock movement direction to &quot;down only&quot; for images with height larger than screen height * 1.5.&#10;This setting suits better for portraits that usually have faces at the upper part of the image." IsChecked="True" Grid.Row="6"/>
+                <TextBox x:Name="TB_VORatio" HorizontalAlignment="Right" VerticalAlignment="Center" Width="27" ToolTip="Determine how much of the image to be shown while Vertical Optimize is in effect." Padding="1,0" Grid.Column="1" Grid.Row="4"/>
+                <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="Ratio (0 - 1)" VerticalAlignment="Center" Grid.Column="1" Grid.Row="4"/>
+                <TextBox x:Name="TB_HORatio" HorizontalAlignment="Right" VerticalAlignment="Center" Width="27" ToolTip="Determine how much of the image to be shown while Horizontal Optimize is in effect." Padding="1,0" Grid.Column="1" Grid.Row="5"/>
+                <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="Ratio (0 - 1)" VerticalAlignment="Center" Grid.Column="1" Grid.Row="5"/>
             </Grid>
         </GroupBox>
-        <GroupBox Header="Details" HorizontalAlignment="Left" Margin="10,72,0,0" VerticalAlignment="Top" Height="139" Width="224">
-            <Grid>
-                <CheckBox x:Name="CB_VerOptm" Content="Vertical Optimize" HorizontalAlignment="Left" Margin="10,49,0,0" VerticalAlignment="Top" ToolTip="Whether to only show the upper / lower part (depending on movement direction) for images with height larger than screen height * 1.5. This is to avoid image moving too fast thus less elegant." IsChecked="True"/>
-                <CheckBox x:Name="CB_HorOptm" Content="Horizontal Optimize" HorizontalAlignment="Left" Margin="10,70,0,0" VerticalAlignment="Top" ToolTip="Whether to only show the left / right part (depending on movement direction) for images with width larger than screen width * 1.5. This is to avoid image moving too fast thus less elegant." IsChecked="True"/>
-                <CheckBox x:Name="CB_VerLk" Content="Vertical Lock" HorizontalAlignment="Left" Margin="10,91,0,0" VerticalAlignment="Top" ToolTip="Whether to lock movement direction to &quot;down only&quot; for images with height larger than screen height * 1.5. This setting suits better for portraits that usually have faces at the upper part of the image." IsChecked="True"/>
-                <CheckBox x:Name="CB_ResLk" Content="Resolution Lock" HorizontalAlignment="Left" Margin="10,7,0,0" VerticalAlignment="Top" ToolTip="Whether to use reduced resolution for images whose longer edge is larger than 1.2 times of screen height / width. This is to reduce flickering when a new image is shown." IsChecked="True"/>
-                <CheckBox x:Name="CB_Fadeout" Content="Use fadeout" HorizontalAlignment="Left" Margin="10,28,0,0" VerticalAlignment="Top" ToolTip="Fading out animation consume more CPU resource but the animation would look better when the next image is extra large. If fadeout is disabled and the program is waiting for the next image to load, instead of a black screen, the last still frame of the last image will be shown." IsChecked="True"/>
-            </Grid>
+        <Button x:Name="Btn_OK" Content="OK" HorizontalAlignment="Left" VerticalAlignment="Top" Width="108" Height="28" IsDefault="True" Canvas.Left="287" Canvas.Top="287"/>
+        <Button x:Name="Btn_Cancel" Content="Cancel" HorizontalAlignment="Left" VerticalAlignment="Top" Width="108" Height="28" IsCancel="True" Canvas.Left="287" Canvas.Top="320"/>
+        <GroupBox Header="Image Folders" HorizontalAlignment="Left" VerticalAlignment="Top" Height="146" Width="190" Canvas.Left="10" Canvas.Top="10">
+            <Canvas>
+                <ListBox x:Name="LB_ImgFolder" Height="97" Width="178" ToolTip="Folders containing images that will be loaded IN THE NEXT RUN."/>
+                <Button x:Name="Btn_Img_Add" Content="Add" Canvas.Top="102" Width="85"/>
+                <Button x:Name="Btn_Img_Rmv" Content="Remove" Canvas.Top="102" Width="85" Canvas.Left="93"/>
+            </Canvas>
         </GroupBox>
-        <Button x:Name="Btn_OK" Content="OK" HorizontalAlignment="Left" Margin="239,149,0,0" VerticalAlignment="Top" Width="66" Height="28" IsDefault="True"/>
-        <Button x:Name="Btn_Cancel" Content="Cancel" HorizontalAlignment="Left" Margin="239,182,0,0" VerticalAlignment="Top" Width="66" Height="28" IsCancel="True"/>
-    </Grid>
+        <GroupBox Header="Music Folders" HorizontalAlignment="Left" VerticalAlignment="Top" Height="146" Width="190" Canvas.Left="205" Canvas.Top="10">
+            <Canvas>
+                <ListBox x:Name="LB_BGMFolder" Height="97" Width="178" ToolTip="Folders containing music that will be loaded IN THE NEXT RUN."/>
+                <Button x:Name="Btn_BGM_Add" Content="Add" Canvas.Top="102" Width="85"/>
+                <Button x:Name="Btn_BGM_Rmv" Content="Remove" Canvas.Top="102" Width="85" Canvas.Left="93"/>
+            </Canvas>
+        </GroupBox>
+    </Canvas>
 </Window>

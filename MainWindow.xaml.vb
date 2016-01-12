@@ -4,7 +4,6 @@ Class MainWindow
     Dim ListOfPic As New Dictionary(Of String, String)
     Dim PicFormats() As String = {".jpg", ".jpeg", ".bmp", ".png", ".tif", ".tiff"}
     Dim ListOfMusic As New List(Of String)
-    Dim framerate As Integer = 60
     Dim ran As New Random
     Dim anim_fadein As New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 1)))
     Dim anim_fadeout As New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1)))
@@ -12,14 +11,20 @@ Class MainWindow
     Dim playing As Integer = 0
     Dim w, h As Double
     Dim position As Integer = 0
-    Dim picmove_sec As Integer = 5
     Dim m As Integer = 0, mm As Integer = 0
     Dim pic As Object
+    Dim picmove_sec As UInteger = 7
+    Public Shared framerate As UInteger = 60
+    Public Shared duration As UInteger = 7 'this only serves as a store. program will read duration value from picmove_sec.
+    Public Shared folders_image As New List(Of String)
+    Public Shared folders_music As New List(Of String)
     Public Shared verticalLock As Boolean = True
     Public Shared resolutionLock As Boolean = True
     Public Shared verticalOptimize As Boolean = True
     Public Shared horizontalOptimize As Boolean = True
-    Public Shared fadeout As Boolean = True
+    Public Shared fadeout As Boolean = False
+    Public Shared verticalOptimizeR As Double = 0.4
+    Public Shared horizontalOptimizeR As Double = 0.4
     Private Declare Function SetThreadExecutionState Lib "kernel32" (ByVal esFlags As EXECUTION_STATE) As EXECUTION_STATE
     Dim ExecState_Set As Boolean
     Private Enum EXECUTION_STATE As Integer
@@ -38,48 +43,67 @@ Class MainWindow
     End Enum
 
     Private Sub Window_Loaded(sender As Object, e As RoutedEventArgs)
-        Me.Background = Brushes.Black
-        Me.Topmost = False
         w = Me.Width
         h = Me.Height
 
+        'loading config.xml
         Dim config As XElement
-        If My.Computer.FileSystem.FileExists("config.xml") Then
-            config = XElement.Load("config.xml")
-        Else
-            MsgBox("Config.xml file is not found at application root.", MsgBoxStyle.Exclamation)
-            Me.Close()
-            Exit Sub
-        End If
+        Do
+            Try
+                config = XElement.Load("config.xml")
+                Exit Do
+            Catch
+                If MsgBox("Error loading configuration. Would you like to open settings?", MsgBoxStyle.Question + MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
+                    Dim optwin As New OptWindow
+                    optwin.ShowDialog()
+                    optwin.Close()
+                Else
+                    Me.Close()
+                    Exit Sub
+                End If
+            End Try
+        Loop
 
-        framerate = config.Element("Framerate").Value
-        Animation.Timeline.SetDesiredFrameRate(anim_fadein, framerate)
-        Animation.Timeline.SetDesiredFrameRate(anim_fadeout, framerate)
-
-        For Each ele In config.Element("PicDir").Elements
-            If My.Computer.FileSystem.DirectoryExists(ele.Value) Then
-                For Each f In My.Computer.FileSystem.GetFiles(ele.Value)
-                    Dim filefullname = My.Computer.FileSystem.GetName(f)
-                    Dim filename = IO.Path.GetFileNameWithoutExtension(filefullname)
-                    Dim ext = IO.Path.GetExtension(filefullname)
-                    If PicFormats.Contains(ext.ToLower) Then
-                        Dim tmpdate As Date
-                        If DateTime.TryParse(filename, tmpdate) Then
-                            ListOfPic.Add(DateTime.Parse(filename).ToString, f)
-                        Else
-                            ListOfPic.Add("NON-DATE_" & filename, f)
+        'loading image list
+        Do
+            folders_image.Clear()
+            For Each ele In config.Element("PicDir").Elements
+                folders_image.Add(ele.Value)
+                If My.Computer.FileSystem.DirectoryExists(ele.Value) Then
+                    For Each f In My.Computer.FileSystem.GetFiles(ele.Value)
+                        Dim filefullname = My.Computer.FileSystem.GetName(f)
+                        Dim filename = IO.Path.GetFileNameWithoutExtension(filefullname)
+                        Dim ext = IO.Path.GetExtension(filefullname)
+                        If PicFormats.Contains(ext.ToLower) Then
+                            Dim tmpdate As Date
+                            If DateTime.TryParse(filename, tmpdate) Then
+                                ListOfPic.Add(DateTime.Parse(filename).ToString, f)
+                            Else
+                                ListOfPic.Add("NON-DATE_" & filename, f)
+                            End If
                         End If
-                    End If
-                Next
+                    Next
+                End If
+            Next
+            If ListOfPic.Count = 0 Then
+                If MsgBox("No pictures are found in specified folders. Would you like to open settings?", MsgBoxStyle.Question + MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
+                    Dim optwin As New OptWindow
+                    optwin.ShowDialog()
+                    optwin.Close()
+                    config = XElement.Load("config.xml")
+                Else
+                    Me.Close()
+                    Exit Sub
+                End If
+            Else
+                Exit Do
             End If
-        Next
-        If ListOfPic.Count = 0 Then
-            MsgBox("No pictures are found in specified folders. Please check the config file.", MsgBoxStyle.Exclamation)
-            Me.Close()
-            Exit Sub
-        End If
+        Loop
 
+        'loading music list
+        folders_music.Clear()
         For Each ele In config.Element("Music").Elements
+            folders_music.Add(ele.Value)
             If My.Computer.FileSystem.DirectoryExists(ele.Value) Then
                 For Each f In My.Computer.FileSystem.GetFiles(ele.Value)
                     ListOfMusic.Add(f)
@@ -97,8 +121,11 @@ Class MainWindow
                                           End Sub
         End If
 
+        'loading other settings
+        If config.Elements("Framerate").Any Then framerate = config.Element("Framerate").Value
         If config.Elements("Duration").Any Then
-            Dim tmp = CInt(config.Element("Duration").Value)
+            Dim tmp = Convert.ToUInt32(config.Element("Duration").Value)
+            duration = tmp
             If tmp >= 4 Then picmove_sec = tmp
         End If
         If config.Elements("VerticalLock").Any AndAlso config.Element("VerticalLock").Value.ToLower = "false" Then
@@ -116,6 +143,8 @@ Class MainWindow
         If config.Elements("Fadeout").Any AndAlso config.Element("Fadeout").Value.ToLower = "false" Then
             fadeout = False
         End If
+        If config.Elements("VerticalOptimizeRatio").Any Then verticalOptimizeR = config.Element("VerticalOptimizeRatio").Value
+        If config.Elements("HorizontalOptimizeRatio").Any Then horizontalOptimizeR = config.Element("HorizontalOptimizeRatio").Value
 
         tb_date0.FontSize = Me.Height / 12
         tb_date1.FontSize = Me.Height / 12
@@ -123,8 +152,8 @@ Class MainWindow
         'loading first picture
         LoadNextImg()
         position += 1
-        'CType(mainGrid.FindName("slide_img0"), Image).Source = pic
-        'CType(mainGrid.FindName("slide_img1"), Image).Source = pic
+
+        Me.Background = Brushes.Black
 
         Dim worker_pic As New Thread(AddressOf mainThrd)
         worker_pic.IsBackground = True
@@ -256,19 +285,24 @@ Class MainWindow
                         End If
 
                         Dim startpoint As Double
-                        If horizontalOptimize AndAlso delta > w / 2 Then
-                            startpoint = -delta / 2
+                        If horizontalOptimize AndAlso delta > w / 1.5 Then
+                            startpoint = delta * horizontalOptimizeR
+                            If startpoint > tgt_img.Width - w Then
+                                startpoint = tgt_img.Width - w
+                            End If
                         Else
                             startpoint = 0
                         End If
+
+                        'move up or down
                         If ran.Next(0, 2) = 0 Then 'means 0<=ran<2
                             tgt_img.HorizontalAlignment = Windows.HorizontalAlignment.Left
                             tgt_img.RenderTransformOrigin = New Point(0, 0.5)
-                            anim_move = New Animation.ThicknessAnimation(New Thickness(startpoint, 0, 0, 0), New Thickness(-delta, 0, 0, 0), New Duration(New TimeSpan(0, 0, picmove_sec)))
+                            anim_move = New Animation.ThicknessAnimation(New Thickness(-startpoint, 0, 0, 0), New Thickness(-delta, 0, 0, 0), New Duration(New TimeSpan(0, 0, picmove_sec)))
                         Else
                             tgt_img.HorizontalAlignment = Windows.HorizontalAlignment.Right
                             tgt_img.RenderTransformOrigin = New Point(1, 0.5)
-                            anim_move = New Animation.ThicknessAnimation(New Thickness(0, 0, startpoint, 0), New Thickness(0, 0, -delta, 0), New Duration(New TimeSpan(0, 0, picmove_sec)))
+                            anim_move = New Animation.ThicknessAnimation(New Thickness(0, 0, -startpoint, 0), New Thickness(0, 0, -delta, 0), New Duration(New TimeSpan(0, 0, picmove_sec)))
                         End If
                     Else
                         'height is the longer edge comparing to the size of the monitor
@@ -291,25 +325,30 @@ Class MainWindow
                         End If
 
                         Dim startpoint As Double
-                        If verticalOptimize AndAlso delta > h / 2 Then
-                            startpoint = -delta / 2
+                        If verticalOptimize AndAlso delta > h / 1.5 Then
+                            startpoint = delta * verticalOptimizeR
+                            If startpoint > tgt_img.Height - h Then
+                                startpoint = tgt_img.Height - h
+                            End If
                         Else
                             startpoint = 0
                         End If
+
+                        'move up or down or up only when long
                         If verticalLock AndAlso tgt_img.Height > h * 1.5 Then
                             'only move down for pics with height larger than 1.5 * screen height after converted to same width as screen
                             tgt_img.VerticalAlignment = Windows.VerticalAlignment.Bottom
                             tgt_img.RenderTransformOrigin = New Point(0.5, 1) 'this and above line is to make transform align with bottom
-                            anim_move = New Animation.ThicknessAnimation(New Thickness(0, 0, 0, startpoint), New Thickness(0, 0, 0, -delta), New Duration(New TimeSpan(0, 0, picmove_sec)))
+                            anim_move = New Animation.ThicknessAnimation(New Thickness(0, 0, 0, -startpoint), New Thickness(0, 0, 0, -delta), New Duration(New TimeSpan(0, 0, picmove_sec)))
                         Else
                             If ran.Next(0, 2) = 0 Then
                                 tgt_img.VerticalAlignment = Windows.VerticalAlignment.Top
                                 tgt_img.RenderTransformOrigin = New Point(0.5, 0) 'this and above line is to make transform align with top
-                                anim_move = New Animation.ThicknessAnimation(New Thickness(0, startpoint, 0, 0), New Thickness(0, -delta, 0, 0), New Duration(New TimeSpan(0, 0, picmove_sec)))
+                                anim_move = New Animation.ThicknessAnimation(New Thickness(0, -startpoint, 0, 0), New Thickness(0, -delta, 0, 0), New Duration(New TimeSpan(0, 0, picmove_sec)))
                             Else
                                 tgt_img.VerticalAlignment = Windows.VerticalAlignment.Bottom
                                 tgt_img.RenderTransformOrigin = New Point(0.5, 1)
-                                anim_move = New Animation.ThicknessAnimation(New Thickness(0, 0, 0, startpoint), New Thickness(0, 0, 0, -delta), New Duration(New TimeSpan(0, 0, picmove_sec)))
+                                anim_move = New Animation.ThicknessAnimation(New Thickness(0, 0, 0, -startpoint), New Thickness(0, 0, 0, -delta), New Duration(New TimeSpan(0, 0, picmove_sec)))
                             End If
                         End If
                     End If
@@ -318,10 +357,12 @@ Class MainWindow
                     Animation.Timeline.SetDesiredFrameRate(anim_move, framerate)
                     Animation.Timeline.SetDesiredFrameRate(anim_zoomx, framerate)
                     Animation.Timeline.SetDesiredFrameRate(anim_zoomy, framerate)
+                    Animation.Timeline.SetDesiredFrameRate(anim_fadein, framerate)
+                    Animation.Timeline.SetDesiredFrameRate(anim_fadeout, framerate)
                     tgt_trasform.BeginAnimation(ScaleTransform.ScaleXProperty, anim_zoomx)
                     tgt_trasform.BeginAnimation(ScaleTransform.ScaleYProperty, anim_zoomy)
-                    tgt_img.BeginAnimation(Image.MarginProperty, anim_move, Animation.HandoffBehavior.Compose)
-                    tgt_img.BeginAnimation(Image.OpacityProperty, anim_fadein, Animation.HandoffBehavior.Compose)
+                    tgt_img.BeginAnimation(Image.MarginProperty, anim_move) ', Animation.HandoffBehavior.Compose)
+                    tgt_img.BeginAnimation(Image.OpacityProperty, anim_fadein) ', Animation.HandoffBehavior.Compose)
                 End Sub)
             Thread.Sleep(1000)
 

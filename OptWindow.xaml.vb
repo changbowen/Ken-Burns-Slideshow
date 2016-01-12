@@ -1,29 +1,22 @@
 ﻿Public Class OptWindow
+    Dim lastPath As String
 
     Private Sub Window_Loaded(sender As Object, e As RoutedEventArgs)
-        Dim config As XElement
-        If My.Computer.FileSystem.FileExists("config.xml") Then
-            config = XElement.Load("config.xml")
-        Else
-            MsgBox("Config.xml file is not found at application root.", MsgBoxStyle.Exclamation)
-            Me.Close()
-            Exit Sub
-        End If
-        If config.Elements("VerticalLock").Any AndAlso config.Element("VerticalLock").Value.ToLower = "false" Then
-            CB_VerLk.IsChecked = False
-        End If
-        If config.Elements("ResolutionLock").Any AndAlso config.Element("ResolutionLock").Value.ToLower = "false" Then
-            CB_ResLk.IsChecked = False
-        End If
-        If config.Elements("VerticalOptimize").Any AndAlso config.Element("VerticalOptimize").Value.ToLower = "false" Then
-            CB_VerOptm.IsChecked = False
-        End If
-        If config.Elements("HorizontalOptimize").Any AndAlso config.Element("HorizontalOptimize").Value.ToLower = "false" Then
-            CB_HorOptm.IsChecked = False
-        End If
-        If config.Elements("Fadeout").Any AndAlso config.Element("Fadeout").Value.ToLower = "false" Then
-            CB_Fadeout.IsChecked = False
-        End If
+        For Each i In MainWindow.folders_image
+            LB_ImgFolder.Items.Add(i)
+        Next
+        For Each i In MainWindow.folders_music
+            LB_BGMFolder.Items.Add(i)
+        Next
+        CB_VerLk.IsChecked = MainWindow.verticalLock
+        CB_ResLk.IsChecked = MainWindow.resolutionLock
+        CB_VerOptm.IsChecked = MainWindow.verticalOptimize
+        CB_HorOptm.IsChecked = MainWindow.horizontalOptimize
+        CB_Fadeout.IsChecked = MainWindow.fadeout
+        TB_VORatio.Text = MainWindow.verticalOptimizeR
+        TB_HORatio.Text = MainWindow.horizontalOptimizeR
+        TB_Framerate.Text = MainWindow.framerate
+        TB_Duration.Text = MainWindow.duration
     End Sub
 
     Private Sub DetailChange() Handles CB_VerOptm.Checked, CB_VerOptm.Unchecked, CB_Fadeout.Checked, CB_Fadeout.Unchecked, CB_HorOptm.Unchecked, CB_HorOptm.Checked, CB_ResLk.Checked, CB_ResLk.Unchecked, CB_VerLk.Checked, CB_VerLk.Unchecked
@@ -53,47 +46,93 @@
     End Sub
 
     Private Sub Btn_OK_Click(sender As Object, e As RoutedEventArgs) Handles Btn_OK.Click
+        Dim tmpR As Double = 0
+        If Double.TryParse(TB_VORatio.Text, tmpR) AndAlso tmpR > 0 AndAlso tmpR <= 1 Then
+            MainWindow.verticalOptimizeR = tmpR
+        Else
+            MessageBox.Show("Invalid vertical optimize ratio.", "", MessageBoxButton.OK, MessageBoxImage.Exclamation)
+            Exit Sub
+        End If
+        tmpR = 0
+        If Double.TryParse(TB_HORatio.Text, tmpR) AndAlso tmpR > 0 AndAlso tmpR <= 1 Then
+            MainWindow.horizontalOptimizeR = tmpR
+        Else
+            MessageBox.Show("Invalid horizontal optimize ratio.", "", MessageBoxButton.OK, MessageBoxImage.Exclamation)
+            Exit Sub
+        End If
+        Dim tmpF As UInteger = 0
+        If UInteger.TryParse(TB_Framerate.Text, tmpF) AndAlso tmpF > 0 Then
+            MainWindow.framerate = tmpF
+        Else
+            MessageBox.Show("Invalid framerate value.", "", MessageBoxButton.OK, MessageBoxImage.Exclamation)
+            Exit Sub
+        End If
+        tmpF = 0
+        If UInteger.TryParse(TB_Duration.Text, tmpF) AndAlso tmpF > 4 Then
+            'not setting mainwindow.picmove_sec to avoid problems. save to config.xml instead for the next load.
+            MainWindow.duration = tmpF
+        Else
+            MessageBox.Show("Invalid duration value.", "", MessageBoxButton.OK, MessageBoxImage.Exclamation)
+            Exit Sub
+        End If
+
+        MainWindow.folders_image.Clear()
+        For Each i As String In LB_ImgFolder.Items
+            MainWindow.folders_image.Add(i)
+        Next
+        MainWindow.folders_music.Clear()
+        For Each i As String In LB_BGMFolder.Items
+            MainWindow.folders_music.Add(i)
+        Next
         MainWindow.verticalLock = CB_VerLk.IsChecked
         MainWindow.verticalOptimize = CB_VerOptm.IsChecked
         MainWindow.horizontalOptimize = CB_HorOptm.IsChecked
         MainWindow.resolutionLock = CB_ResLk.IsChecked
         MainWindow.fadeout = CB_Fadeout.IsChecked
+        MainWindow.horizontalOptimizeR = TB_HORatio.Text
 
         'saving to file
-        Dim config As XElement
-        If My.Computer.FileSystem.FileExists("config.xml") Then
-            config = XElement.Load("config.xml")
-        Else
-            MsgBox("Config.xml file is not found at application root.", MsgBoxStyle.Exclamation)
-            Me.Close()
-            Exit Sub
-        End If
-        If config.Elements("VerticalLock").Any Then
-            config.Element("VerticalLock").Value = CB_VerLk.IsChecked.Value
-        Else
-            config.Add(New XElement("VerticalLock", CB_VerLk.IsChecked.Value))
-        End If
-        If config.Elements("ResolutionLock").Any Then
-            config.Element("ResolutionLock").Value = CB_ResLk.IsChecked.Value
-        Else
-            config.Add(New XElement("ResolutionLock", CB_ResLk.IsChecked.Value))
-        End If
-        If config.Elements("VerticalOptimize").Any Then
-            config.Element("VerticalOptimize").Value = CB_VerOptm.IsChecked.Value
-        Else
-            config.Add(New XElement("VerticalOptimize", CB_VerOptm.IsChecked.Value))
-        End If
-        If config.Elements("HorizontalOptimize").Any Then
-            config.Element("HorizontalOptimize").Value = CB_HorOptm.IsChecked.Value
-        Else
-            config.Add(New XElement("HorizontalOptimize", CB_HorOptm.IsChecked.Value))
-        End If
-        If config.Elements("Fadeout").Any Then
-            config.Element("Fadeout").Value = CB_Fadeout.IsChecked.Value
-        Else
-            config.Add(New XElement("Fadeout", CB_Fadeout.IsChecked.Value))
-        End If
+        Dim config As New XElement("CfgRoot")
+
+        config.Add(New XElement("PicDir"))
+        For Each i As String In LB_ImgFolder.Items
+            config.Element("PicDir").Add(New XElement("dir", New XCData(i)))
+        Next
+        config.Add(New XElement("Music"))
+        For Each i As String In LB_BGMFolder.Items
+            config.Element("Music").Add(New XElement("dir", New XCData(i)))
+        Next
+        config.Add(New XElement("Framerate", TB_Framerate.Text))
+        config.Add(New XElement("Duration", TB_Duration.Text))
+        config.Add(New XElement("VerticalLock", CB_VerLk.IsChecked.Value))
+        config.Add(New XElement("ResolutionLock", CB_ResLk.IsChecked.Value))
+        config.Add(New XElement("VerticalOptimize", CB_VerOptm.IsChecked.Value))
+        config.Add(New XElement("HorizontalOptimize", CB_HorOptm.IsChecked.Value))
+        config.Add(New XElement("Fadeout", CB_Fadeout.IsChecked.Value))
+        config.Add(New XElement("VerticalOptimizeRatio", TB_VORatio.Text))
+        config.Add(New XElement("HorizontalOptimizeRatio", TB_HORatio.Text))
+
         config.Save("config.xml")
         Me.Close()
+    End Sub
+
+    Private Sub Btn_Img_Add_Click(sender As Object, e As RoutedEventArgs) Handles Btn_Img_Add.Click, Btn_BGM_Add.Click
+        Using dialog As New Forms.FolderBrowserDialog
+            dialog.Description = "Select a folder."
+            dialog.SelectedPath = lastPath
+            If dialog.ShowDialog = Forms.DialogResult.OK Then
+                Dim c As Object = VisualTreeHelper.GetParent(sender)
+                c.Children(0).Items.Add(dialog.SelectedPath)
+                lastPath = dialog.SelectedPath
+            End If
+        End Using
+    End Sub
+
+    Private Sub Btn_Img_Rmv_Click(sender As Object, e As RoutedEventArgs) Handles Btn_Img_Rmv.Click, Btn_BGM_Rmv.Click
+        Dim c As Object = VisualTreeHelper.GetParent(sender)
+        Dim lb As ListBox = c.Children(0)
+        If lb.SelectedIndex <> -1 Then
+            lb.Items.RemoveAt(lb.SelectedIndex)
+        End If
     End Sub
 End Class
