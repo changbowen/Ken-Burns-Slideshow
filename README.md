@@ -21,6 +21,10 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
 - Options to load large images at lower resolution to improve performance.
 
 ## Updates
+- 2016-01-13
+  - Added complete UI for modification of config.xml file. Removed config.xml from release as it is no longer required for program to start correctly.
+  - Added some customizable parameters.
+  - Other non-performance related tweaks.
 - 2016-01-08
   - Fixed animation not being displayed correctly when last few dates share the same month value.
   - Fixed animation not being displayed correctly when vertical lock is on.
