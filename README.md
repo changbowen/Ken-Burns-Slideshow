@@ -17,7 +17,7 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
 ## Features
 - Create instant full-screen slideshow with an imitation of the Ken Burns effect for a set of folders that contains images. Images will be looped.
 - Support displaying date for the images. Date value is parsed from the file name with format <em>yyyy-MM-dd</em>. If you want a date to be displayed, please rename the image files to the format for this to work. A valid example: <em>2015-12-02.jpg</em>
-- Support audio files to be played in loop at background. Please specify a folder path containing audio files in config.xml.
+- Support audio files to be played in loop at background.
 - Options to load large images at lower resolution to improve performance.
 
 ## Updates
@@ -45,8 +45,8 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
   - Improved error handling when dealing with corruptions. Instead of showing error prompt and exit, program will now replace the problematic image with a black screen as a placeholder in case dates are being displayed.
 
 ## Note
-- The config.xml file serves as a configuration that is loaded at program start. Paths and other settings can be changed to local / relative path according to the location of the folders on your system.
+- ~~The config.xml file serves as a configuration that is loaded at program start. Paths and other settings can be changed to local / relative path according to the location of the folders on your system.~~
 - Press F12 at runtime for options.
-- Please enclose the folder path with `<![CDATA[     ]]>` when the path contains markup chars in XML like &.
-  - Example: `<![CDATA[F:\Folder with & in name\images]]>`
+- ~~Please enclose the folder path with `<![CDATA[     ]]>` when the path contains markup chars in XML like &.~~
+  - ~~Example: `<![CDATA[F:\Folder with & in name\images]]>`~~
 - Animation is not as smooth when Windows Aero is turned off on Windows 7.
