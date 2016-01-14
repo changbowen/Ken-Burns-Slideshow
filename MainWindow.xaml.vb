@@ -151,7 +151,6 @@ Class MainWindow
 
         'loading first picture
         LoadNextImg()
-        position += 1
 
         Me.Background = Brushes.Black
 
@@ -168,7 +167,7 @@ Class MainWindow
 
     Public Function RandomNum(min As UInteger, max As UInteger, neg As Boolean)
         If neg Then
-            If ran.Next(0, 2) = 0 Then
+            If ran.Next(2) = 0 Then
                 Return -ran.Next(min, max)
             Else
                 Return ran.Next(min, max)
@@ -268,7 +267,7 @@ Class MainWindow
                         'width is the longer edge comparing to the size of the monitor
                         tgt_img.Height = h
                         tgt_img.Width = tgt_img.Height * pic.PixelWidth / pic.PixelHeight
-                        If ran.Next(0, 2) = 0 Then
+                        If ran.Next(2) = 0 Then
                             'zoom in
                             delta = tgt_img.Width * 1.2 - w
                             anim_zoomx = New Animation.DoubleAnimation(1.2, New Duration(New TimeSpan(0, 0, picmove_sec)))
@@ -295,7 +294,7 @@ Class MainWindow
                         End If
 
                         'move up or down
-                        If ran.Next(0, 2) = 0 Then 'means 0<=ran<2
+                        If ran.Next(2) = 0 Then 'means 0<=ran<2
                             tgt_img.HorizontalAlignment = Windows.HorizontalAlignment.Left
                             tgt_img.RenderTransformOrigin = New Point(0, 0.5)
                             anim_move = New Animation.ThicknessAnimation(New Thickness(-startpoint, 0, 0, 0), New Thickness(-delta, 0, 0, 0), New Duration(New TimeSpan(0, 0, picmove_sec)))
@@ -308,7 +307,7 @@ Class MainWindow
                         'height is the longer edge comparing to the size of the monitor
                         tgt_img.Width = w
                         tgt_img.Height = tgt_img.Width / pic.PixelWidth * pic.PixelHeight
-                        If ran.Next(0, 2) = 0 Then
+                        If ran.Next(2) = 0 Then
                             'zoom in
                             delta = tgt_img.Height * 1.2 - h
                             anim_zoomx = New Animation.DoubleAnimation(1.2, New Duration(New TimeSpan(0, 0, picmove_sec)))
@@ -341,7 +340,7 @@ Class MainWindow
                             tgt_img.RenderTransformOrigin = New Point(0.5, 1) 'this and above line is to make transform align with bottom
                             anim_move = New Animation.ThicknessAnimation(New Thickness(0, 0, 0, -startpoint), New Thickness(0, 0, 0, -delta), New Duration(New TimeSpan(0, 0, picmove_sec)))
                         Else
-                            If ran.Next(0, 2) = 0 Then
+                            If ran.Next(2) = 0 Then
                                 tgt_img.VerticalAlignment = Windows.VerticalAlignment.Top
                                 tgt_img.RenderTransformOrigin = New Point(0.5, 0) 'this and above line is to make transform align with top
                                 anim_move = New Animation.ThicknessAnimation(New Thickness(0, -startpoint, 0, 0), New Thickness(0, -delta, 0, 0), New Duration(New TimeSpan(0, 0, picmove_sec)))
@@ -373,14 +372,7 @@ Class MainWindow
                             position = 0
                             tbchkpoint = 1
                         End If
-                        Try
-                            LoadNextImg()
-                        Catch
-                            pic = BitmapSource.Create(64, 64, 96, 96, PixelFormats.Indexed1, BitmapPalettes.BlackAndWhite, New Byte(64 * 8) {}, 8)
-                        Finally
-                            position += 1
-                            pic.Freeze()
-                        End Try
+                        LoadNextImg()
                     End Sub)
 
             Thread.Sleep((picmove_sec - 2) * 1000)
@@ -394,50 +386,57 @@ Class MainWindow
     End Sub
 
     Private Sub LoadNextImg()
-        Dim s As Size
-        Using strm = New IO.FileStream(ListOfPic.Values(position), IO.FileMode.Open, IO.FileAccess.Read)
-            Dim frame = BitmapFrame.Create(strm, BitmapCreateOptions.DelayCreation, BitmapCacheOption.None)
-            s = New Size(frame.PixelWidth, frame.PixelHeight)
-        End Using
+        Try
+            Dim s As Size
+            Using strm = New IO.FileStream(ListOfPic.Values(position), IO.FileMode.Open, IO.FileAccess.Read)
+                Dim frame = BitmapFrame.Create(strm, BitmapCreateOptions.DelayCreation, BitmapCacheOption.None)
+                s = New Size(frame.PixelWidth, frame.PixelHeight)
+            End Using
 
-        pic = New BitmapImage
-        pic.BeginInit()
-        If resolutionLock Then
-            If s.Width > s.Height Then
-                If s.Height > h * 1.2 Then
-                    pic.DecodePixelHeight = h * 1.2
-                End If
-            Else
-                If s.Width > w * 1.2 Then
-                    pic.DecodePixelWidth = w * 1.2
+            pic = New BitmapImage
+            pic.BeginInit()
+            If resolutionLock Then
+                If s.Width > s.Height Then
+                    If s.Height > h * 1.2 Then
+                        pic.DecodePixelHeight = h * 1.2
+                    End If
+                Else
+                    If s.Width > w * 1.2 Then
+                        pic.DecodePixelWidth = w * 1.2
+                    End If
                 End If
             End If
-        End If
-        pic.CacheOption = BitmapCacheOption.OnLoad
-        Using strm = New IO.FileStream(ListOfPic.Values(position), IO.FileMode.Open, IO.FileAccess.Read)
-            pic.StreamSource = strm
-            pic.EndInit()
-        End Using
+            pic.CacheOption = BitmapCacheOption.OnLoad
+            Using strm = New IO.FileStream(ListOfPic.Values(position), IO.FileMode.Open, IO.FileAccess.Read)
+                pic.StreamSource = strm
+                pic.EndInit()
+            End Using
 
-        'reading next picture gentaly proved to be futile
-        'pic.StreamSource = New IO.FileStream(ListOfPic.Values(0), IO.FileMode.Open, IO.FileAccess.Read, IO.FileShare.None)
-        'pic.EndInit()
-        'Using stream = New IO.FileStream(ListOfPic.Values(position), IO.FileMode.Open, IO.FileAccess.Read)
-        '    Dim blocksize As Long = Math.Ceiling(stream.Length / 200)
-        '    Dim content(stream.Length - 1) As Byte
-        '    Do
-        '        If stream.Length - stream.Position < blocksize Then
-        '            stream.Read(content, stream.Position, stream.Length - stream.Position)
-        '        Else
-        '            stream.Read(content, stream.Position, blocksize)
-        '        End If
-        '        Thread.Sleep(10)
-        '    Loop Until stream.Position = stream.Length
-        '    stream.Position = 0
-        '    pic.StreamSource = stream
-        '    pic.EndInit()
-        'End Using
-        pic.Freeze()
+            'reading next picture gentaly proved to be futile
+            'pic.StreamSource = New IO.FileStream(ListOfPic.Values(0), IO.FileMode.Open, IO.FileAccess.Read, IO.FileShare.None)
+            'pic.EndInit()
+            'Using stream = New IO.FileStream(ListOfPic.Values(position), IO.FileMode.Open, IO.FileAccess.Read)
+            '    Dim blocksize As Long = Math.Ceiling(stream.Length / 200)
+            '    Dim content(stream.Length - 1) As Byte
+            '    Do
+            '        If stream.Length - stream.Position < blocksize Then
+            '            stream.Read(content, stream.Position, stream.Length - stream.Position)
+            '        Else
+            '            stream.Read(content, stream.Position, blocksize)
+            '        End If
+            '        Thread.Sleep(10)
+            '    Loop Until stream.Position = stream.Length
+            '    stream.Position = 0
+            '    pic.StreamSource = stream
+            '    pic.EndInit()
+            'End Using
+            pic.Freeze()
+        Catch
+            pic = BitmapSource.Create(64, 64, 96, 96, PixelFormats.Indexed1, BitmapPalettes.BlackAndWhite, New Byte(64 * 8) {}, 8)
+        Finally
+            position += 1
+            pic.Freeze()
+        End Try
     End Sub
 
     Private Sub Window_PreviewKeyUp(sender As Object, e As KeyEventArgs)

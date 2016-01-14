@@ -1,7 +1,7 @@
 ﻿<Window x:Class="MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="MainWindow" Height="350" Width="525" Background="{x:Null}" Loaded="Window_Loaded" WindowState="Maximized" AllowsTransparency="True" WindowStyle="None" PreviewKeyUp="Window_PreviewKeyUp" Cursor="None" Closing="Window_Closing">
+    Title="MainWindow" Height="350" Width="525" Background="{x:Null}" Loaded="Window_Loaded" WindowState="Maximized" AllowsTransparency="True" WindowStyle="None" PreviewKeyUp="Window_PreviewKeyUp" Cursor="None" Closing="Window_Closing" Icon="KenBurns.ico">
     <Grid x:Name="mainGrid">
         <Image x:Name="slide_img0" VerticalAlignment="Top" HorizontalAlignment="Left" RenderOptions.BitmapScalingMode="HighQuality"/>
         <Image x:Name="slide_img1" VerticalAlignment="Top" HorizontalAlignment="Left" RenderOptions.BitmapScalingMode="HighQuality"/>
