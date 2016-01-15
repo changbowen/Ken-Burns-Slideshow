@@ -47,6 +47,9 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
   - Added customizable option to only show the left / right part (depending on movement direction) for images with width larger than screen width * 1.5. This is to avoid image moving too fast thus less elegant.
   - Improved error handling when dealing with corruptions. Instead of showing error prompt and exit, program will now replace the problematic image with a black screen as a placeholder in case dates are being displayed.
 
+## Upcoming
+- Working on more slide animations.
+
 ## Note
 - ~~The config.xml file serves as a configuration that is loaded at program start. Paths and other settings can be changed to local / relative path according to the location of the folders on your system.~~
 - Press F12 at runtime for options.
