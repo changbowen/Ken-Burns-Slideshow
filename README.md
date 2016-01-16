@@ -12,7 +12,7 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
 ## Language &amp; Requirement
 - WPF application written in VB.net
 - .Net framework 4.5 or above.
-- Config.xml file at application root.
+- ~~Config.xml file at application root.~~
 
 ## Features
 - Create instant full-screen slideshow with an imitation of the Ken Burns effect for a set of folders that contains images. Images will be looped.
