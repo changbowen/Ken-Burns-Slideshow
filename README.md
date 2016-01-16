@@ -55,7 +55,7 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
 
 ## Note
 - ~~The config.xml file serves as a configuration that is loaded at program start. Paths and other settings can be changed to local / relative path according to the location of the folders on your system.~~
-- Press F12 at runtime for options.
+- Press **F12** at runtime for options.
 - ~~Please enclose the folder path with `<![CDATA[     ]]>` when the path contains markup chars in XML like &.~~
   - ~~Example: `<![CDATA[F:\Folder with & in name\images]]>`~~
 - Animation might not be as smooth when not using Windows Aero themes on Windows 7.
