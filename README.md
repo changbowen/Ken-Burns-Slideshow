@@ -22,7 +22,7 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
 
 ## Updates
 - 2016-01-16
-  - **Brand-new animation "Breath" added!**
+  - **Brand-new transition animation "Breath" added!**
   - Fixed fadeout setting not getting saved.
 - 2016-01-15
   - Fixed crash when loading the first image fails.
