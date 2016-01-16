@@ -51,7 +51,7 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
   - Improved error handling when dealing with corruptions. Instead of showing error prompt and exit, program will now replace the problematic image with a black screen as a placeholder in case dates are being displayed.
 
 ## Upcoming
-- Working on more slide animations.
+- Working on more transition animations.
 
 ## Note
 - ~~The config.xml file serves as a configuration that is loaded at program start. Paths and other settings can be changed to local / relative path according to the location of the folders on your system.~~
