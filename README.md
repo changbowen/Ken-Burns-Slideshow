@@ -21,9 +21,12 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
 - Options to load large images at lower resolution to improve performance.
 
 ## Updates
+- 2016-01-16
+  - **Brand-new animation "Breath" added!**
+  - Fixed fadeout setting not getting saved.
 - 2016-01-15
   - Fixed crash when loading the first image fails.
-  - Added icon which doubled the size of the executable.
+  - Added icon which doubled the footprint of the executable.
 - 2016-01-13
   - Added complete UI for modification of config.xml file. Removed config.xml from release as it is no longer required for program to start correctly.
   - Added some customizable parameters.

@@ -17,9 +17,10 @@
         TB_HORatio.Text = MainWindow.horizontalOptimizeR
         TB_Framerate.Text = MainWindow.framerate
         TB_Duration.Text = MainWindow.duration
+        CbB_Transit.Text = MainWindow.transit
     End Sub
 
-    Private Sub DetailChange() Handles CB_VerOptm.Checked, CB_VerOptm.Unchecked, CB_Fadeout.Checked, CB_Fadeout.Unchecked, CB_HorOptm.Unchecked, CB_HorOptm.Checked, CB_ResLk.Checked, CB_ResLk.Unchecked, CB_VerLk.Checked, CB_VerLk.Unchecked
+    Private Sub ProfileUpdate() Handles CB_Fadeout.Checked, CB_Fadeout.Unchecked, CB_ResLk.Checked, CB_ResLk.Unchecked
         If Me.IsLoaded Then
             If CB_Fadeout.IsChecked = True AndAlso CB_ResLk.IsChecked = False Then
                 RB_Qlty.IsChecked = True
@@ -27,6 +28,26 @@
                 RB_Perf.IsChecked = True
             Else
                 RB_Custom.IsChecked = True
+            End If
+        End If
+    End Sub
+
+    Private Sub CB_HorOptm_Change() Handles CB_HorOptm.Unchecked, CB_HorOptm.Checked
+        If Me.IsLoaded Then
+            If CB_HorOptm.IsChecked Then
+                TB_HORatio.IsEnabled = True
+            Else
+                TB_HORatio.IsEnabled = False
+            End If
+        End If
+    End Sub
+
+    Private Sub CB_VerOptm_Change() Handles CB_VerOptm.Unchecked, CB_VerOptm.Checked
+        If Me.IsLoaded Then
+            If CB_VerOptm.IsChecked Then
+                TB_VORatio.IsEnabled = True
+            Else
+                TB_VORatio.IsEnabled = False
             End If
         End If
     End Sub
@@ -90,6 +111,7 @@
         MainWindow.resolutionLock = CB_ResLk.IsChecked
         MainWindow.fadeout = CB_Fadeout.IsChecked
         MainWindow.horizontalOptimizeR = TB_HORatio.Text
+        MainWindow.transit = CbB_Transit.Text
 
         'saving to file
         Dim config As New XElement("CfgRoot")
@@ -111,6 +133,7 @@
         config.Add(New XElement("Fadeout", CB_Fadeout.IsChecked.Value))
         config.Add(New XElement("VerticalOptimizeRatio", TB_VORatio.Text))
         config.Add(New XElement("HorizontalOptimizeRatio", TB_HORatio.Text))
+        config.Add(New XElement("Transit", CbB_Transit.Text))
 
         config.Save("config.xml")
         Me.Close()
@@ -133,6 +156,20 @@
         Dim lb As ListBox = c.Children(0)
         If lb.SelectedIndex <> -1 Then
             lb.Items.RemoveAt(lb.SelectedIndex)
+        End If
+    End Sub
+
+    Private Sub CbB_Transit_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles CbB_Transit.SelectionChanged
+        If CbB_Transit.SelectedItem.Content = "Breath" Then
+            CB_Fadeout.IsEnabled = False
+            RB_Perf.IsEnabled = False
+            RB_Qlty.IsEnabled = False
+            RB_Custom.IsEnabled = False
+        Else
+            CB_Fadeout.IsEnabled = True
+            RB_Perf.IsEnabled = True
+            RB_Qlty.IsEnabled = True
+            RB_Custom.IsEnabled = True
         End If
     End Sub
 End Class

@@ -5,8 +5,8 @@ Class MainWindow
     Dim PicFormats() As String = {".jpg", ".jpeg", ".bmp", ".png", ".tif", ".tiff"}
     Dim ListOfMusic As New List(Of String)
     Dim ran As New Random
-    Dim anim_fadein As New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 1)))
-    Dim anim_fadeout As New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1)))
+    Dim anim_fadein As Animation.DoubleAnimation
+    Dim anim_fadeout As Animation.DoubleAnimation
     Dim player As New System.Windows.Media.MediaPlayer
     Dim playing As Integer = 0
     Dim w, h As Double
@@ -25,6 +25,7 @@ Class MainWindow
     Public Shared fadeout As Boolean = False
     Public Shared verticalOptimizeR As Double = 0.4
     Public Shared horizontalOptimizeR As Double = 0.4
+    Public Shared transit As String = "Ken Burns"
     Private Declare Function SetThreadExecutionState Lib "kernel32" (ByVal esFlags As EXECUTION_STATE) As EXECUTION_STATE
     Dim ExecState_Set As Boolean
     Private Enum EXECUTION_STATE As Integer
@@ -126,7 +127,7 @@ Class MainWindow
         If config.Elements("Duration").Any Then
             Dim tmp = Convert.ToUInt32(config.Element("Duration").Value)
             duration = tmp
-            If tmp >= 4 Then picmove_sec = tmp
+            If tmp >= 5 Then picmove_sec = tmp
         End If
         If config.Elements("VerticalLock").Any AndAlso config.Element("VerticalLock").Value.ToLower = "false" Then
             verticalLock = False
@@ -140,11 +141,12 @@ Class MainWindow
         If config.Elements("HorizontalOptimize").Any AndAlso config.Element("HorizontalOptimize").Value.ToLower = "false" Then
             horizontalOptimize = False
         End If
-        If config.Elements("Fadeout").Any AndAlso config.Element("Fadeout").Value.ToLower = "false" Then
-            fadeout = False
+        If config.Elements("Fadeout").Any AndAlso config.Element("Fadeout").Value.ToLower = "true" Then
+            fadeout = True
         End If
         If config.Elements("VerticalOptimizeRatio").Any Then verticalOptimizeR = config.Element("VerticalOptimizeRatio").Value
         If config.Elements("HorizontalOptimizeRatio").Any Then horizontalOptimizeR = config.Element("HorizontalOptimizeRatio").Value
+        If config.Elements("Transit").Any Then transit = config.Element("Transit").Value
 
         tb_date0.FontSize = Me.Height / 12
         tb_date1.FontSize = Me.Height / 12
@@ -154,7 +156,17 @@ Class MainWindow
 
         Me.Background = Brushes.Black
 
-        Dim worker_pic As New Thread(AddressOf mainThrd)
+        Dim worker_pic As Thread
+        Select Case transit
+            Case "Ken Burns"
+                worker_pic = New Thread(AddressOf mainThrd_KBE)
+            Case "Breath"
+                worker_pic = New Thread(AddressOf mainThrd_Breath)
+            Case Else
+                MsgBox("Error reading transit value. Program will exit now.", MsgBoxStyle.Critical)
+                Me.Close()
+                Exit Sub
+        End Select
         worker_pic.IsBackground = True
         worker_pic.Priority = ThreadPriority.BelowNormal
         worker_pic.Start()
@@ -177,7 +189,7 @@ Class MainWindow
         End If
     End Function
 
-    Private Sub textThrd(pos As Integer, ByRef output As Integer)
+    Private Sub textThrd_KBE(pos As Integer, ByRef output As Integer)
         If Not ListOfPic.Keys(pos - 1).StartsWith("NON-DATE_") Then
             Dim tgt_tb As TextBlock
             'determining future pics with same year and month
@@ -232,14 +244,18 @@ Class MainWindow
         End If
     End Sub
 
-    Private Sub mainThrd()
+    Private Sub mainThrd_KBE()
+        Dispatcher.Invoke(Sub()
+                              anim_fadein = New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 1)))
+                              anim_fadeout = New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1)))
+                          End Sub)
         Dim tgt_img As Image
         Dim delta As Double
         Dim tbchkpoint As Integer = 1
 
         Do
             If position >= tbchkpoint Then
-                Task.Run(Sub() textThrd(position, tbchkpoint))
+                Task.Run(Sub() textThrd_KBE(position, tbchkpoint))
             End If
 
             Dispatcher.Invoke(
@@ -293,7 +309,7 @@ Class MainWindow
                             startpoint = 0
                         End If
 
-                        'move up or down
+                        'move left or right
                         If ran.Next(2) = 0 Then 'means 0<=ran<2
                             tgt_img.HorizontalAlignment = Windows.HorizontalAlignment.Left
                             tgt_img.RenderTransformOrigin = New Point(0, 0.5)
@@ -381,6 +397,206 @@ Class MainWindow
                                       tgt_img.BeginAnimation(Image.OpacityProperty, anim_fadeout, Animation.HandoffBehavior.Compose)
                                   End Sub)
             End If
+            loadtask.Wait()
+        Loop
+    End Sub
+
+    Private Sub mainThrd_Breath()
+        Dim ease_in As Animation.CubicEase
+        Dim ease_out As Animation.CubicEase
+        Dim ease_inout As Animation.CubicEase
+        Dispatcher.Invoke(
+            Sub()
+                ease_in = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseIn}
+                ease_out = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseOut}
+                ease_inout = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseInOut}
+                anim_fadein = New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 1))) ' With {.EasingFunction = ease_out}
+                anim_fadeout = New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1))) ' With {.EasingFunction = ease_in}
+            End Sub)
+        Dim tgt_img As Image
+        Dim delta As Double
+        Dim tbchkpoint As Integer = 1
+        Dim last_zoom = False ', last_move As Boolean
+
+        Do
+            If position >= tbchkpoint Then
+                Task.Run(Sub() textThrd_KBE(position, tbchkpoint))
+            End If
+
+            Dispatcher.Invoke(
+                Sub()
+                    Panel.SetZIndex(tb_date0, 2)
+                    Panel.SetZIndex(tb_date1, 3)
+                    Dim tgt_trasform As ScaleTransform
+                    Dim anim_move As Animation.ThicknessAnimation
+                    Dim anim_zoomx As Animation.DoubleAnimationUsingKeyFrames
+                    Dim anim_zoomy As Animation.DoubleAnimationUsingKeyFrames
+
+                    'switch target
+                    If m = 0 Then
+                        m = 1
+                        tgt_img = slide_img1
+                        Panel.SetZIndex(slide_img0, 0)
+                        Panel.SetZIndex(slide_img1, 1)
+                    Else
+                        m = 0
+                        tgt_img = slide_img0
+                        Panel.SetZIndex(slide_img1, 0)
+                        Panel.SetZIndex(slide_img0, 1)
+                    End If
+
+                    If pic.PixelWidth / pic.PixelHeight > w / h Then
+                        'width is the longer edge comparing to the size of the monitor
+                        tgt_img.Height = h
+                        tgt_img.Width = tgt_img.Height * pic.PixelWidth / pic.PixelHeight
+                        If last_zoom Then ' ran.Next(2) = 0 Then
+                            'zoom in
+                            last_zoom = False
+                            delta = tgt_img.Width * 1.1 - w
+                            tgt_trasform = New ScaleTransform(1, 1)
+                            tgt_img.RenderTransform = tgt_trasform
+                            anim_zoomx = New Animation.DoubleAnimationUsingKeyFrames
+                            anim_zoomy = New Animation.DoubleAnimationUsingKeyFrames
+                            anim_zoomx.KeyFrames.Add(New Animation.EasingDoubleKeyFrame(1.3, Animation.KeyTime.FromTimeSpan(TimeSpan.FromSeconds(picmove_sec * 0.5)), ease_out))
+                            anim_zoomy.KeyFrames.Add(New Animation.EasingDoubleKeyFrame(1.3, Animation.KeyTime.FromTimeSpan(TimeSpan.FromSeconds(picmove_sec * 0.5)), ease_out))
+                            anim_zoomx.KeyFrames.Add(New Animation.EasingDoubleKeyFrame(1.1, Animation.KeyTime.FromTimeSpan(New TimeSpan(0, 0, 0, picmove_sec - 1, 500)), ease_in))
+                            anim_zoomy.KeyFrames.Add(New Animation.EasingDoubleKeyFrame(1.1, Animation.KeyTime.FromTimeSpan(New TimeSpan(0, 0, 0, picmove_sec - 1, 500)), ease_in))
+                            'anim_zoomx.KeyFrames.Add(New Animation.SplineDoubleKeyFrame(1.3, Animation.KeyTime.FromTimeSpan(TimeSpan.FromSeconds(picmove_sec * 0.5)), New Animation.KeySpline(0, 0.6, 0.7, 1)))
+                            'anim_zoomy.KeyFrames.Add(New Animation.SplineDoubleKeyFrame(1.3, Animation.KeyTime.FromTimeSpan(TimeSpan.FromSeconds(picmove_sec * 0.5)), New Animation.KeySpline(0, 0.6, 0.7, 1)))
+                            'anim_zoomx.KeyFrames.Add(New Animation.SplineDoubleKeyFrame(1.1, Animation.KeyTime.FromTimeSpan(New TimeSpan(0, 0, 0, picmove_sec - 1, 500)), New Animation.KeySpline(0.5, 0, 1, 1)))
+                            'anim_zoomy.KeyFrames.Add(New Animation.SplineDoubleKeyFrame(1.1, Animation.KeyTime.FromTimeSpan(New TimeSpan(0, 0, 0, picmove_sec - 1, 500)), New Animation.KeySpline(0.5, 0, 1, 1)))
+                        Else
+                            'zoom out
+                            last_zoom = True
+                            delta = tgt_img.Width - w
+                            tgt_trasform = New ScaleTransform(1.3, 1.3)
+                            tgt_img.RenderTransform = tgt_trasform
+                            anim_zoomx = New Animation.DoubleAnimationUsingKeyFrames
+                            anim_zoomy = New Animation.DoubleAnimationUsingKeyFrames
+                            anim_zoomx.KeyFrames.Add(New Animation.EasingDoubleKeyFrame(1, Animation.KeyTime.FromTimeSpan(TimeSpan.FromSeconds(picmove_sec * 0.5)), ease_out))
+                            anim_zoomy.KeyFrames.Add(New Animation.EasingDoubleKeyFrame(1, Animation.KeyTime.FromTimeSpan(TimeSpan.FromSeconds(picmove_sec * 0.5)), ease_out))
+                            anim_zoomx.KeyFrames.Add(New Animation.EasingDoubleKeyFrame(1.2, Animation.KeyTime.FromTimeSpan(New TimeSpan(0, 0, 0, picmove_sec - 1, 500)), ease_in))
+                            anim_zoomy.KeyFrames.Add(New Animation.EasingDoubleKeyFrame(1.2, Animation.KeyTime.FromTimeSpan(New TimeSpan(0, 0, 0, picmove_sec - 1, 500)), ease_in))
+                            'anim_zoomx.KeyFrames.Add(New Animation.SplineDoubleKeyFrame(1, Animation.KeyTime.FromTimeSpan(TimeSpan.FromSeconds(picmove_sec * 0.5)), New Animation.KeySpline(0, 0.6, 0.7, 1)))
+                            'anim_zoomy.KeyFrames.Add(New Animation.SplineDoubleKeyFrame(1, Animation.KeyTime.FromTimeSpan(TimeSpan.FromSeconds(picmove_sec * 0.5)), New Animation.KeySpline(0, 0.6, 0.7, 1)))
+                            'anim_zoomx.KeyFrames.Add(New Animation.SplineDoubleKeyFrame(1.2, Animation.KeyTime.FromTimeSpan(New TimeSpan(0, 0, 0, picmove_sec - 1, 500)), New Animation.KeySpline(0.8, 0, 1, 0.7)))
+                            'anim_zoomy.KeyFrames.Add(New Animation.SplineDoubleKeyFrame(1.2, Animation.KeyTime.FromTimeSpan(New TimeSpan(0, 0, 0, picmove_sec - 1, 500)), New Animation.KeySpline(0.8, 0, 1, 0.7)))
+                        End If
+
+                        Dim startpoint As Double
+                        If horizontalOptimize AndAlso delta > w / 1.5 Then
+                            startpoint = delta * horizontalOptimizeR
+                            If startpoint > tgt_img.Width - w Then
+                                startpoint = tgt_img.Width - w
+                            End If
+                        Else
+                            startpoint = 0
+                        End If
+
+                        If ran.Next(2) = 0 Then 'means 0<=ran<2
+                            tgt_img.HorizontalAlignment = Windows.HorizontalAlignment.Left
+                            tgt_img.RenderTransformOrigin = New Point(0, 0.5) 'this and above line is to make transform align with left
+                            anim_move = New Animation.ThicknessAnimation(New Thickness(-startpoint, 0, 0, 0), New Thickness(-delta, 0, 0, 0), New Duration(New TimeSpan(0, 0, 0, picmove_sec - 1, 500)))
+                        Else
+                            tgt_img.HorizontalAlignment = Windows.HorizontalAlignment.Right
+                            tgt_img.RenderTransformOrigin = New Point(1, 0.5) 'this and above line is to make transform align with right
+                            anim_move = New Animation.ThicknessAnimation(New Thickness(0, 0, -startpoint, 0), New Thickness(0, 0, -delta, 0), New Duration(New TimeSpan(0, 0, 0, picmove_sec - 1, 500)))
+                        End If
+                    Else
+                        'height is the longer edge comparing to the size of the monitor
+                        tgt_img.Width = w
+                        tgt_img.Height = tgt_img.Width / pic.PixelWidth * pic.PixelHeight
+                        If last_zoom Then 'ran.Next(2) = 0 Then
+                            'zoom in
+                            last_zoom = False
+                            delta = tgt_img.Height * 1.1 - h
+                            tgt_trasform = New ScaleTransform(1, 1)
+                            tgt_img.RenderTransform = tgt_trasform
+                            anim_zoomx = New Animation.DoubleAnimationUsingKeyFrames
+                            anim_zoomy = New Animation.DoubleAnimationUsingKeyFrames
+                            anim_zoomx.KeyFrames.Add(New Animation.EasingDoubleKeyFrame(1.3, Animation.KeyTime.FromTimeSpan(TimeSpan.FromSeconds(picmove_sec * 0.5)), ease_out))
+                            anim_zoomy.KeyFrames.Add(New Animation.EasingDoubleKeyFrame(1.3, Animation.KeyTime.FromTimeSpan(TimeSpan.FromSeconds(picmove_sec * 0.5)), ease_out))
+                            anim_zoomx.KeyFrames.Add(New Animation.EasingDoubleKeyFrame(1.1, Animation.KeyTime.FromTimeSpan(New TimeSpan(0, 0, 0, picmove_sec - 1, 500)), ease_in))
+                            anim_zoomy.KeyFrames.Add(New Animation.EasingDoubleKeyFrame(1.1, Animation.KeyTime.FromTimeSpan(New TimeSpan(0, 0, 0, picmove_sec - 1, 500)), ease_in))
+                            'anim_zoomx.KeyFrames.Add(New Animation.SplineDoubleKeyFrame(1.3, Animation.KeyTime.FromTimeSpan(TimeSpan.FromSeconds(picmove_sec * 0.5)), New Animation.KeySpline(0.1, 0.4, 0.7, 1)))
+                            'anim_zoomy.KeyFrames.Add(New Animation.SplineDoubleKeyFrame(1.3, Animation.KeyTime.FromTimeSpan(TimeSpan.FromSeconds(picmove_sec * 0.5)), New Animation.KeySpline(0.1, 0.4, 0.7, 1)))
+                            'anim_zoomx.KeyFrames.Add(New Animation.SplineDoubleKeyFrame(1.1, Animation.KeyTime.FromTimeSpan(New TimeSpan(0, 0, 0, picmove_sec - 1, 500)), New Animation.KeySpline(0.5, 0, 1, 1)))
+                            'anim_zoomy.KeyFrames.Add(New Animation.SplineDoubleKeyFrame(1.1, Animation.KeyTime.FromTimeSpan(New TimeSpan(0, 0, 0, picmove_sec - 1, 500)), New Animation.KeySpline(0.5, 0, 1, 1)))
+                        Else
+                            'zoom out
+                            last_zoom = True
+                            delta = tgt_img.Height - h
+                            tgt_trasform = New ScaleTransform(1.3, 1.3)
+                            tgt_img.RenderTransform = tgt_trasform
+                            anim_zoomx = New Animation.DoubleAnimationUsingKeyFrames
+                            anim_zoomy = New Animation.DoubleAnimationUsingKeyFrames
+                            anim_zoomx.KeyFrames.Add(New Animation.EasingDoubleKeyFrame(1, Animation.KeyTime.FromTimeSpan(TimeSpan.FromSeconds(picmove_sec * 0.5)), ease_out))
+                            anim_zoomy.KeyFrames.Add(New Animation.EasingDoubleKeyFrame(1, Animation.KeyTime.FromTimeSpan(TimeSpan.FromSeconds(picmove_sec * 0.5)), ease_out))
+                            anim_zoomx.KeyFrames.Add(New Animation.EasingDoubleKeyFrame(1.2, Animation.KeyTime.FromTimeSpan(New TimeSpan(0, 0, 0, picmove_sec - 1, 500)), ease_in))
+                            anim_zoomy.KeyFrames.Add(New Animation.EasingDoubleKeyFrame(1.2, Animation.KeyTime.FromTimeSpan(New TimeSpan(0, 0, 0, picmove_sec - 1, 500)), ease_in))
+                            'anim_zoomx.KeyFrames.Add(New Animation.SplineDoubleKeyFrame(1, Animation.KeyTime.FromTimeSpan(TimeSpan.FromSeconds(picmove_sec * 0.5)), New Animation.KeySpline(0, 0.6, 0.7, 1)))
+                            'anim_zoomy.KeyFrames.Add(New Animation.SplineDoubleKeyFrame(1, Animation.KeyTime.FromTimeSpan(TimeSpan.FromSeconds(picmove_sec * 0.5)), New Animation.KeySpline(0, 0.6, 0.7, 1)))
+                            'anim_zoomx.KeyFrames.Add(New Animation.SplineDoubleKeyFrame(1.2, Animation.KeyTime.FromTimeSpan(New TimeSpan(0, 0, 0, picmove_sec - 1, 500)), New Animation.KeySpline(0.8, 0, 1, 0.7)))
+                            'anim_zoomy.KeyFrames.Add(New Animation.SplineDoubleKeyFrame(1.2, Animation.KeyTime.FromTimeSpan(New TimeSpan(0, 0, 0, picmove_sec - 1, 500)), New Animation.KeySpline(0.8, 0, 1, 0.7)))
+                        End If
+                        Dim startpoint As Double
+                        If verticalOptimize AndAlso delta > h / 1.5 Then
+                            startpoint = delta * verticalOptimizeR
+                            If startpoint > tgt_img.Height - h Then
+                                startpoint = tgt_img.Height - h
+                            End If
+                        Else
+                            startpoint = 0
+                        End If
+
+                        'move up or down or up only when long
+                        If verticalLock AndAlso tgt_img.Height > h * 1.5 Then
+                            'only move down for pics with height larger than 1.5 * screen height after converted to same width as screen
+                            tgt_img.VerticalAlignment = Windows.VerticalAlignment.Bottom
+                            tgt_img.RenderTransformOrigin = New Point(0.5, 1) 'this and above line is to make transform align with bottom
+                            anim_move = New Animation.ThicknessAnimation(New Thickness(0, 0, 0, -startpoint), New Thickness(0, 0, 0, -delta), New Duration(New TimeSpan(0, 0, 0, picmove_sec - 1, 500)))
+                            anim_move.EasingFunction = ease_inout
+                        Else
+                            If ran.Next(2) = 0 Then
+                                tgt_img.VerticalAlignment = Windows.VerticalAlignment.Top
+                                tgt_img.RenderTransformOrigin = New Point(0.5, 0) 'this and above line is to make transform align with top
+                                anim_move = New Animation.ThicknessAnimation(New Thickness(0, -startpoint, 0, 0), New Thickness(0, -delta, 0, 0), New Duration(New TimeSpan(0, 0, 0, picmove_sec - 1, 500)))
+                            Else
+                                tgt_img.VerticalAlignment = Windows.VerticalAlignment.Bottom
+                                tgt_img.RenderTransformOrigin = New Point(0.5, 1)
+                                anim_move = New Animation.ThicknessAnimation(New Thickness(0, 0, 0, -startpoint), New Thickness(0, 0, 0, -delta), New Duration(New TimeSpan(0, 0, 0, picmove_sec - 1, 500)))
+                            End If
+                        End If
+                    End If
+
+                    tgt_img.Source = pic
+                    Animation.Timeline.SetDesiredFrameRate(anim_move, framerate)
+                    Animation.Timeline.SetDesiredFrameRate(anim_zoomx, framerate)
+                    Animation.Timeline.SetDesiredFrameRate(anim_zoomy, framerate)
+                    Animation.Timeline.SetDesiredFrameRate(anim_fadein, framerate)
+                    Animation.Timeline.SetDesiredFrameRate(anim_fadeout, framerate)
+                    tgt_trasform.BeginAnimation(ScaleTransform.ScaleXProperty, anim_zoomx)
+                    tgt_trasform.BeginAnimation(ScaleTransform.ScaleYProperty, anim_zoomy)
+                    tgt_img.BeginAnimation(Image.MarginProperty, anim_move) ', Animation.HandoffBehavior.Compose)
+                    tgt_img.BeginAnimation(Image.OpacityProperty, anim_fadein) ', Animation.HandoffBehavior.Compose)
+                End Sub)
+            Thread.Sleep(1000)
+
+            Dim loadtask = Task.Run(
+                    Sub()
+                        'Thread.CurrentThread.Priority = ThreadPriority.Lowest
+                        If position = ListOfPic.Count Then
+                            position = 0
+                            tbchkpoint = 1
+                        End If
+                        LoadNextImg()
+                    End Sub)
+
+            Thread.Sleep((picmove_sec - 2.5) * 1000)
+            Dispatcher.Invoke(Sub()
+                                  tgt_img.BeginAnimation(Image.OpacityProperty, anim_fadeout) ', Animation.HandoffBehavior.Compose)
+                              End Sub)
+            Thread.Sleep(500)
             loadtask.Wait()
         Loop
     End Sub
