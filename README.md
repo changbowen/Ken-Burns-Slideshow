@@ -21,6 +21,8 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
 - Options to load large images at lower resolution to improve performance.
 
 ## Updates
+- 2016-01-18
+  - Fixed breathing not being animated correctly when Vertical Lock is off.
 - 2016-01-16
   - **Brand-new transition animation "Breath" added!**
   - Fixed fadeout setting not getting saved.
