@@ -502,6 +502,9 @@ Class MainWindow
                             tgt_img.RenderTransformOrigin = New Point(1, 0.5) 'this and above line is to make transform align with right
                             anim_move = New Animation.ThicknessAnimation(New Thickness(0, 0, -startpoint, 0), New Thickness(0, 0, -delta, 0), New Duration(New TimeSpan(0, 0, 0, picmove_sec - 1, 500)))
                         End If
+                        If tgt_img.Width > w * 1.5 Then
+                            anim_move.EasingFunction = ease_inout
+                        End If
                     Else
                         'height is the longer edge comparing to the size of the monitor
                         tgt_img.Width = w
@@ -565,6 +568,9 @@ Class MainWindow
                                 tgt_img.VerticalAlignment = Windows.VerticalAlignment.Bottom
                                 tgt_img.RenderTransformOrigin = New Point(0.5, 1)
                                 anim_move = New Animation.ThicknessAnimation(New Thickness(0, 0, 0, -startpoint), New Thickness(0, 0, 0, -delta), New Duration(New TimeSpan(0, 0, 0, picmove_sec - 1, 500)))
+                            End If
+                            If tgt_img.Height > h * 1.5 Then
+                                anim_move.EasingFunction = ease_inout
                             End If
                         End If
                     End If
