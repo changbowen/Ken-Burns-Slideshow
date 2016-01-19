@@ -2,6 +2,7 @@
     Dim lastPath As String
 
     Private Sub Window_Loaded(sender As Object, e As RoutedEventArgs)
+        CbB_ScaleMode.ItemsSource = MainWindow.ScaleMode_Dic
         For Each i In MainWindow.folders_image
             LB_ImgFolder.Items.Add(i)
         Next
@@ -18,9 +19,11 @@
         TB_Framerate.Text = MainWindow.framerate
         TB_Duration.Text = MainWindow.duration
         CbB_Transit.Text = MainWindow.transit
+        TB_LoadQuality.Text = MainWindow.loadquality
+        CbB_ScaleMode.SelectedItem = New KeyValuePair(Of Integer, String)(MainWindow.scalemode, MainWindow.ScaleMode_Dic(MainWindow.scalemode))
     End Sub
 
-    Private Sub ProfileUpdate() Handles CB_Fadeout.Checked, CB_Fadeout.Unchecked, CB_ResLk.Checked, CB_ResLk.Unchecked
+    Private Sub ProfileUpdate() Handles CB_Fadeout.Checked, CB_Fadeout.Unchecked
         If Me.IsLoaded Then
             If CB_Fadeout.IsChecked = True AndAlso CB_ResLk.IsChecked = False Then
                 RB_Qlty.IsChecked = True
@@ -66,36 +69,85 @@
         End If
     End Sub
 
+    Private Function CheckConsist(chk_str As String, ByRef target As Double, min As Double, max As Double, inclu_min As Boolean, inclu_max As Boolean, err_msg As String) As Boolean
+        Dim tmp As Double = 0
+        If Double.TryParse(chk_str, tmp) AndAlso If(inclu_min, tmp >= min, tmp > min) AndAlso If(inclu_max, tmp <= max, tmp < max) Then
+            target = tmp
+            Return True
+        Else
+            MessageBox.Show(err_msg, "", MessageBoxButton.OK, MessageBoxImage.Exclamation)
+            Return False
+        End If
+    End Function
+
+    Private Function CheckConsist(chk_str As String, ByRef target As UInteger, min As UInteger, max As UInteger, inclu_min As Boolean, inclu_max As Boolean, err_msg As String) As Boolean
+        Dim tmp As UInteger = 0
+        If UInteger.TryParse(chk_str, tmp) AndAlso If(inclu_min, tmp >= min, tmp > min) AndAlso If(inclu_max, tmp <= max, tmp < max) Then
+            target = tmp
+            Return True
+        Else
+            MessageBox.Show(err_msg, "", MessageBoxButton.OK, MessageBoxImage.Exclamation)
+            Return False
+        End If
+    End Function
+
+    Private Function CheckConsist(chk_str As String, ByRef target As Double, min As Double, inclu_min As Boolean, err_msg As String) As Boolean
+        Dim tmp As Double = 0
+        If Double.TryParse(chk_str, tmp) AndAlso If(inclu_min, tmp >= min, tmp > min) Then
+            target = tmp
+            Return True
+        Else
+            MessageBox.Show(err_msg, "", MessageBoxButton.OK, MessageBoxImage.Exclamation)
+            Return False
+        End If
+    End Function
+
+    Private Function CheckConsist(chk_str As String, ByRef target As UInteger, min As UInteger, inclu_min As Boolean, err_msg As String) As Boolean
+        Dim tmp As UInteger = 0
+        If UInteger.TryParse(chk_str, tmp) AndAlso If(inclu_min, tmp >= min, tmp > min)  Then
+            target = tmp
+            Return True
+        Else
+            MessageBox.Show(err_msg, "", MessageBoxButton.OK, MessageBoxImage.Exclamation)
+            Return False
+        End If
+    End Function
+
     Private Sub Btn_OK_Click(sender As Object, e As RoutedEventArgs) Handles Btn_OK.Click
-        Dim tmpR As Double = 0
-        If Double.TryParse(TB_VORatio.Text, tmpR) AndAlso tmpR > 0 AndAlso tmpR <= 1 Then
-            MainWindow.verticalOptimizeR = tmpR
-        Else
-            MessageBox.Show("Invalid vertical optimize ratio.", "", MessageBoxButton.OK, MessageBoxImage.Exclamation)
-            Exit Sub
-        End If
-        tmpR = 0
-        If Double.TryParse(TB_HORatio.Text, tmpR) AndAlso tmpR > 0 AndAlso tmpR <= 1 Then
-            MainWindow.horizontalOptimizeR = tmpR
-        Else
-            MessageBox.Show("Invalid horizontal optimize ratio.", "", MessageBoxButton.OK, MessageBoxImage.Exclamation)
-            Exit Sub
-        End If
-        Dim tmpF As UInteger = 0
-        If UInteger.TryParse(TB_Framerate.Text, tmpF) AndAlso tmpF > 0 Then
-            MainWindow.framerate = tmpF
-        Else
-            MessageBox.Show("Invalid framerate value.", "", MessageBoxButton.OK, MessageBoxImage.Exclamation)
-            Exit Sub
-        End If
-        tmpF = 0
-        If UInteger.TryParse(TB_Duration.Text, tmpF) AndAlso tmpF > 4 Then
-            'not setting mainwindow.picmove_sec to avoid problems. save to config.xml instead for the next load.
-            MainWindow.duration = tmpF
-        Else
-            MessageBox.Show("Invalid duration value.", "", MessageBoxButton.OK, MessageBoxImage.Exclamation)
-            Exit Sub
-        End If
+        If Not CheckConsist(TB_VORatio.Text, MainWindow.verticalOptimizeR, 0, 1, False, True, "Invalid vertical optimize ratio.") Then Exit Sub
+        If Not CheckConsist(TB_HORatio.Text, MainWindow.horizontalOptimizeR, 0, 1, False, True, "Invalid horizontal optimize ratio.") Then Exit Sub
+        If Not CheckConsist(TB_Framerate.Text, MainWindow.framerate, 0, False, "Invalid framerate value.") Then Exit Sub
+        If Not CheckConsist(TB_Duration.Text, MainWindow.duration, 4, False, "Invalid duration value.") Then Exit Sub
+        If Not CheckConsist(TB_LoadQuality.Text, MainWindow.loadquality, 0, 2, False, True, "Invalid multiplier value.") Then Exit Sub
+        'Dim tmpR As Double = 0
+        'If Double.TryParse(TB_VORatio.Text, tmpR) AndAlso tmpR > 0 AndAlso tmpR <= 1 Then
+        '    MainWindow.verticalOptimizeR = tmpR
+        'Else
+        '    MessageBox.Show("Invalid vertical optimize ratio.", "", MessageBoxButton.OK, MessageBoxImage.Exclamation)
+        '    Exit Sub
+        'End If
+        'tmpR = 0
+        'If Double.TryParse(TB_HORatio.Text, tmpR) AndAlso tmpR > 0 AndAlso tmpR <= 1 Then
+        '    MainWindow.horizontalOptimizeR = tmpR
+        'Else
+        '    MessageBox.Show("Invalid horizontal optimize ratio.", "", MessageBoxButton.OK, MessageBoxImage.Exclamation)
+        '    Exit Sub
+        'End If
+        'Dim tmpF As UInteger = 0
+        'If UInteger.TryParse(TB_Framerate.Text, tmpF) AndAlso tmpF > 0 Then
+        '    MainWindow.framerate = tmpF
+        'Else
+        '    MessageBox.Show("Invalid framerate value.", "", MessageBoxButton.OK, MessageBoxImage.Exclamation)
+        '    Exit Sub
+        'End If
+        'tmpF = 0
+        'If UInteger.TryParse(TB_Duration.Text, tmpF) AndAlso tmpF > 4 Then
+        '    'not setting mainwindow.picmove_sec to avoid problems. save to config.xml instead for the next load.
+        '    MainWindow.duration = tmpF
+        'Else
+        '    MessageBox.Show("Invalid duration value.", "", MessageBoxButton.OK, MessageBoxImage.Exclamation)
+        '    Exit Sub
+        'End If
 
         MainWindow.folders_image.Clear()
         For Each i As String In LB_ImgFolder.Items
@@ -110,8 +162,8 @@
         MainWindow.horizontalOptimize = CB_HorOptm.IsChecked
         MainWindow.resolutionLock = CB_ResLk.IsChecked
         MainWindow.fadeout = CB_Fadeout.IsChecked
-        MainWindow.horizontalOptimizeR = TB_HORatio.Text
         MainWindow.transit = CbB_Transit.Text
+        MainWindow.scalemode = CbB_ScaleMode.SelectedItem.Key
 
         'saving to file
         Dim config As New XElement("CfgRoot")
@@ -134,6 +186,8 @@
         config.Add(New XElement("VerticalOptimizeRatio", TB_VORatio.Text))
         config.Add(New XElement("HorizontalOptimizeRatio", TB_HORatio.Text))
         config.Add(New XElement("Transit", CbB_Transit.Text))
+        config.Add(New XElement("LoadQuality", TB_LoadQuality.Text))
+        config.Add(New XElement("ScaleMode", CbB_ScaleMode.SelectedItem.Key))
 
         config.Save("config.xml")
         Me.Close()
@@ -159,6 +213,21 @@
         End If
     End Sub
 
+    Private Sub Btn_Img_Edit_Click(sender As Object, e As RoutedEventArgs) Handles Btn_Img_Edit.Click, Btn_BGM_Edit.Click, LB_ImgFolder.MouseDoubleClick, LB_BGMFolder.MouseDoubleClick
+        Dim c As Object = VisualTreeHelper.GetParent(sender)
+        Dim lb As ListBox = c.Children(0)
+        If lb.SelectedIndex <> -1 Then
+            Using dialog As New Forms.FolderBrowserDialog
+                dialog.Description = "Select a folder."
+                dialog.SelectedPath = lb.SelectedItem.ToString
+                If dialog.ShowDialog = Forms.DialogResult.OK Then
+                    lb.Items(lb.SelectedIndex) = dialog.SelectedPath
+                    lastPath = dialog.SelectedPath
+                End If
+            End Using
+        End If
+    End Sub
+
     Private Sub CbB_Transit_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles CbB_Transit.SelectionChanged
         If CbB_Transit.SelectedItem.Content = "Breath" Then
             CB_Fadeout.IsEnabled = False
@@ -172,4 +241,15 @@
             RB_Custom.IsEnabled = True
         End If
     End Sub
+
+    Private Sub CB_ResLk_Checked(sender As Object, e As RoutedEventArgs) Handles CB_ResLk.Checked, CB_ResLk.Unchecked
+        If Me.IsLoaded Then
+            If CB_ResLk.IsChecked Then
+                TB_LoadQuality.IsEnabled = True
+            Else
+                TB_LoadQuality.IsEnabled = False
+            End If
+        End If
+    End Sub
+
 End Class

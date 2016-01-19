@@ -26,6 +26,9 @@ Class MainWindow
     Public Shared verticalOptimizeR As Double = 0.4
     Public Shared horizontalOptimizeR As Double = 0.4
     Public Shared transit As String = "Ken Burns"
+    Public Shared loadquality As Double = 1.2
+    Public Shared ScaleMode_Dic As New Dictionary(Of Integer, String)
+    Public Shared scalemode As Integer = 2
     Private Declare Function SetThreadExecutionState Lib "kernel32" (ByVal esFlags As EXECUTION_STATE) As EXECUTION_STATE
     Dim ExecState_Set As Boolean
     Private Enum EXECUTION_STATE As Integer
@@ -123,6 +126,10 @@ Class MainWindow
         End If
 
         'loading other settings
+        ScaleMode_Dic.Add(2, "(Default) High")
+        ScaleMode_Dic.Add(3, "Medium")
+        ScaleMode_Dic.Add(1, "Low")
+
         If config.Elements("Framerate").Any Then framerate = config.Element("Framerate").Value
         If config.Elements("Duration").Any Then
             Dim tmp = Convert.ToUInt32(config.Element("Duration").Value)
@@ -147,6 +154,8 @@ Class MainWindow
         If config.Elements("VerticalOptimizeRatio").Any Then verticalOptimizeR = config.Element("VerticalOptimizeRatio").Value
         If config.Elements("HorizontalOptimizeRatio").Any Then horizontalOptimizeR = config.Element("HorizontalOptimizeRatio").Value
         If config.Elements("Transit").Any Then transit = config.Element("Transit").Value
+        If config.Elements("LoadQuality").Any Then loadquality = config.Element("LoadQuality").Value
+        If config.Elements("ScaleMode").Any Then scalemode = config.Element("ScaleMode").Value
 
         tb_date0.FontSize = Me.Height / 12
         tb_date1.FontSize = Me.Height / 12
@@ -608,6 +617,10 @@ Class MainWindow
     End Sub
 
     Private Sub LoadNextImg()
+        Dispatcher.Invoke(Sub()
+                              RenderOptions.SetBitmapScalingMode(slide_img0, scalemode)
+                              RenderOptions.SetBitmapScalingMode(slide_img1, scalemode)
+                          End Sub)
         Try
             Dim s As Size
             Using strm = New IO.FileStream(ListOfPic.Values(position), IO.FileMode.Open, IO.FileAccess.Read)
@@ -619,12 +632,12 @@ Class MainWindow
             pic.BeginInit()
             If resolutionLock Then
                 If s.Width > s.Height Then
-                    If s.Height > h * 1.2 Then
-                        pic.DecodePixelHeight = h * 1.2
+                    If s.Height > h * loadquality Then
+                        pic.DecodePixelHeight = h * loadquality
                     End If
                 Else
-                    If s.Width > w * 1.2 Then
-                        pic.DecodePixelWidth = w * 1.2
+                    If s.Width > w * loadquality Then
+                        pic.DecodePixelWidth = w * loadquality
                     End If
                 End If
             End If
