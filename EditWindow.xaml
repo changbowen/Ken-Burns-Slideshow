@@ -1,0 +1,31 @@
+﻿<Window x:Class="EditWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Edit Slides" Height="394" Width="596" Icon="KenBurns.ico" Loaded="Window_Loaded">
+    <Grid>
+        <GroupBox Header="Image List" Canvas.Left="10" Canvas.Top="10" Margin="10,10,297,10">
+            <Grid>
+                <ListBox x:Name="LB_Pic" Margin="0,0,0,24" SelectionMode="Extended">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel>
+                                <TextBlock Text="{Binding Path=[0]}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                
+                <Button x:Name="Btn_Up" Content="↑" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="22"/>
+                <Button x:Name="Btn_Down" Content="↓" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="22" Margin="26,0,0,0"/>
+                <Button x:Name="Btn_Delete" Content="Delete" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="53"/>
+            </Grid>
+        </GroupBox>
+        <CheckBox x:Name="CB_Title" Content="Title slide" HorizontalAlignment="Right" Margin="0,46,217,0" VerticalAlignment="Top"/>
+        <TextBlock x:Name="T_DateShown" HorizontalAlignment="Right" TextWrapping="Wrap" Text="On-screen date shown:&#xA;None" VerticalAlignment="Top" Margin="0,11,159,0"/>
+        <Button x:Name="Btn_Save" Content="Save" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="64" Margin="0,0,10,43" Height="28" IsDefault="True"/>
+        <Button x:Name="Btn_Cancel" Content="Cancel" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="64" Margin="0,0,10,10" Height="28" IsCancel="True"/>
+        <TextBlock HorizontalAlignment="Right" Margin="0,0,79,10" TextWrapping="Wrap" Text="Note:&#xA;Please restart program for changes to take effect." VerticalAlignment="Bottom" Width="213"/>
+        <Button x:Name="Btn_Update" Content="Update dates" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="88" Margin="0,0,10,325" Height="28"/>
+
+    </Grid>
+</Window>

@@ -1,19 +1,24 @@
 ﻿Imports System.Threading
 
 Class MainWindow
-    Dim ListOfPic As New Dictionary(Of String, String)
+    Public Shared ListOfPic As New System.Data.DataTable("ImageList")
     Dim PicFormats() As String = {".jpg", ".jpeg", ".bmp", ".png", ".tif", ".tiff"}
     Dim ListOfMusic As New List(Of String)
     Dim ran As New Random
     Dim anim_fadein As Animation.DoubleAnimation
     Dim anim_fadeout As Animation.DoubleAnimation
     Dim player As New System.Windows.Media.MediaPlayer
-    Dim playing As Integer = 0
+    Dim currentaudio As Integer = 0
+    Dim playing As Boolean = False
+    Dim audiofading As Boolean = False
     Dim w, h As Double
     Dim position As Integer = 0
     Dim m As Integer = 0, mm As Integer = 0
     Dim pic As Object
     Dim picmove_sec As UInteger = 7
+    Dim moveon As Boolean = True
+    Dim restart As Boolean = False
+    Dim worker_pic As Thread
     Public Shared framerate As UInteger = 60
     Public Shared duration As UInteger = 7 'this only serves as a store. program will read duration value from picmove_sec.
     Public Shared folders_image As New List(Of String)
@@ -22,7 +27,7 @@ Class MainWindow
     Public Shared resolutionLock As Boolean = True
     Public Shared verticalOptimize As Boolean = True
     Public Shared horizontalOptimize As Boolean = True
-    Public Shared fadeout As Boolean = False
+    Public Shared fadeout As Boolean = True
     Public Shared verticalOptimizeR As Double = 0.4
     Public Shared horizontalOptimizeR As Double = 0.4
     Public Shared transit As String = "Ken Burns"
@@ -50,6 +55,17 @@ Class MainWindow
         w = Me.Width
         h = Me.Height
 
+        'initialize datatable
+        ListOfPic.Columns.Add("Path", GetType(String))
+        ListOfPic.Columns.Add("Date", GetType(String))
+        ListOfPic.Columns.Add("CB_Title", GetType(Boolean)).DefaultValue = False
+        ListOfPic.PrimaryKey = {ListOfPic.Columns("Path")}
+
+        'loading other settings
+        ScaleMode_Dic.Add(2, "(Default) High")
+        ScaleMode_Dic.Add(3, "Medium")
+        ScaleMode_Dic.Add(1, "Low")
+
         'loading config.xml
         Dim config As XElement
         Do
@@ -70,6 +86,12 @@ Class MainWindow
 
         'loading image list
         Do
+            'loading ListOfPic
+            ListOfPic.Clear()
+            If config.Elements("DocumentElement").Any Then
+                ListOfPic.ReadXml(New IO.StringReader(config.Element("DocumentElement").ToString))
+            End If
+
             folders_image.Clear()
             For Each ele In config.Element("PicDir").Elements
                 folders_image.Add(ele.Value)
@@ -79,17 +101,40 @@ Class MainWindow
                         Dim filename = IO.Path.GetFileNameWithoutExtension(filefullname)
                         Dim ext = IO.Path.GetExtension(filefullname)
                         If PicFormats.Contains(ext.ToLower) Then
-                            Dim tmpdate As Date
-                            If DateTime.TryParse(filename, tmpdate) Then
-                                ListOfPic.Add(DateTime.Parse(filename).ToString, f)
+                            Dim row = ListOfPic.Rows.Find(f)
+                            If row IsNot Nothing Then
+                                Dim tmpdate As Date
+                                If DateTime.TryParse(filename, tmpdate) Then
+                                    row("Date") = DateTime.Parse(filename).ToString
+                                End If
                             Else
-                                ListOfPic.Add("NON-DATE_" & filename, f)
+                                Dim tmprow = ListOfPic.NewRow
+                                tmprow("Path") = f
+                                Dim tmpdate As Date
+                                If DateTime.TryParse(filename, tmpdate) Then
+                                    tmprow("Date") = DateTime.Parse(filename).ToString
+                                End If
+                                ListOfPic.Rows.Add(tmprow)
                             End If
+
                         End If
                     Next
                 End If
             Next
-            If ListOfPic.Count = 0 Then
+            'remove old paths
+            Dim tmplst As New List(Of System.Data.DataRow)
+            For Each row As System.Data.DataRow In ListOfPic.Rows
+                If Not folders_image.Contains(IO.Path.GetDirectoryName(row("Path"))) Then
+                    tmplst.Add(row)
+                ElseIf Not My.Computer.FileSystem.FileExists(row("Path")) Then
+                    tmplst.Add(row)
+                End If
+            Next
+            For Each row In tmplst
+                ListOfPic.Rows.Remove(row)
+            Next
+
+            If ListOfPic.Rows.Count = 0 Then
                 If MsgBox("No pictures are found in specified folders. Would you like to open settings?", MsgBoxStyle.Question + MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
                     Dim optwin As New OptWindow
                     optwin.ShowDialog()
@@ -104,6 +149,15 @@ Class MainWindow
             End If
         Loop
 
+        'save changes
+        Using lop_str = New IO.StringWriter()
+            ListOfPic.WriteXml(lop_str)
+            Dim lop = XElement.Parse(lop_str.ToString)
+            config.Elements("DocumentElement").Remove()
+            config.Add(lop)
+            config.Save("config.xml")
+        End Using
+
         'loading music list
         folders_music.Clear()
         For Each ele In config.Element("Music").Elements
@@ -114,21 +168,13 @@ Class MainWindow
                 Next
             End If
         Next
-        If ListOfMusic.Count > 0 Then
-            player.Open(New Uri(ListOfMusic(0)))
-            player.Play()
-            AddHandler player.MediaEnded, Sub()
-                                              playing += 1
-                                              If playing = ListOfMusic.Count Then playing = 0
-                                              player.Open(New Uri(ListOfMusic(playing)))
-                                              player.Play()
-                                          End Sub
-        End If
 
-        'loading other settings
-        ScaleMode_Dic.Add(2, "(Default) High")
-        ScaleMode_Dic.Add(3, "Medium")
-        ScaleMode_Dic.Add(1, "Low")
+        AddHandler player.MediaEnded, Sub()
+                                          currentaudio += 1
+                                          If currentaudio = ListOfMusic.Count Then currentaudio = 0
+                                          player.Open(New Uri(ListOfMusic(currentaudio)))
+                                          player.Play()
+                                      End Sub
 
         If config.Elements("Framerate").Any Then framerate = config.Element("Framerate").Value
         If config.Elements("Duration").Any Then
@@ -148,8 +194,8 @@ Class MainWindow
         If config.Elements("HorizontalOptimize").Any AndAlso config.Element("HorizontalOptimize").Value.ToLower = "false" Then
             horizontalOptimize = False
         End If
-        If config.Elements("Fadeout").Any AndAlso config.Element("Fadeout").Value.ToLower = "true" Then
-            fadeout = True
+        If config.Elements("Fadeout").Any AndAlso config.Element("Fadeout").Value.ToLower = "false" Then
+            fadeout = False
         End If
         If config.Elements("VerticalOptimizeRatio").Any Then verticalOptimizeR = config.Element("VerticalOptimizeRatio").Value
         If config.Elements("HorizontalOptimizeRatio").Any Then horizontalOptimizeR = config.Element("HorizontalOptimizeRatio").Value
@@ -165,7 +211,6 @@ Class MainWindow
 
         Me.Background = Brushes.Black
 
-        Dim worker_pic As Thread
         Select Case transit
             Case "Ken Burns"
                 worker_pic = New Thread(AddressOf mainThrd_KBE)
@@ -177,7 +222,7 @@ Class MainWindow
                 Exit Sub
         End Select
         worker_pic.IsBackground = True
-        worker_pic.Priority = ThreadPriority.BelowNormal
+        worker_pic.Priority = ThreadPriority.Lowest 'this is not the UI thread
         worker_pic.Start()
 
         'disabling sleep / screensaver
@@ -198,19 +243,37 @@ Class MainWindow
         End If
     End Function
 
+    Private Sub Anim_TitleSlide(tgt As Image)
+        'title slide animation
+        Thread.Sleep(2500) 'waiting for the former img to fade out
+        Dispatcher.Invoke(
+            Sub()
+                tgt = New Image
+                tgt.Name = "tgt"
+                mainGrid.Children.Add(tgt)
+                tgt.HorizontalAlignment = HorizontalAlignment.Stretch
+                tgt.VerticalAlignment = VerticalAlignment.Stretch
+                tgt.Source = pic
+                tgt.BeginAnimation(Image.OpacityProperty, New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 2))))
+            End Sub)
+        Thread.Sleep(picmove_sec * 2000)
+        Dispatcher.Invoke(Sub() tgt.BeginAnimation(Image.OpacityProperty, New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1)))))
+        Thread.Sleep(2500)
+    End Sub
+
     Private Sub textThrd_KBE(pos As Integer, ByRef output As Integer)
-        If Not ListOfPic.Keys(pos - 1).StartsWith("NON-DATE_") Then
+        If Not IsDBNull(ListOfPic.Rows(pos - 1)("Date")) Then
             Dim tgt_tb As TextBlock
             'determining future pics with same year and month
-            Dim tmpdate = Date.Parse(ListOfPic.Keys(pos - 1)).ToString("yyyy.M")
+            Dim tmpdate = Date.Parse(ListOfPic.Rows(pos - 1)("Date")).ToString("yyyy.M")
             Dim tbmove_sec = picmove_sec
-            For n = 1 To ListOfPic.Count - pos 'not running if it is the last pic as ListOfPic.Count-pos=0
-                If Not ListOfPic.Keys(pos - 1 + n).StartsWith("NON-DATE_") Then
-                    If Date.Parse(ListOfPic.Keys(pos - 1 + n)).ToString("yyyy.M") = tmpdate Then
+            For n = 1 To ListOfPic.Rows.Count - pos 'not running if it is the last pic as ListOfPic.Count-pos=0
+                If Not IsDBNull(ListOfPic.Rows(pos - 1 + n)("Date")) Then
+                    If Date.Parse(ListOfPic.Rows(pos - 1 + n)("Date")).ToString("yyyy.M") = tmpdate Then
                         tbmove_sec += (picmove_sec - 1)
                         output = pos + n
-                        If output = ListOfPic.Count Then
-                            output = ListOfPic.Count + 1
+                        If output = ListOfPic.Rows.Count Then
+                            output = ListOfPic.Rows.Count + 1
                         End If
                     Else
                         output = pos + n
@@ -246,18 +309,40 @@ Class MainWindow
             Dispatcher.Invoke(Sub()
                                   Dim anim_tbfadeout As New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1)))
                                   Animation.Timeline.SetDesiredFrameRate(anim_tbfadeout, framerate)
-                                  tgt_tb.BeginAnimation(TextBlock.OpacityProperty, anim_tbfadeout, Animation.HandoffBehavior.Compose)
+                                  tgt_tb.BeginAnimation(TextBlock.OpacityProperty, anim_tbfadeout)
                               End Sub)
         Else
             output = pos + 1
         End If
     End Sub
 
+    'Private Sub textThrd_KBE(force_restart As Boolean)
+    '    Dispatcher.Invoke(
+    '        Sub()
+    '            Dim anim_tbfadeout As New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1)))
+    '            Animation.Timeline.SetDesiredFrameRate(anim_tbfadeout, framerate)
+    '            If tb_date0 IsNot Nothing Then tb_date0.BeginAnimation(TextBlock.OpacityProperty, anim_tbfadeout)
+    '            If tb_date1 IsNot Nothing Then tb_date1.BeginAnimation(TextBlock.OpacityProperty, anim_tbfadeout)
+    '        End Sub)
+    'End Sub
+
     Private Sub mainThrd_KBE()
-        Dispatcher.Invoke(Sub()
-                              anim_fadein = New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 1)))
-                              anim_fadeout = New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1)))
-                          End Sub)
+        Do While audiofading
+            Thread.Sleep(500)
+        Loop
+        Dispatcher.Invoke(
+            Sub()
+                If ListOfMusic.Count > 0 Then
+                    player.Open(New Uri(ListOfMusic(0)))
+                    player.Play()
+                    playing = True
+                End If
+
+                anim_fadein = New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 1)))
+                anim_fadeout = New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1)))
+                Panel.SetZIndex(tb_date0, 2)
+                Panel.SetZIndex(tb_date1, 3)
+            End Sub)
         Dim tgt_img As Image
         Dim delta As Double
         Dim tbchkpoint As Integer = 1
@@ -267,10 +352,11 @@ Class MainWindow
                 Task.Run(Sub() textThrd_KBE(position, tbchkpoint))
             End If
 
-            Dispatcher.Invoke(
+            If ListOfPic.Rows(position - 1)("CB_Title") Then
+                Anim_TitleSlide(tgt_img)
+            Else
+                Dispatcher.Invoke(
                 Sub()
-                    Panel.SetZIndex(tb_date0, 2)
-                    Panel.SetZIndex(tb_date1, 3)
                     Dim tgt_trasform As ScaleTransform
                     Dim anim_move As Animation.ThicknessAnimation
                     Dim anim_zoomx As Animation.DoubleAnimation
@@ -309,7 +395,7 @@ Class MainWindow
                         End If
 
                         Dim startpoint As Double
-                        If horizontalOptimize AndAlso delta > w / 1.5 Then
+                        If horizontalOptimize AndAlso delta > w * 0.7 Then
                             startpoint = delta * horizontalOptimizeR
                             If startpoint > tgt_img.Width - w Then
                                 startpoint = tgt_img.Width - w
@@ -349,7 +435,7 @@ Class MainWindow
                         End If
 
                         Dim startpoint As Double
-                        If verticalOptimize AndAlso delta > h / 1.5 Then
+                        If verticalOptimize AndAlso delta > h * 0.7 Then
                             startpoint = delta * verticalOptimizeR
                             If startpoint > tgt_img.Height - h Then
                                 startpoint = tgt_img.Height - h
@@ -359,7 +445,7 @@ Class MainWindow
                         End If
 
                         'move up or down or up only when long
-                        If verticalLock AndAlso tgt_img.Height > h * 1.5 Then
+                        If verticalLock AndAlso tgt_img.Height > h * 1.2 Then
                             'only move down for pics with height larger than 1.5 * screen height after converted to same width as screen
                             tgt_img.VerticalAlignment = Windows.VerticalAlignment.Bottom
                             tgt_img.RenderTransformOrigin = New Point(0.5, 1) 'this and above line is to make transform align with bottom
@@ -388,39 +474,60 @@ Class MainWindow
                     tgt_img.BeginAnimation(Image.MarginProperty, anim_move) ', Animation.HandoffBehavior.Compose)
                     tgt_img.BeginAnimation(Image.OpacityProperty, anim_fadein) ', Animation.HandoffBehavior.Compose)
                 End Sub)
-            Thread.Sleep(1000)
+                Thread.Sleep(1000)
+            End If
 
+            Dim tmpposition = position
             Dim loadtask = Task.Run(
                     Sub()
                         'Thread.CurrentThread.Priority = ThreadPriority.Lowest
-                        If position = ListOfPic.Count Then
+                        If position = ListOfPic.Rows.Count Then
                             position = 0
                             tbchkpoint = 1
                         End If
                         LoadNextImg()
                     End Sub)
 
-            Thread.Sleep((picmove_sec - 2) * 1000)
-            If fadeout Then
-                Dispatcher.Invoke(Sub()
-                                      tgt_img.BeginAnimation(Image.OpacityProperty, anim_fadeout, Animation.HandoffBehavior.Compose)
-                                  End Sub)
+            If Not ListOfPic.Rows(tmpposition - 1)("CB_Title") Then
+                Thread.Sleep((picmove_sec - 2) * 1000)
+                Dispatcher.Invoke(Sub() tgt_img.BeginAnimation(Image.OpacityProperty, anim_fadeout))
             End If
+
             loadtask.Wait()
+
+            If restart Then
+                restart = False
+                Exit Sub
+            End If
+
+            Do Until moveon
+                Thread.Sleep(1000)
+            Loop
         Loop
     End Sub
 
     Private Sub mainThrd_Breath()
+        Do While audiofading
+            Thread.Sleep(500)
+        Loop
+
         Dim ease_in As Animation.CubicEase
         Dim ease_out As Animation.CubicEase
         Dim ease_inout As Animation.CubicEase
         Dispatcher.Invoke(
             Sub()
+                If ListOfMusic.Count > 0 Then
+                    player.Open(New Uri(ListOfMusic(0)))
+                    player.Play()
+                    playing = True
+                End If
                 ease_in = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseIn}
                 ease_out = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseOut}
                 ease_inout = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseInOut}
                 anim_fadein = New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 1))) ' With {.EasingFunction = ease_out}
                 anim_fadeout = New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1))) ' With {.EasingFunction = ease_in}
+                Panel.SetZIndex(tb_date0, 2)
+                Panel.SetZIndex(tb_date1, 3)
             End Sub)
         Dim tgt_img As Image
         Dim delta As Double
@@ -432,10 +539,11 @@ Class MainWindow
                 Task.Run(Sub() textThrd_KBE(position, tbchkpoint))
             End If
 
-            Dispatcher.Invoke(
+            If ListOfPic.Rows(position - 1)("CB_Title") Then
+                Anim_TitleSlide(tgt_img)
+            Else
+                Dispatcher.Invoke(
                 Sub()
-                    Panel.SetZIndex(tb_date0, 2)
-                    Panel.SetZIndex(tb_date1, 3)
                     Dim tgt_trasform As ScaleTransform
                     Dim anim_move As Animation.ThicknessAnimation
                     Dim anim_zoomx As Animation.DoubleAnimationUsingKeyFrames
@@ -493,7 +601,7 @@ Class MainWindow
                         End If
 
                         Dim startpoint As Double
-                        If horizontalOptimize AndAlso delta > w / 1.5 Then
+                        If horizontalOptimize AndAlso delta > w * 0.7 Then
                             startpoint = delta * horizontalOptimizeR
                             If startpoint > tgt_img.Width - w Then
                                 startpoint = tgt_img.Width - w
@@ -552,7 +660,7 @@ Class MainWindow
                             'anim_zoomy.KeyFrames.Add(New Animation.SplineDoubleKeyFrame(1.2, Animation.KeyTime.FromTimeSpan(New TimeSpan(0, 0, 0, picmove_sec - 1, 500)), New Animation.KeySpline(0.8, 0, 1, 0.7)))
                         End If
                         Dim startpoint As Double
-                        If verticalOptimize AndAlso delta > h / 1.5 Then
+                        If verticalOptimize AndAlso delta > h * 0.7 Then
                             startpoint = delta * verticalOptimizeR
                             If startpoint > tgt_img.Height - h Then
                                 startpoint = tgt_img.Height - h
@@ -562,7 +670,7 @@ Class MainWindow
                         End If
 
                         'move up or down or up only when long
-                        If verticalLock AndAlso tgt_img.Height > h * 1.5 Then
+                        If verticalLock AndAlso tgt_img.Height > h * 1.2 Then
                             'only move down for pics with height larger than 1.5 * screen height after converted to same width as screen
                             tgt_img.VerticalAlignment = Windows.VerticalAlignment.Bottom
                             tgt_img.RenderTransformOrigin = New Point(0.5, 1) 'this and above line is to make transform align with bottom
@@ -595,24 +703,36 @@ Class MainWindow
                     tgt_img.BeginAnimation(Image.MarginProperty, anim_move) ', Animation.HandoffBehavior.Compose)
                     tgt_img.BeginAnimation(Image.OpacityProperty, anim_fadein) ', Animation.HandoffBehavior.Compose)
                 End Sub)
-            Thread.Sleep(1000)
+                Thread.Sleep(1000)
+            End If
 
+            Dim tmpposition = position
             Dim loadtask = Task.Run(
                     Sub()
                         'Thread.CurrentThread.Priority = ThreadPriority.Lowest
-                        If position = ListOfPic.Count Then
+                        If position = ListOfPic.Rows.Count Then
                             position = 0
                             tbchkpoint = 1
                         End If
                         LoadNextImg()
                     End Sub)
 
-            Thread.Sleep((picmove_sec - 2.5) * 1000)
-            Dispatcher.Invoke(Sub()
-                                  tgt_img.BeginAnimation(Image.OpacityProperty, anim_fadeout) ', Animation.HandoffBehavior.Compose)
-                              End Sub)
+            If Not ListOfPic.Rows(tmpposition - 1)("CB_Title") Then
+                Thread.Sleep((picmove_sec - 2.5) * 1000)
+                Dispatcher.Invoke(Sub() tgt_img.BeginAnimation(Image.OpacityProperty, anim_fadeout))
+            End If
+
             Thread.Sleep(500)
             loadtask.Wait()
+
+            If restart Then
+                restart = False
+                Exit Sub
+            End If
+
+            Do Until moveon
+                Thread.Sleep(1000)
+            Loop
         Loop
     End Sub
 
@@ -623,7 +743,8 @@ Class MainWindow
                           End Sub)
         Try
             Dim s As Size
-            Using strm = New IO.FileStream(ListOfPic.Values(position), IO.FileMode.Open, IO.FileAccess.Read)
+            Dim imgpath As String = ListOfPic.Rows(position)("Path")
+            Using strm = New IO.FileStream(imgpath, IO.FileMode.Open, IO.FileAccess.Read)
                 Dim frame = BitmapFrame.Create(strm, BitmapCreateOptions.DelayCreation, BitmapCacheOption.None)
                 s = New Size(frame.PixelWidth, frame.PixelHeight)
             End Using
@@ -642,7 +763,7 @@ Class MainWindow
                 End If
             End If
             pic.CacheOption = BitmapCacheOption.OnLoad
-            Using strm = New IO.FileStream(ListOfPic.Values(position), IO.FileMode.Open, IO.FileAccess.Read)
+            Using strm = New IO.FileStream(imgpath, IO.FileMode.Open, IO.FileAccess.Read)
                 pic.StreamSource = strm
                 pic.EndInit()
             End Using
@@ -665,7 +786,6 @@ Class MainWindow
             '    pic.StreamSource = stream
             '    pic.EndInit()
             'End Using
-            pic.Freeze()
         Catch
             pic = BitmapSource.Create(64, 64, 96, 96, PixelFormats.Indexed1, BitmapPalettes.BlackAndWhite, New Byte(64 * 8) {}, 8)
         Finally
@@ -679,7 +799,108 @@ Class MainWindow
             Dim optwin As New OptWindow
             optwin.ShowDialog()
             optwin.Close()
+        ElseIf e.Key = Key.F11 Then
+            Dim editwin As New EditWindow
+            editwin.ShowDialog()
+            editwin.Close()
+        ElseIf e.Key = Key.P Then
+            If Keyboard.Modifiers = ModifierKeys.Control Then 'pause image
+                If moveon = True Then
+                    moveon = False
+                Else
+                    moveon = True
+                End If
+            ElseIf Keyboard.Modifiers = ModifierKeys.Shift Then 'fadeout audio only
+                If Not audiofading Then
+                    If playing Then
+                        Task.Run(AddressOf FadeoutAudio)
+                    Else
+                        Task.Run(AddressOf FadeinAudio)
+                    End If
+                End If
+            End If
+        ElseIf e.Key = Key.R AndAlso Keyboard.Modifiers = ModifierKeys.Control Then
+            Task.Run(AddressOf FadeoutAudio)
+            Task.Run(Sub()
+                         restart = True
+                         Dim black As Rectangle
+                         Dispatcher.Invoke(Sub()
+                                               black = New Rectangle
+                                               mainGrid.Children.Add(black)
+                                               Panel.SetZIndex(black, 9)
+                                               black.Fill = Windows.Media.Brushes.Black
+                                               black.Margin = New Thickness(0)
+                                               black.BeginAnimation(OpacityProperty, anim_fadein)
+                                           End Sub)
+                         Thread.Sleep(1000)
+                         Dispatcher.Invoke(Sub()
+                                               For Each child In mainGrid.Children
+                                                   If child.Name.StartsWith("slide_img") OrElse child.Name = "tgt" Then
+                                                       CType(child, Image).Source = Nothing
+                                                   ElseIf child.Name.StartsWith("tb_date") Then
+                                                       CType(child, TextBlock).Text = ""
+                                                   End If
+                                               Next
+                                               mainGrid.Children.Remove(black)
+                                               black = Nothing
+                                           End Sub)
+                         worker_pic.Join()
+
+                         'restart thread
+                         position = 0
+                         LoadNextImg()
+                         Select Case transit
+                             Case "Ken Burns"
+                                 worker_pic = New Thread(AddressOf mainThrd_KBE)
+                             Case "Breath"
+                                 worker_pic = New Thread(AddressOf mainThrd_Breath)
+                             Case Else
+                                 MsgBox("Error reading transit value. Program will exit now.", MsgBoxStyle.Critical)
+                                 Me.Close()
+                                 Exit Sub
+                         End Select
+                         worker_pic.IsBackground = True
+                         worker_pic.Priority = ThreadPriority.Lowest
+                         worker_pic.Start()
+                     End Sub)
         End If
+    End Sub
+
+    Private Sub FadeoutAudio()
+        audiofading = True
+        Dim vol As Double
+        Do
+            Dispatcher.Invoke(Sub()
+                                  player.Volume -= 0.01
+                                  vol = player.Volume
+                              End Sub)
+            Thread.Sleep(60)
+        Loop Until vol < 0.01
+        Dispatcher.Invoke(Sub()
+                              player.Pause()
+                              player.Volume = 0.5
+                          End Sub)
+        playing = False
+        audiofading = False
+    End Sub
+
+    Private Sub FadeinAudio()
+        audiofading = True
+        Dispatcher.Invoke(Sub()
+                              player.Volume = 0
+                              player.Play()
+                          End Sub)
+        Dim vol As Double = 0
+        Do
+            Dispatcher.Invoke(Sub()
+                                  player.Volume += 0.01
+                                  vol = player.Volume
+                              End Sub)
+            Thread.Sleep(60)
+        Loop Until vol > 0.49
+        'Dispatcher.Invoke(Sub() player.Volume = 0.5)
+        playing = True
+        audiofading = False
     End Sub
 
     Private Sub Window_Closing(sender As Object, e As ComponentModel.CancelEventArgs)

@@ -23,17 +23,17 @@
         CbB_ScaleMode.SelectedItem = New KeyValuePair(Of Integer, String)(MainWindow.scalemode, MainWindow.ScaleMode_Dic(MainWindow.scalemode))
     End Sub
 
-    Private Sub ProfileUpdate() Handles CB_Fadeout.Checked, CB_Fadeout.Unchecked
-        If Me.IsLoaded Then
-            If CB_Fadeout.IsChecked = True AndAlso CB_ResLk.IsChecked = False Then
-                RB_Qlty.IsChecked = True
-            ElseIf CB_Fadeout.IsChecked = False AndAlso CB_ResLk.IsChecked = True Then
-                RB_Perf.IsChecked = True
-            Else
-                RB_Custom.IsChecked = True
-            End If
-        End If
-    End Sub
+    'Private Sub ProfileUpdate() Handles CB_Fadeout.Checked, CB_Fadeout.Unchecked
+    '    If Me.IsLoaded Then
+    '        If CB_Fadeout.IsChecked = True AndAlso CB_ResLk.IsChecked = False Then
+    '            RB_Qlty.IsChecked = True
+    '        ElseIf CB_Fadeout.IsChecked = False AndAlso CB_ResLk.IsChecked = True Then
+    '            RB_Perf.IsChecked = True
+    '        Else
+    '            RB_Custom.IsChecked = True
+    '        End If
+    '    End If
+    'End Sub
 
     Private Sub CB_HorOptm_Change() Handles CB_HorOptm.Unchecked, CB_HorOptm.Checked
         If Me.IsLoaded Then
@@ -55,19 +55,19 @@
         End If
     End Sub
 
-    Private Sub RB_Perf_Checked(sender As Object, e As RoutedEventArgs) Handles RB_Perf.Checked
-        If Me.IsLoaded Then
-            CB_Fadeout.IsChecked = False
-            CB_ResLk.IsChecked = True
-        End If
-    End Sub
+    'Private Sub RB_Perf_Checked(sender As Object, e As RoutedEventArgs) Handles RB_Perf.Checked
+    '    If Me.IsLoaded Then
+    '        CB_Fadeout.IsChecked = False
+    '        CB_ResLk.IsChecked = True
+    '    End If
+    'End Sub
 
-    Private Sub RB_Qlty_Checked(sender As Object, e As RoutedEventArgs) Handles RB_Qlty.Checked
-        If Me.IsLoaded Then
-            CB_Fadeout.IsChecked = True
-            CB_ResLk.IsChecked = False
-        End If
-    End Sub
+    'Private Sub RB_Qlty_Checked(sender As Object, e As RoutedEventArgs) Handles RB_Qlty.Checked
+    '    If Me.IsLoaded Then
+    '        CB_Fadeout.IsChecked = True
+    '        CB_ResLk.IsChecked = False
+    '    End If
+    'End Sub
 
     Private Function CheckConsist(chk_str As String, ByRef target As Double, min As Double, max As Double, inclu_min As Boolean, inclu_max As Boolean, err_msg As String) As Boolean
         Dim tmp As Double = 0
@@ -104,7 +104,7 @@
 
     Private Function CheckConsist(chk_str As String, ByRef target As UInteger, min As UInteger, inclu_min As Boolean, err_msg As String) As Boolean
         Dim tmp As UInteger = 0
-        If UInteger.TryParse(chk_str, tmp) AndAlso If(inclu_min, tmp >= min, tmp > min)  Then
+        If UInteger.TryParse(chk_str, tmp) AndAlso If(inclu_min, tmp >= min, tmp > min) Then
             target = tmp
             Return True
         Else
@@ -119,35 +119,6 @@
         If Not CheckConsist(TB_Framerate.Text, MainWindow.framerate, 0, False, "Invalid framerate value.") Then Exit Sub
         If Not CheckConsist(TB_Duration.Text, MainWindow.duration, 4, False, "Invalid duration value.") Then Exit Sub
         If Not CheckConsist(TB_LoadQuality.Text, MainWindow.loadquality, 0, 2, False, True, "Invalid multiplier value.") Then Exit Sub
-        'Dim tmpR As Double = 0
-        'If Double.TryParse(TB_VORatio.Text, tmpR) AndAlso tmpR > 0 AndAlso tmpR <= 1 Then
-        '    MainWindow.verticalOptimizeR = tmpR
-        'Else
-        '    MessageBox.Show("Invalid vertical optimize ratio.", "", MessageBoxButton.OK, MessageBoxImage.Exclamation)
-        '    Exit Sub
-        'End If
-        'tmpR = 0
-        'If Double.TryParse(TB_HORatio.Text, tmpR) AndAlso tmpR > 0 AndAlso tmpR <= 1 Then
-        '    MainWindow.horizontalOptimizeR = tmpR
-        'Else
-        '    MessageBox.Show("Invalid horizontal optimize ratio.", "", MessageBoxButton.OK, MessageBoxImage.Exclamation)
-        '    Exit Sub
-        'End If
-        'Dim tmpF As UInteger = 0
-        'If UInteger.TryParse(TB_Framerate.Text, tmpF) AndAlso tmpF > 0 Then
-        '    MainWindow.framerate = tmpF
-        'Else
-        '    MessageBox.Show("Invalid framerate value.", "", MessageBoxButton.OK, MessageBoxImage.Exclamation)
-        '    Exit Sub
-        'End If
-        'tmpF = 0
-        'If UInteger.TryParse(TB_Duration.Text, tmpF) AndAlso tmpF > 4 Then
-        '    'not setting mainwindow.picmove_sec to avoid problems. save to config.xml instead for the next load.
-        '    MainWindow.duration = tmpF
-        'Else
-        '    MessageBox.Show("Invalid duration value.", "", MessageBoxButton.OK, MessageBoxImage.Exclamation)
-        '    Exit Sub
-        'End If
 
         MainWindow.folders_image.Clear()
         For Each i As String In LB_ImgFolder.Items
@@ -167,7 +138,6 @@
 
         'saving to file
         Dim config As New XElement("CfgRoot")
-
         config.Add(New XElement("PicDir"))
         For Each i As String In LB_ImgFolder.Items
             config.Element("PicDir").Add(New XElement("dir", New XCData(i)))
@@ -188,8 +158,13 @@
         config.Add(New XElement("Transit", CbB_Transit.Text))
         config.Add(New XElement("LoadQuality", TB_LoadQuality.Text))
         config.Add(New XElement("ScaleMode", CbB_ScaleMode.SelectedItem.Key))
+        Using lop_str = New IO.StringWriter()
+            MainWindow.ListOfPic.WriteXml(lop_str)
+            Dim lop = XElement.Parse(lop_str.ToString)
+            config.Add(lop)
+            config.Save("config.xml")
+        End Using
 
-        config.Save("config.xml")
         Me.Close()
     End Sub
 
@@ -228,19 +203,13 @@
         End If
     End Sub
 
-    Private Sub CbB_Transit_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles CbB_Transit.SelectionChanged
-        If CbB_Transit.SelectedItem.Content = "Breath" Then
-            CB_Fadeout.IsEnabled = False
-            RB_Perf.IsEnabled = False
-            RB_Qlty.IsEnabled = False
-            RB_Custom.IsEnabled = False
-        Else
-            CB_Fadeout.IsEnabled = True
-            RB_Perf.IsEnabled = True
-            RB_Qlty.IsEnabled = True
-            RB_Custom.IsEnabled = True
-        End If
-    End Sub
+    'Private Sub CbB_Transit_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles CbB_Transit.SelectionChanged
+    '    If CbB_Transit.SelectedItem.Content = "Breath" Then
+    '        CB_Fadeout.IsEnabled = False
+    '    Else
+    '        CB_Fadeout.IsEnabled = True
+    '    End If
+    'End Sub
 
     Private Sub CB_ResLk_Checked(sender As Object, e As RoutedEventArgs) Handles CB_ResLk.Checked, CB_ResLk.Unchecked
         If Me.IsLoaded Then
@@ -251,5 +220,4 @@
             End If
         End If
     End Sub
-
 End Class
