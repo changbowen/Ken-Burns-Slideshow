@@ -70,4 +70,4 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
   - ~~Example: `<![CDATA[F:\Folder with & in name\images]]>`~~
 - Animation might not be as smooth when not using Windows Aero themes on Windows 7.
 - Preferably a Windows 7 or above PC with a modern discrete GPU gives better / smoother performance.
-- Framedrops may occur when there are videos playing or even paused.
+- Framedrops may occur when certain programs are opened such as Potplayer and Foobar 2000.
