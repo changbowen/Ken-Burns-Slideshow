@@ -14,10 +14,10 @@
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
-                
+
                 <Button x:Name="Btn_Up" Content="↑" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="22"/>
                 <Button x:Name="Btn_Down" Content="↓" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="22" Margin="26,0,0,0"/>
-                <Button x:Name="Btn_Delete" Content="Delete" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="53"/>
+                <Button x:Name="Btn_Reset" Content="Reset list" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="88" Height="22" ToolTip="This will reset customized information such as ordering, title slide attributes etc."/>
             </Grid>
         </GroupBox>
         <CheckBox x:Name="CB_Title" Content="Title slide" HorizontalAlignment="Right" Margin="0,46,217,0" VerticalAlignment="Top"/>
@@ -25,7 +25,6 @@
         <Button x:Name="Btn_Save" Content="Save" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="64" Margin="0,0,10,43" Height="28" IsDefault="True"/>
         <Button x:Name="Btn_Cancel" Content="Cancel" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="64" Margin="0,0,10,10" Height="28" IsCancel="True"/>
         <TextBlock HorizontalAlignment="Right" Margin="0,0,79,10" TextWrapping="Wrap" Text="Note:&#xA;Please restart program for changes to take effect." VerticalAlignment="Bottom" Width="213"/>
-        <Button x:Name="Btn_Update" Content="Update dates" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="88" Margin="0,0,10,325" Height="28"/>
 
     </Grid>
 </Window>

@@ -32,9 +32,9 @@
                 <CheckBox x:Name="CB_VerOptm" Content="Vertical Optimize" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Whether to only show the upper / lower part (depending on movement direction)&#10;for movement distance of animation larger than screen height / 1.5.&#10;This is to avoid image moving too fast thus less elegant." IsChecked="True" Grid.Row="5" Height="16" Margin="0,7,0,8"/>
                 <CheckBox x:Name="CB_HorOptm" Content="Horizontal Optimize" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Whether to only show the left / right part (depending on movement direction)&#10;for movement distance of animation larger than screen height / 1.5.&#10;This is to avoid image moving too fast thus less elegant." IsChecked="True" Grid.Row="6" Height="16" Margin="0,8"/>
                 <CheckBox x:Name="CB_VerLk" Content="Vertical Lock" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Whether to lock movement direction to &quot;down only&quot; for images with height larger than screen height * 1.5.&#10;This setting suits better for portraits that usually have faces at the upper part of the image." IsChecked="True" Grid.Row="7" Height="16" Margin="0,8,0,7"/>
-                <TextBox x:Name="TB_VORatio" HorizontalAlignment="Right" VerticalAlignment="Center" Width="42" ToolTip="Determine how much of the image to be shown while Vertical Optimize is in effect.&#10;0 = showing complete image.&#10;1 = showing minimum." Padding="1,0" Grid.Column="1" Grid.Row="5" Height="20"/>
+                <TextBox x:Name="TB_VORatio" HorizontalAlignment="Right" VerticalAlignment="Center" Width="42" ToolTip="Determine how much of the image to be shown while Vertical Optimize is in effect.&#10;1 = showing complete image.&#10;0 = showing minimum." Padding="1,0" Grid.Column="1" Grid.Row="5" Height="20"/>
                 <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="Ratio (0 - 1)" VerticalAlignment="Center" Grid.Column="1" Grid.Row="5" Height="16" Margin="0,7,0,8" Width="68"/>
-                <TextBox x:Name="TB_HORatio" HorizontalAlignment="Right" VerticalAlignment="Center" Width="42" ToolTip="Determine how much of the image to be shown while Horizontal Optimize is in effect.&#10;0 = showing complete image.&#10;1 = showing minimum." Padding="1,0" Grid.Column="1" Grid.Row="6" Height="20"/>
+                <TextBox x:Name="TB_HORatio" HorizontalAlignment="Right" VerticalAlignment="Center" Width="42" ToolTip="Determine how much of the image to be shown while Horizontal Optimize is in effect.&#10;1 = showing complete image.&#10;0 = showing minimum." Padding="1,0" Grid.Column="1" Grid.Row="6" Height="20"/>
                 <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="Ratio (0 - 1)" VerticalAlignment="Center" Grid.Column="1" Grid.Row="6" Height="16" Margin="0,8" Width="68"/>
                 <TextBlock Text="Scaling Quality" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="2" Margin="0,7,0,8" Height="16" Width="86"/>
                 <ComboBox x:Name="CbB_ScaleMode" Grid.Row="2" Margin="0,5" HorizontalAlignment="Right" Width="103" ToolTip="Set bitmap scaling quality.&#10;Lower quality is not necessarily faster than high quality on some systems.">
@@ -44,7 +44,13 @@
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
-                <CheckBox x:Name="CB_AlterLast" Content="Alternate start trasition" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Alternate the transition effect of the first image to a simple and longer fade-in." IsChecked="False" Grid.Row="8" Height="16" Margin="0,8,0,7" IsEnabled="False"/>
+                <TextBlock Text="Blur Mode" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="8" Height="16" Margin="0,8,0,7"/>
+                <ComboBox x:Name="CbB_BlurMode" Grid.Row="8" Margin="0,5" HorizontalAlignment="Right" Width="103" ToolTip="Whether to apply blur effect to certain animation. Choose None for smoother movement.">
+                    <ComboBoxItem Content="None"/>
+                    <ComboBoxItem Content="Only on Fade In"/>
+                    <ComboBoxItem Content="Only on Fade Out"/>
+                    <ComboBoxItem Content="Both"/>
+                </ComboBox>
             </Grid>
         </GroupBox>
         <Button x:Name="Btn_OK" Content="OK" HorizontalAlignment="Left" VerticalAlignment="Top" Width="108" Height="28" IsDefault="True" Canvas.Left="345" Canvas.Top="370"/>
@@ -68,6 +74,8 @@
         <ComboBox x:Name="CbB_Transit" Canvas.Left="345" Canvas.Top="183" Width="108" SelectedIndex="0" ToolTip="Choose the transition effect to be used FOR THE NEXT RUN.">
             <ComboBoxItem Content="Ken Burns"/>
             <ComboBoxItem Content="Breath"/>
+            <ComboBoxItem Content="Throw"/>
+            <ComboBoxItem Content="Random"/>
         </ComboBox>
         <TextBlock Canvas.Left="345" TextWrapping="Wrap" Text="Active transition" Canvas.Top="163"/>
     </Canvas>

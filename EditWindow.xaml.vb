@@ -46,7 +46,7 @@
     Private Sub Btn_Save_Click(sender As Object, e As RoutedEventArgs) Handles Btn_Save.Click
         Using lop_str = New IO.StringWriter()
             ListOfPic.WriteXml(lop_str)
-            Dim lop = XElement.Parse(lop_str.ToString)
+            Dim lop As XElement = XElement.Parse(lop_str.ToString)
             config.Elements("DocumentElement").Remove()
             config.Add(lop)
             config.Save("config.xml")
@@ -116,5 +116,29 @@
 
         LB_Pic.Items.Refresh()
         LB_Pic.Focus()
+    End Sub
+
+    Private Sub Btn_Reset_Click(sender As Object, e As RoutedEventArgs) Handles Btn_Reset.Click
+        ListOfPic.Clear()
+        For Each fd In MainWindow.folders_image
+            If My.Computer.FileSystem.DirectoryExists(fd) Then
+                For Each f In My.Computer.FileSystem.GetFiles(fd)
+                    Dim filefullname = My.Computer.FileSystem.GetName(f)
+                    Dim filename = IO.Path.GetFileNameWithoutExtension(filefullname)
+                    Dim ext = IO.Path.GetExtension(filefullname)
+                    If MainWindow.PicFormats.Contains(ext.ToLower) Then
+                        Dim tmprow = ListOfPic.NewRow
+                        tmprow("Path") = f
+                        Dim tmpdate As Date
+                        If DateTime.TryParse(filename, tmpdate) Then
+                            tmprow("Date") = DateTime.Parse(filename).ToString
+                        End If
+                        ListOfPic.Rows.Add(tmprow)
+                    End If
+                Next
+            End If
+        Next
+
+        LB_Pic.Items.Refresh()
     End Sub
 End Class

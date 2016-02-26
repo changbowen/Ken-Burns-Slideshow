@@ -21,6 +21,7 @@
         CbB_Transit.Text = MainWindow.transit
         TB_LoadQuality.Text = MainWindow.loadquality
         CbB_ScaleMode.SelectedItem = New KeyValuePair(Of Integer, String)(MainWindow.scalemode, MainWindow.ScaleMode_Dic(MainWindow.scalemode))
+        CbB_BlurMode.Text = MainWindow.blurmode
     End Sub
 
     'Private Sub ProfileUpdate() Handles CB_Fadeout.Checked, CB_Fadeout.Unchecked
@@ -135,6 +136,7 @@
         MainWindow.fadeout = CB_Fadeout.IsChecked
         MainWindow.transit = CbB_Transit.Text
         MainWindow.scalemode = CbB_ScaleMode.SelectedItem.Key
+        MainWindow.blurmode = CbB_BlurMode.Text
 
         'saving to file
         Dim config As New XElement("CfgRoot")
@@ -158,6 +160,7 @@
         config.Add(New XElement("Transit", CbB_Transit.Text))
         config.Add(New XElement("LoadQuality", TB_LoadQuality.Text))
         config.Add(New XElement("ScaleMode", CbB_ScaleMode.SelectedItem.Key))
+        config.Add(New XElement("BlurMode", CbB_BlurMode.Text))
         Using lop_str = New IO.StringWriter()
             MainWindow.ListOfPic.WriteXml(lop_str)
             Dim lop = XElement.Parse(lop_str.ToString)
@@ -203,13 +206,21 @@
         End If
     End Sub
 
-    'Private Sub CbB_Transit_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles CbB_Transit.SelectionChanged
-    '    If CbB_Transit.SelectedItem.Content = "Breath" Then
-    '        CB_Fadeout.IsEnabled = False
-    '    Else
-    '        CB_Fadeout.IsEnabled = True
-    '    End If
-    'End Sub
+    Private Sub CbB_Transit_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles CbB_Transit.SelectionChanged
+        If Me.IsLoaded Then
+            If CbB_Transit.SelectedItem.Content = "Throw" Then
+                CB_VerOptm.IsEnabled = False
+                CB_HorOptm.IsEnabled = False
+                TB_VORatio.IsEnabled = False
+                TB_HORatio.IsEnabled = False
+            Else
+                CB_VerOptm.IsEnabled = True
+                CB_HorOptm.IsEnabled = True
+                TB_VORatio.IsEnabled = True
+                TB_HORatio.IsEnabled = True
+            End If
+        End If
+    End Sub
 
     Private Sub CB_ResLk_Checked(sender As Object, e As RoutedEventArgs) Handles CB_ResLk.Checked, CB_ResLk.Unchecked
         If Me.IsLoaded Then
