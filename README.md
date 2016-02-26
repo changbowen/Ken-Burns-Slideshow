@@ -22,6 +22,12 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
 - Options for each slide is now available by pressing F11.
 
 ## Updates
+- 2016-02-26
+  - **New transition animation "Throw" added!**
+  - Changed how certain animations are handled.
+  - Added a "Random" transition which randomly use other existing
+transitions.
+  - Changes in UI and functionality.
 - 2016-02-19
   - Added pause and restart control.
   - Added Edit Mode where options for each individual slide can be edited.
