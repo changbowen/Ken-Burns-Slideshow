@@ -78,5 +78,10 @@
             <ComboBoxItem Content="Random"/>
         </ComboBox>
         <TextBlock Canvas.Left="345" TextWrapping="Wrap" Text="Active transition" Canvas.Top="163"/>
+        <TextBlock Canvas.Left="345" TextWrapping="Wrap" Text="Loading Mode" Canvas.Top="221"/>
+        <ComboBox x:Name="CbB_LoadMode" Canvas.Left="345" Canvas.Top="242" Width="108" SelectedIndex="0" ToolTip="In the next run, load all image to memory at once or load images one by one.&#10;Choose One by One to for less memory usage.&#10;Choose All at Once for smoother animation.">
+            <ComboBoxItem Content="One by One"/>
+            <ComboBoxItem Content="All at Once"/>
+        </ComboBox>
     </Canvas>
 </Window>

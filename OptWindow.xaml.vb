@@ -19,22 +19,11 @@
         TB_Framerate.Text = MainWindow.framerate
         TB_Duration.Text = MainWindow.duration
         CbB_Transit.Text = MainWindow.transit
+        CbB_LoadMode.Text = MainWindow.loadmode_next
         TB_LoadQuality.Text = MainWindow.loadquality
         CbB_ScaleMode.SelectedItem = New KeyValuePair(Of Integer, String)(MainWindow.scalemode, MainWindow.ScaleMode_Dic(MainWindow.scalemode))
         CbB_BlurMode.Text = MainWindow.blurmode
     End Sub
-
-    'Private Sub ProfileUpdate() Handles CB_Fadeout.Checked, CB_Fadeout.Unchecked
-    '    If Me.IsLoaded Then
-    '        If CB_Fadeout.IsChecked = True AndAlso CB_ResLk.IsChecked = False Then
-    '            RB_Qlty.IsChecked = True
-    '        ElseIf CB_Fadeout.IsChecked = False AndAlso CB_ResLk.IsChecked = True Then
-    '            RB_Perf.IsChecked = True
-    '        Else
-    '            RB_Custom.IsChecked = True
-    '        End If
-    '    End If
-    'End Sub
 
     Private Sub CB_HorOptm_Change() Handles CB_HorOptm.Unchecked, CB_HorOptm.Checked
         If Me.IsLoaded Then
@@ -55,20 +44,6 @@
             End If
         End If
     End Sub
-
-    'Private Sub RB_Perf_Checked(sender As Object, e As RoutedEventArgs) Handles RB_Perf.Checked
-    '    If Me.IsLoaded Then
-    '        CB_Fadeout.IsChecked = False
-    '        CB_ResLk.IsChecked = True
-    '    End If
-    'End Sub
-
-    'Private Sub RB_Qlty_Checked(sender As Object, e As RoutedEventArgs) Handles RB_Qlty.Checked
-    '    If Me.IsLoaded Then
-    '        CB_Fadeout.IsChecked = True
-    '        CB_ResLk.IsChecked = False
-    '    End If
-    'End Sub
 
     Private Function CheckConsist(chk_str As String, ByRef target As Double, min As Double, max As Double, inclu_min As Boolean, inclu_max As Boolean, err_msg As String) As Boolean
         Dim tmp As Double = 0
@@ -135,6 +110,7 @@
         MainWindow.resolutionLock = CB_ResLk.IsChecked
         MainWindow.fadeout = CB_Fadeout.IsChecked
         MainWindow.transit = CbB_Transit.Text
+        MainWindow.loadmode_next = CbB_LoadMode.Text
         MainWindow.scalemode = CbB_ScaleMode.SelectedItem.Key
         MainWindow.blurmode = CbB_BlurMode.Text
 
@@ -161,6 +137,7 @@
         config.Add(New XElement("LoadQuality", TB_LoadQuality.Text))
         config.Add(New XElement("ScaleMode", CbB_ScaleMode.SelectedItem.Key))
         config.Add(New XElement("BlurMode", CbB_BlurMode.Text))
+        config.Add(New XElement("LoadMode", CbB_LoadMode.Text))
         Using lop_str = New IO.StringWriter()
             MainWindow.ListOfPic.WriteXml(lop_str)
             Dim lop = XElement.Parse(lop_str.ToString)
@@ -227,7 +204,22 @@
             If CB_ResLk.IsChecked Then
                 TB_LoadQuality.IsEnabled = True
             Else
-                TB_LoadQuality.IsEnabled = False
+                If CbB_LoadMode.Text = "All at Once" AndAlso MsgBox("It is highly recommended to enable Resolution Lock when Load Mode is set to All at Once. Otherwise it can easily run out of memory when loading large images." & vbCrLf & "Click OK to keep Resolution Lock enabled.", MsgBoxStyle.Exclamation + MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
+                    e.Handled = True
+                    CB_ResLk.IsChecked = True
+                Else
+                    TB_LoadQuality.IsEnabled = False
+                End If
+            End If
+        End If
+    End Sub
+
+    Private Sub CbB_LoadMode_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles CbB_LoadMode.SelectionChanged
+        If Me.IsLoaded Then
+            If CbB_LoadMode.SelectedItem.Content = "All at Once" AndAlso Not CB_ResLk.IsChecked Then
+                If MsgBox("It is highly recommended to enable Resolution Lock when Load Mode is set to All at Once. Otherwise it can easily run out of memory when loading large images." & vbCrLf & "Click OK to enable Resolution Lock.", MsgBoxStyle.Exclamation + MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
+                    CB_ResLk.IsChecked = True
+                End If
             End If
         End If
     End Sub

@@ -6,11 +6,17 @@
         <Image x:Name="slide_img0" RenderOptions.BitmapScalingMode="HighQuality"/>
         <Image x:Name="slide_img1" RenderOptions.BitmapScalingMode="HighQuality"/>
         <TextBlock x:Name="tb_date0" HorizontalAlignment="Left" VerticalAlignment="Top" FontFamily="Georgia" FontStyle="Italic" Foreground="White">
+            <TextBlock.CacheMode>
+                <BitmapCache/>
+            </TextBlock.CacheMode>
             <TextBlock.Effect>
                 <DropShadowEffect ShadowDepth="2" Opacity="0.8"/>
             </TextBlock.Effect>
         </TextBlock>
         <TextBlock x:Name="tb_date1" HorizontalAlignment="Left" VerticalAlignment="Top" FontFamily="Georgia" FontStyle="Italic" Foreground="White">
+            <TextBlock.CacheMode>
+                <BitmapCache/>
+            </TextBlock.CacheMode>
             <TextBlock.Effect>
                 <DropShadowEffect ShadowDepth="2" Opacity="0.8"/>
             </TextBlock.Effect>

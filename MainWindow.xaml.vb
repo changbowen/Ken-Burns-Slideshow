@@ -12,14 +12,14 @@ Class MainWindow
     Dim w, h As Double
     Dim position As Integer = 0
     Dim m As Integer = 0, mm As Integer = 0
-    Dim pic As Object
-    'Dim pics() As Object
+    Dim pic As BitmapImage
+    Dim pics() As BitmapImage
     Dim picmove_sec As UInteger = 7
     Dim moveon As Boolean = True
     Dim aborting As Boolean = False
     Dim worker_pic As Thread
     Public Shared framerate As UInteger = 60
-    Public Shared duration As UInteger = 7 'this only serves as a store. program will read duration value from picmove_sec.
+    Public Shared duration As UInteger = 7 'only serves as a store. program will read duration value from picmove_sec.
     Public Shared folders_image As New List(Of String)
     Public Shared folders_music As New List(Of String)
     Public Shared verticalLock As Boolean = True
@@ -31,6 +31,8 @@ Class MainWindow
     Public Shared horizontalOptimizeR As Double = 0.6
     Public Shared transit As String = "Ken Burns"
     Public Shared loadquality As Double = 1.2
+    Public Shared loadmode_next As String = "One by One" 'only serves as a store. program will read duration value from loadmode.
+    Dim loadmode As String = "One by One"
     Public Shared ScaleMode_Dic As New Dictionary(Of Integer, String)
     Public Shared scalemode As Integer = 2
     Public Shared blurmode As String = "None"
@@ -148,7 +150,6 @@ Class MainWindow
                 Exit Do
             End If
         Loop
-        'ReDim pics(ListOfPic.Rows.Count)
 
         'save changes
         Using lop_str = New IO.StringWriter()
@@ -204,46 +205,13 @@ Class MainWindow
         If config.Elements("LoadQuality").Any Then loadquality = config.Element("LoadQuality").Value
         If config.Elements("ScaleMode").Any Then scalemode = config.Element("ScaleMode").Value
         If config.Elements("BlurMode").Any Then blurmode = config.Elements("BlurMode").Value
+        If config.Elements("LoadMode").Any Then
+            loadmode_next = config.Elements("LoadMode").Value
+            loadmode = loadmode_next
+        End If
 
         tb_date0.FontSize = Me.Height / 12
         tb_date1.FontSize = Me.Height / 12
-
-        ''loading all images to pics()
-        'For i = 0 To ListOfPic.Rows.Count - 1
-        '    Try
-        '        Dim s As Size
-        '        Dim imgpath As String = ListOfPic.Rows(i)("Path")
-        '        Using strm = New IO.FileStream(imgpath, IO.FileMode.Open, IO.FileAccess.Read)
-        '            Dim frame = BitmapFrame.Create(strm, BitmapCreateOptions.DelayCreation, BitmapCacheOption.None)
-        '            s = New Size(frame.PixelWidth, frame.PixelHeight)
-        '        End Using
-
-        '        pics(i) = New BitmapImage
-        '        pics(i).BeginInit()
-        '        If resolutionLock Then
-        '            If s.Width > s.Height Then
-        '                If s.Height > h * loadquality Then
-        '                    pics(i).DecodePixelHeight = h * loadquality
-        '                End If
-        '            Else
-        '                If s.Width > w * loadquality Then
-        '                    pics(i).DecodePixelWidth = w * loadquality
-        '                End If
-        '            End If
-        '        End If
-        '        pics(i).CacheOption = BitmapCacheOption.OnLoad
-        '        Using strm = New IO.FileStream(imgpath, IO.FileMode.Open, IO.FileAccess.Read)
-        '            pics(i).StreamSource = strm
-        '            pics(i).EndInit()
-        '        End Using
-        '    Catch
-        '        pics(i) = BitmapSource.Create(64, 64, 96, 96, PixelFormats.Indexed1, BitmapPalettes.BlackAndWhite, New Byte(64 * 8) {}, 8)
-        '    Finally
-        '        pics(i).Freeze()
-
-        '    End Try
-        'Next
-        LoadNextImg()
 
         Me.Background = Brushes.Black
 
@@ -263,7 +231,117 @@ Class MainWindow
         End Select
         worker_pic.IsBackground = True
         worker_pic.Priority = ThreadPriority.Lowest 'this is not the UI thread
-        worker_pic.Start()
+
+        If loadmode = "All at Once" Then
+            Task.Run(
+                Sub()
+                    Dim count = ListOfPic.Rows.Count
+                    ReDim pics(count - 1)
+                    Dim tb As TextBlock
+                    Dispatcher.Invoke(Sub()
+                                          tb = New TextBlock With {.Text = "Loading images..."}
+                                          tb.FontFamily = New FontFamily("Segoe UI")
+                                          tb.FontSize = 16
+                                          tb.Foreground = Brushes.WhiteSmoke
+                                          tb.Margin = New Thickness(w / 2 - 60, h / 2 - 8, 0, 0)
+                                          mainGrid.Children.Add(tb)
+                                          Panel.SetZIndex(tb, 10)
+                                      End Sub)
+
+                    For i = 0 To count - 1
+                        If count > 1 Then
+                            Dim ii = i
+                            Dispatcher.Invoke(Sub() tb.Text = "Loading images... " & ii * 100 \ (count - 1) & "%")
+                        End If
+
+                        Dim img As New BitmapImage
+                        Try
+                            Dim imgpath As String = ListOfPic.Rows(i)("Path")
+                            Using ms = New IO.FileStream(imgpath, IO.FileMode.Open, IO.FileAccess.Read)
+                                Dim frame = BitmapFrame.Create(ms, BitmapCreateOptions.DelayCreation, BitmapCacheOption.None)
+                                Dim s As Size = New Size(frame.PixelWidth, frame.PixelHeight)
+                                ms.Position = 0
+                                img.BeginInit()
+                                If resolutionLock Then
+                                    If s.Width > s.Height Then
+                                        If s.Height > h * loadquality Then
+                                            img.DecodePixelHeight = h * loadquality
+                                        End If
+                                    Else
+                                        If s.Width > w * loadquality Then
+                                            img.DecodePixelWidth = w * loadquality
+                                        End If
+                                    End If
+                                End If
+                                img.CacheOption = BitmapCacheOption.OnLoad
+                                img.StreamSource = ms
+                                img.EndInit()
+                            End Using
+                        Catch
+                            img = New BitmapImage
+                            Dim encoder As New BmpBitmapEncoder
+                            Dim bmpsource = BitmapSource.Create(64, 64, 96, 96, PixelFormats.Indexed1, BitmapPalettes.BlackAndWhite, New Byte(64 * 8) {}, 8)
+                            encoder.Frames.Add(BitmapFrame.Create(bmpsource))
+                            Using ms As New IO.MemoryStream
+                                encoder.Save(ms)
+                                ms.Position = 0
+                                img.BeginInit()
+                                img.StreamSource = ms
+                                img.EndInit()
+                            End Using
+                        Finally
+                            img.Freeze()
+                        End Try
+                        pics(i) = img
+
+                        Dim imgctrl As Image
+                        Dispatcher.Invoke(Sub()
+                                              imgctrl = New Image
+                                              imgctrl.Source = img
+                                              RenderOptions.SetBitmapScalingMode(imgctrl, scalemode)
+                                              If img.PixelWidth / img.PixelHeight > w / h Then
+                                                  imgctrl.Height = h
+                                                  imgctrl.Width = h * img.PixelWidth / img.PixelHeight
+                                              Else
+                                                  imgctrl.Width = w
+                                                  imgctrl.Height = w / img.PixelWidth * img.PixelHeight
+                                              End If
+                                              mainGrid.Children.Add(imgctrl)
+                                              imgctrl.Opacity = 0.01
+                                          End Sub)
+                        Dim scales() As Double
+                        'This is like a hack to achieve smooth transit animation. By setting opacity to 0.01 the image is basically 
+                        'invisible but it is still drawn to the screen. The below select case block is to force WPF to draw once the 
+                        'images at the scales that will be used by each transit animation. Numerous tests indicates that WPF seems 
+                        'to cache different ScaleTransform results for further use. Sort of like a background mipmapping.
+                        Select Case transit
+                            Case "Ken Burns"
+                                scales = {1, 1.2}
+                            Case "Breath"
+                                scales = {1, 1.3}
+                            Case "Throw"
+                                scales = {0.7, 1}
+                            Case "Random"
+                                scales = {0.7, 1, 1.3}
+                            Case Else
+                                scales = {}
+                        End Select
+                        For Each d In scales
+                            Dispatcher.Invoke(Sub() imgctrl.RenderTransform = New ScaleTransform(d, d))
+                            Thread.Sleep(250)
+                        Next
+                        Dispatcher.Invoke(Sub() mainGrid.Children.Remove(imgctrl))
+                    Next
+                    Dispatcher.Invoke(Sub() mainGrid.Children.Remove(tb))
+                End Sub).ContinueWith(Sub()
+                                          LoadNextImg()
+                                          worker_pic.Start()
+                                      End Sub)
+        ElseIf loadmode = "One by One" Then
+            LoadNextImg()
+            worker_pic.Start()
+        End If
+
 
         'disabling sleep / screensaver
         'this seems to be unnecessary on the dev PC as the sleep timers are ignored anyway without the following two lines.
@@ -290,15 +368,16 @@ Class MainWindow
             Sub()
                 tgt = New Image
                 tgt.Name = "tgt"
-                mainGrid.Children.Add(tgt)
-                tgt.HorizontalAlignment = HorizontalAlignment.Stretch
-                tgt.VerticalAlignment = VerticalAlignment.Stretch
                 tgt.Source = pic
+                tgt.Width = w
+                tgt.Height = h
+                mainGrid.Children.Add(tgt)
                 tgt.BeginAnimation(Image.OpacityProperty, New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 2))))
             End Sub)
         Thread.Sleep(picmove_sec * 2000)
         Dispatcher.Invoke(Sub() tgt.BeginAnimation(Image.OpacityProperty, New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1)))))
-        Thread.Sleep(2500)
+        Thread.Sleep(1500)
+        Dispatcher.Invoke(Sub() mainGrid.Children.Remove(tgt))
     End Sub
 
     Private Sub textThrd_KBE(pos As Integer, ByRef output As Integer)
@@ -618,12 +697,10 @@ Class MainWindow
             Else
                 Dispatcher.Invoke(
                 Sub()
-                    'SwitchTarget(tgt_img)
                     tgt_img = New Image
+                    tgt_img.Name = "tgt"
                     RenderOptions.SetBitmapScalingMode(tgt_img, scalemode)
                     mainGrid.Children.Add(tgt_img)
-                    tgt_img.HorizontalAlignment = Windows.HorizontalAlignment.Left
-                    tgt_img.VerticalAlignment = Windows.VerticalAlignment.Top
                 End Sub)
                 Select Case ran.Next(3)
                     Case 0
@@ -699,70 +776,81 @@ Class MainWindow
         End If
     End Sub
 
-    'Private Sub LoadNextImg()
-    '    Dispatcher.Invoke(Sub()
-    '                          RenderOptions.SetBitmapScalingMode(slide_img0, scalemode)
-    '                          RenderOptions.SetBitmapScalingMode(slide_img1, scalemode)
-    '                      End Sub)
-    '    pic = pics(position)
-    '    position += 1
-    'End Sub
-
     Private Sub LoadNextImg()
-        Dispatcher.Invoke(Sub()
-                              RenderOptions.SetBitmapScalingMode(slide_img0, scalemode)
-                              RenderOptions.SetBitmapScalingMode(slide_img1, scalemode)
-                          End Sub)
-        Try
-            Dim s As Size
-            Dim imgpath As String = ListOfPic.Rows(position)("Path")
-            Using strm = New IO.FileStream(imgpath, IO.FileMode.Open, IO.FileAccess.Read)
-                Dim frame = BitmapFrame.Create(strm, BitmapCreateOptions.DelayCreation, BitmapCacheOption.None)
-                s = New Size(Frame.PixelWidth, Frame.PixelHeight)
+        Select Case loadmode
+            Case "All at Once"
+                Dispatcher.Invoke(Sub()
+                                      RenderOptions.SetBitmapScalingMode(slide_img0, scalemode)
+                                      RenderOptions.SetBitmapScalingMode(slide_img1, scalemode)
+                                  End Sub)
+                pic = pics(position)
+                position += 1
+            Case "One by One"
+                Dispatcher.Invoke(Sub()
+                                      RenderOptions.SetBitmapScalingMode(slide_img0, scalemode)
+                                      RenderOptions.SetBitmapScalingMode(slide_img1, scalemode)
+                                  End Sub)
+                Try
+                    Dim s As Size
+                    Dim imgpath As String = ListOfPic.Rows(position)("Path")
+                    Using strm = New IO.FileStream(imgpath, IO.FileMode.Open, IO.FileAccess.Read)
+                        Dim frame = BitmapFrame.Create(strm, BitmapCreateOptions.DelayCreation, BitmapCacheOption.None)
+                        s = New Size(frame.PixelWidth, frame.PixelHeight)
 
-                strm.Position = 0
-                pic = New BitmapImage
-                pic.BeginInit()
-                If resolutionLock Then
-                    If s.Width > s.Height Then
-                        If s.Height > h * loadquality Then
-                            pic.DecodePixelHeight = h * loadquality
+                        strm.Position = 0
+                        pic = New BitmapImage
+                        pic.BeginInit()
+                        If resolutionLock Then
+                            If s.Width > s.Height Then
+                                If s.Height > h * loadquality Then
+                                    pic.DecodePixelHeight = h * loadquality
+                                End If
+                            Else
+                                If s.Width > w * loadquality Then
+                                    pic.DecodePixelWidth = w * loadquality
+                                End If
+                            End If
                         End If
-                    Else
-                        If s.Width > w * loadquality Then
-                            pic.DecodePixelWidth = w * loadquality
-                        End If
-                    End If
-                End If
-                pic.CacheOption = BitmapCacheOption.OnLoad
-                pic.StreamSource = strm
-                pic.EndInit()
-            End Using
+                        pic.CacheOption = BitmapCacheOption.OnLoad
+                        pic.StreamSource = strm
+                        pic.EndInit()
+                    End Using
 
-            'reading next picture gradually proved to be futile
-            'pic.StreamSource = New IO.FileStream(ListOfPic.Values(0), IO.FileMode.Open, IO.FileAccess.Read, IO.FileShare.None)
-            'pic.EndInit()
-            'Using stream = New IO.FileStream(ListOfPic.Values(position), IO.FileMode.Open, IO.FileAccess.Read)
-            '    Dim blocksize As Long = Math.Ceiling(stream.Length / 200)
-            '    Dim content(stream.Length - 1) As Byte
-            '    Do
-            '        If stream.Length - stream.Position < blocksize Then
-            '            stream.Read(content, stream.Position, stream.Length - stream.Position)
-            '        Else
-            '            stream.Read(content, stream.Position, blocksize)
-            '        End If
-            '        Thread.Sleep(10)
-            '    Loop Until stream.Position = stream.Length
-            '    stream.Position = 0
-            '    pic.StreamSource = stream
-            '    pic.EndInit()
-            'End Using
-        Catch
-            pic = BitmapSource.Create(64, 64, 96, 96, PixelFormats.Indexed1, BitmapPalettes.BlackAndWhite, New Byte(64 * 8) {}, 8)
-        Finally
-            position += 1
-            pic.Freeze()
-        End Try
+                    'reading next picture gradually proved to be futile
+                    'pic.StreamSource = New IO.FileStream(ListOfPic.Values(0), IO.FileMode.Open, IO.FileAccess.Read, IO.FileShare.None)
+                    'pic.EndInit()
+                    'Using stream = New IO.FileStream(ListOfPic.Values(position), IO.FileMode.Open, IO.FileAccess.Read)
+                    '    Dim blocksize As Long = Math.Ceiling(stream.Length / 200)
+                    '    Dim content(stream.Length - 1) As Byte
+                    '    Do
+                    '        If stream.Length - stream.Position < blocksize Then
+                    '            stream.Read(content, stream.Position, stream.Length - stream.Position)
+                    '        Else
+                    '            stream.Read(content, stream.Position, blocksize)
+                    '        End If
+                    '        Thread.Sleep(10)
+                    '    Loop Until stream.Position = stream.Length
+                    '    stream.Position = 0
+                    '    pic.StreamSource = stream
+                    '    pic.EndInit()
+                    'End Using
+                Catch
+                    pic = New BitmapImage
+                    Dim encoder As New BmpBitmapEncoder
+                    Dim bmpsource = BitmapSource.Create(64, 64, 96, 96, PixelFormats.Indexed1, BitmapPalettes.BlackAndWhite, New Byte(64 * 8) {}, 8)
+                    encoder.Frames.Add(BitmapFrame.Create(bmpsource))
+                    Using ms As New IO.MemoryStream
+                        encoder.Save(ms)
+                        ms.Position = 0
+                        pic.BeginInit()
+                        pic.StreamSource = ms
+                        pic.EndInit()
+                    End Using
+                Finally
+                    position += 1
+                    pic.Freeze()
+                End Try
+        End Select
     End Sub
 
     Private Sub Window_PreviewKeyDown(sender As Object, e As KeyEventArgs)
@@ -775,68 +863,75 @@ Class MainWindow
             editwin.ShowDialog()
             editwin.Close()
         ElseIf e.Key = Key.P Then
-            If Keyboard.Modifiers = ModifierKeys.Control Then 'pause image
-                If moveon = True Then
-                    moveon = False
-                Else
-                    moveon = True
-                End If
-            ElseIf Keyboard.Modifiers = ModifierKeys.Shift Then 'fadeout audio only
-                If Not audiofading Then
-                    If playing Then
-                        Task.Run(AddressOf FadeoutAudio)
+            If worker_pic IsNot Nothing AndAlso worker_pic.IsAlive Then
+                If Keyboard.Modifiers = ModifierKeys.Control Then 'pause image
+                    If moveon = True Then
+                        moveon = False
                     Else
-                        Task.Run(AddressOf FadeinAudio)
+                        moveon = True
+                    End If
+                ElseIf Keyboard.Modifiers = ModifierKeys.Shift Then 'fadeout audio only
+                    If Not audiofading Then
+                        If playing Then
+                            Task.Run(AddressOf FadeoutAudio)
+                        Else
+                            Task.Run(AddressOf FadeinAudio)
+                        End If
                     End If
                 End If
             End If
         ElseIf e.Key = Key.R AndAlso Keyboard.Modifiers = ModifierKeys.Control AndAlso aborting = False Then
-            aborting = True
-            Task.Run(AddressOf FadeoutAudio)
-            Task.Run(Sub()
-                         Dim black As Rectangle
-                         Dispatcher.Invoke(Sub()
-                                               black = New Rectangle
-                                               mainGrid.Children.Add(black)
-                                               Panel.SetZIndex(black, 9)
-                                               black.Fill = Windows.Media.Brushes.Black
-                                               black.Margin = New Thickness(0)
-                                               black.BeginAnimation(OpacityProperty, New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 1))))
-                                           End Sub)
-                         Thread.Sleep(1000)
-                         Dispatcher.Invoke(Sub()
-                                               For Each child In mainGrid.Children
-                                                   If child.Name.StartsWith("slide_img") OrElse child.Name = "tgt" Then
-                                                       CType(child, Image).Source = Nothing
-                                                   ElseIf child.Name.StartsWith("tb_date") Then
-                                                       CType(child, TextBlock).Text = ""
-                                                   End If
-                                               Next
-                                               mainGrid.Children.Remove(black)
-                                               black = Nothing
-                                           End Sub)
-                         worker_pic.Join()
+            If worker_pic IsNot Nothing AndAlso worker_pic.IsAlive Then
+                aborting = True
+                Task.Run(AddressOf FadeoutAudio)
+                Task.Run(Sub()
+                             Dim black As Rectangle
+                             Dispatcher.Invoke(Sub()
+                                                   black = New Rectangle
+                                                   mainGrid.Children.Add(black)
+                                                   Panel.SetZIndex(black, 9)
+                                                   black.Fill = Windows.Media.Brushes.Black
+                                                   black.Width = w
+                                                   black.Height = h
+                                                   black.BeginAnimation(OpacityProperty, New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 1))))
+                                               End Sub)
+                             Thread.Sleep(1000)
+                             Dispatcher.Invoke(Sub()
+                                                   For Each child In mainGrid.Children
+                                                       If child.Name.StartsWith("slide_img") OrElse child.Name = "tgt" Then
+                                                           CType(child, Image).Source = Nothing
+                                                       ElseIf child.Name.StartsWith("tb_date") Then
+                                                           CType(child, TextBlock).Text = ""
+                                                       End If
+                                                   Next
+                                                   mainGrid.Children.Remove(black)
+                                                   black = Nothing
+                                               End Sub)
+                             worker_pic.Join()
 
-                         'restart thread
-                         position = 0
-                         LoadNextImg()
-                         Select Case transit
-                             Case "Ken Burns"
-                                 worker_pic = New Thread(AddressOf mainThrd_KBE)
-                             Case "Breath"
-                                 worker_pic = New Thread(AddressOf mainThrd_Breath)
-                             Case "Throw"
-                                 worker_pic = New Thread(AddressOf mainThrd_Throw)
-                             Case Else
-                                 MsgBox("Error reading transit value. Program will exit now.", MsgBoxStyle.Critical)
-                                 Me.Close()
-                                 Exit Sub
-                         End Select
-                         worker_pic.IsBackground = True
-                         worker_pic.Priority = ThreadPriority.Lowest
-                         aborting = False
-                         worker_pic.Start()
-                     End Sub)
+                             'restart thread
+                             position = 0
+                             LoadNextImg()
+                             Select Case transit
+                                 Case "Ken Burns"
+                                     worker_pic = New Thread(AddressOf mainThrd_KBE)
+                                 Case "Breath"
+                                     worker_pic = New Thread(AddressOf mainThrd_Breath)
+                                 Case "Throw"
+                                     worker_pic = New Thread(AddressOf mainThrd_Throw)
+                                 Case "Random"
+                                     worker_pic = New Thread(AddressOf mainThrd_Mix)
+                                 Case Else
+                                     MsgBox("Error reading transit value. Program will exit now.", MsgBoxStyle.Critical)
+                                     Me.Close()
+                                     Exit Sub
+                             End Select
+                             worker_pic.IsBackground = True
+                             worker_pic.Priority = ThreadPriority.Lowest
+                             aborting = False
+                             worker_pic.Start()
+                         End Sub)
+            End If
         End If
     End Sub
 
@@ -1217,14 +1312,13 @@ Class MainWindow
                 End If
             End If
         End If
+
         tgt_img.Source = pic
         trans_scale = New ScaleTransform
         tgt_trasform.Children.Add(trans_scale)
         trans_trans = New TranslateTransform
         tgt_trasform.Children.Add(trans_trans)
         tgt_img.RenderTransform = tgt_trasform
-
-        'anim_move.FillBehavior = Animation.FillBehavior.Stop
         Animation.Timeline.SetDesiredFrameRate(anim_zoom, framerate)
         Animation.Timeline.SetDesiredFrameRate(anim_move, framerate)
         Animation.Timeline.SetDesiredFrameRate(anim_fadein, framerate)
