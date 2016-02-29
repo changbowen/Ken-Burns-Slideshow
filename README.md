@@ -3,7 +3,7 @@ Create instant & real-time full-screen slideshow with the Ken Burns effect for a
 ## Motivation
 This idea came to me while watching a slideshow on iPad. How nice would it be if we can create instant slideshows on a Windows machine with only a single executable and a folder of images.
 ## Preview
-- <img class="alignnone size-full wp-image-8" src="http://carlchang.blog.com/files/2015/12/无标题.png" alt="" width="649" height="366" /><img class="alignnone size-full wp-image-20" src="http://carlchang.blog.com/files/2015/12/options.png" alt="" width="422" height="395" />
+- <img class="alignnone size-full wp-image-8" src="http://carlchang.blog.com/files/2015/12/无标题.png" alt="" width="649" height="366" /><img class="alignnone size-full wp-image-20" src="http://i.imgur.com/WsRugNR.png?1" alt=""/>
 - Youtube video
   - https://youtu.be/zyt4tWciIdQ
 - Youku video (for China)
