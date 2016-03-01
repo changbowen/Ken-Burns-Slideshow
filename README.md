@@ -1,5 +1,5 @@
 ﻿# Ken Burns Slideshow
-Create instant & real-time full-screen slideshow with the Ken Burns effect for a set of images.
+Create instant & real-time full-screen slideshow with the Ken Burns effect (**and more!**) for a set of images.
 ## Motivation
 This idea came to me while watching a slideshow on iPad. How nice would it be if we can create instant slideshows on a Windows machine with only a single executable and a folder of images.
 ## Preview
@@ -15,7 +15,7 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
 - ~~Config.xml file at application root.~~
 
 ## Features
-- Create instant full-screen slideshow with an imitation of the Ken Burns effect (and more!) for a set of folders that contains images. Images will be looped.
+- Create instant full-screen slideshow with an imitation of the Ken Burns effect (**and more!**) for a set of folders that contains images. Images will be looped.
 - Support displaying date for the images. Date value is parsed from the file name with format <em>yyyy-MM-dd</em>. If you want a date to be displayed, please rename the image files to the format for this to work. A valid example: <em>2015-12-02.jpg</em>
 - Support audio files to be played in loop at background.
 - Options to load large images at lower resolution to improve performance.
