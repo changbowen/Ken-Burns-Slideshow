@@ -23,9 +23,9 @@
             Dim row = ListOfPic.Rows.Find(e.AddedItems(0)("Path"))
             If row IsNot Nothing Then
                 If Not IsDBNull(row("Date")) Then
-                    T_DateShown.Text = "On-screen date shown:" & vbCrLf & Date.Parse(row("Date")).ToString("yyyy.M")
+                    T_DateShown.Text = Date.Parse(row("Date")).ToString("yyyy.M")
                 Else
-                    T_DateShown.Text = "On-screen date shown:" & vbCrLf & "None"
+                    T_DateShown.Text = Application.Current.Resources("none")
                 End If
                 CB_Title.IsChecked = row("CB_Title")
             End If

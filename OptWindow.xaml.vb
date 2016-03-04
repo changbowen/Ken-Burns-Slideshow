@@ -18,14 +18,14 @@
         TB_HORatio.Text = MainWindow.horizontalOptimizeR
         TB_Framerate.Text = MainWindow.framerate
         TB_Duration.Text = MainWindow.duration
-        CbB_Transit.Text = MainWindow.transit
-        CbB_LoadMode.Text = MainWindow.loadmode_next
+        CbB_Transit.SelectedIndex = MainWindow.transit
+        CbB_LoadMode.SelectedIndex = MainWindow.loadmode_next
         TB_LoadQuality.Text = MainWindow.loadquality
         CbB_ScaleMode.SelectedItem = New KeyValuePair(Of Integer, String)(MainWindow.scalemode, MainWindow.ScaleMode_Dic(MainWindow.scalemode))
-        CbB_BlurMode.Text = MainWindow.blurmode
+        CbB_BlurMode.SelectedIndex = MainWindow.blurmode
     End Sub
 
-    Private Sub CB_HorOptm_Change() Handles CB_HorOptm.Unchecked, CB_HorOptm.Checked
+    Private Sub CB_HorOptm_Change() Handles CB_HorOptm.Unchecked, CB_HorOptm.Checked, CB_HorOptm.Loaded
         If Me.IsLoaded Then
             If CB_HorOptm.IsChecked Then
                 TB_HORatio.IsEnabled = True
@@ -35,7 +35,7 @@
         End If
     End Sub
 
-    Private Sub CB_VerOptm_Change() Handles CB_VerOptm.Unchecked, CB_VerOptm.Checked
+    Private Sub CB_VerOptm_Change() Handles CB_VerOptm.Unchecked, CB_VerOptm.Checked, CB_VerOptm.Loaded
         If Me.IsLoaded Then
             If CB_VerOptm.IsChecked Then
                 TB_VORatio.IsEnabled = True
@@ -90,11 +90,12 @@
     End Function
 
     Private Sub Btn_OK_Click(sender As Object, e As RoutedEventArgs) Handles Btn_OK.Click
-        If Not CheckConsist(TB_VORatio.Text, MainWindow.verticalOptimizeR, 0, 1, False, True, "Invalid vertical optimize ratio.") Then Exit Sub
-        If Not CheckConsist(TB_HORatio.Text, MainWindow.horizontalOptimizeR, 0, 1, False, True, "Invalid horizontal optimize ratio.") Then Exit Sub
-        If Not CheckConsist(TB_Framerate.Text, MainWindow.framerate, 0, False, "Invalid framerate value.") Then Exit Sub
-        If Not CheckConsist(TB_Duration.Text, MainWindow.duration, 4, False, "Invalid duration value.") Then Exit Sub
-        If Not CheckConsist(TB_LoadQuality.Text, MainWindow.loadquality, 0, 2, False, True, "Invalid multiplier value.") Then Exit Sub
+        Dim dict = Application.Current.Resources
+        If Not CheckConsist(TB_VORatio.Text, MainWindow.verticalOptimizeR, 0, 1, False, True, dict("msg_invVOR").ToString) Then Exit Sub
+        If Not CheckConsist(TB_HORatio.Text, MainWindow.horizontalOptimizeR, 0, 1, False, True, dict("msg_invHOR").ToString) Then Exit Sub
+        If Not CheckConsist(TB_Framerate.Text, MainWindow.framerate, 0, False, dict("msg_invfps").ToString) Then Exit Sub
+        If Not CheckConsist(TB_Duration.Text, MainWindow.duration, 4, False, dict("msg_invdur").ToString) Then Exit Sub
+        If Not CheckConsist(TB_LoadQuality.Text, MainWindow.loadquality, 0, 2, False, True, dict("msg_invmul").ToString) Then Exit Sub
 
         MainWindow.folders_image.Clear()
         For Each i As String In LB_ImgFolder.Items
@@ -109,10 +110,10 @@
         MainWindow.horizontalOptimize = CB_HorOptm.IsChecked
         MainWindow.resolutionLock = CB_ResLk.IsChecked
         MainWindow.fadeout = CB_Fadeout.IsChecked
-        MainWindow.transit = CbB_Transit.Text
-        MainWindow.loadmode_next = CbB_LoadMode.Text
+        MainWindow.transit = CbB_Transit.SelectedIndex
+        MainWindow.loadmode_next = CbB_LoadMode.SelectedIndex
         MainWindow.scalemode = CbB_ScaleMode.SelectedItem.Key
-        MainWindow.blurmode = CbB_BlurMode.Text
+        MainWindow.blurmode = CbB_BlurMode.SelectedIndex
 
         'saving to file
         Dim config As New XElement("CfgRoot")
@@ -133,11 +134,11 @@
         config.Add(New XElement("Fadeout", CB_Fadeout.IsChecked.Value))
         config.Add(New XElement("VerticalOptimizeRatio", TB_VORatio.Text))
         config.Add(New XElement("HorizontalOptimizeRatio", TB_HORatio.Text))
-        config.Add(New XElement("Transit", CbB_Transit.Text))
+        config.Add(New XElement("Transit", CbB_Transit.SelectedIndex))
         config.Add(New XElement("LoadQuality", TB_LoadQuality.Text))
         config.Add(New XElement("ScaleMode", CbB_ScaleMode.SelectedItem.Key))
-        config.Add(New XElement("BlurMode", CbB_BlurMode.Text))
-        config.Add(New XElement("LoadMode", CbB_LoadMode.Text))
+        config.Add(New XElement("BlurMode", CbB_BlurMode.SelectedIndex))
+        config.Add(New XElement("LoadMode", CbB_LoadMode.SelectedIndex))
         Using lop_str = New IO.StringWriter()
             MainWindow.ListOfPic.WriteXml(lop_str)
             Dim lop = XElement.Parse(lop_str.ToString)
@@ -185,7 +186,7 @@
 
     Private Sub CbB_Transit_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles CbB_Transit.SelectionChanged
         If Me.IsLoaded Then
-            If CbB_Transit.SelectedItem.Content = "Throw" Then
+            If CbB_Transit.SelectedIndex = 2 Then
                 CB_VerOptm.IsEnabled = False
                 CB_HorOptm.IsEnabled = False
                 TB_VORatio.IsEnabled = False
@@ -204,7 +205,7 @@
             If CB_ResLk.IsChecked Then
                 TB_LoadQuality.IsEnabled = True
             Else
-                If CbB_LoadMode.Text = "All at Once" AndAlso MsgBox("It is highly recommended to enable Resolution Lock when Load Mode is set to All at Once. Otherwise it can easily run out of memory when loading large images." & vbCrLf & "Click OK to keep Resolution Lock enabled.", MsgBoxStyle.Exclamation + MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
+                If CbB_LoadMode.SelectedIndex = 1 AndAlso MsgBox(Application.Current.Resources("msg_reslockwarning"), MsgBoxStyle.Exclamation + MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
                     e.Handled = True
                     CB_ResLk.IsChecked = True
                 Else
@@ -216,8 +217,8 @@
 
     Private Sub CbB_LoadMode_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles CbB_LoadMode.SelectionChanged
         If Me.IsLoaded Then
-            If CbB_LoadMode.SelectedItem.Content = "All at Once" AndAlso Not CB_ResLk.IsChecked Then
-                If MsgBox("It is highly recommended to enable Resolution Lock when Load Mode is set to All at Once. Otherwise it can easily run out of memory when loading large images." & vbCrLf & "Click OK to enable Resolution Lock.", MsgBoxStyle.Exclamation + MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
+            If CbB_LoadMode.SelectedIndex = 1 AndAlso Not CB_ResLk.IsChecked Then
+                If MsgBox(Application.Current.Resources("msg_reslockwarning"), MsgBoxStyle.Exclamation + MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
                     CB_ResLk.IsChecked = True
                 End If
             End If

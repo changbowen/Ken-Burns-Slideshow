@@ -29,13 +29,13 @@ Class MainWindow
     Public Shared fadeout As Boolean = True
     Public Shared verticalOptimizeR As Double = 0.6
     Public Shared horizontalOptimizeR As Double = 0.6
-    Public Shared transit As String = "Ken Burns"
+    Public Shared transit As Integer = 0
     Public Shared loadquality As Double = 1.2
-    Public Shared loadmode_next As String = "One by One" 'only serves as a store. program will read duration value from loadmode.
-    Dim loadmode As String = "One by One"
+    Public Shared loadmode_next As Integer = 0 'only serves as a store. program will read duration value from loadmode.
+    Dim loadmode As Integer = 0
     Public Shared ScaleMode_Dic As New Dictionary(Of Integer, String)
     Public Shared scalemode As Integer = 2
-    Public Shared blurmode As String = "None"
+    Public Shared blurmode As Integer = 0
     Private Declare Function SetThreadExecutionState Lib "kernel32" (ByVal esFlags As EXECUTION_STATE) As EXECUTION_STATE
     Dim ExecState_Set As Boolean
     Private Enum EXECUTION_STATE As Integer
@@ -56,6 +56,7 @@ Class MainWindow
     Private Sub Window_Loaded(sender As Object, e As RoutedEventArgs)
         w = Me.Width
         h = Me.Height
+        Process.GetCurrentProcess.PriorityClass = ProcessPriorityClass.High
 
         'initialize datatable
         ListOfPic.Columns.Add("Path", GetType(String))
@@ -64,9 +65,9 @@ Class MainWindow
         ListOfPic.PrimaryKey = {ListOfPic.Columns("Path")}
 
         'loading other settings
-        ScaleMode_Dic.Add(2, "(Default) High")
-        ScaleMode_Dic.Add(3, "Medium")
-        ScaleMode_Dic.Add(1, "Low")
+        ScaleMode_Dic.Add(2, Application.Current.Resources("(default) high"))
+        ScaleMode_Dic.Add(3, Application.Current.Resources("medium"))
+        ScaleMode_Dic.Add(1, Application.Current.Resources("low"))
 
         'loading config.xml
         Dim config As XElement
@@ -75,7 +76,7 @@ Class MainWindow
                 config = XElement.Load("config.xml")
                 Exit Do
             Catch
-                If MsgBox("Error loading configuration. Would you like to open settings?", MsgBoxStyle.Question + MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
+                If MsgBox(Application.Current.Resources("msg_loadcfgerr"), MsgBoxStyle.Question + MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
                     Dim optwin As New OptWindow
                     optwin.ShowDialog()
                     optwin.Close()
@@ -86,8 +87,58 @@ Class MainWindow
             End Try
         Loop
 
-        'loading image list
+        AddHandler player.MediaEnded, Sub()
+                                          currentaudio += 1
+                                          If currentaudio = ListOfMusic.Count Then currentaudio = 0
+                                          player.Open(New Uri(ListOfMusic(currentaudio)))
+                                          player.Play()
+                                      End Sub
+
+        'loading settings
         Do
+            If config.Elements("Framerate").Any Then framerate = config.Element("Framerate").Value
+            If config.Elements("Duration").Any Then
+                Dim tmp = Convert.ToUInt32(config.Element("Duration").Value)
+                duration = tmp
+                If tmp >= 5 Then picmove_sec = tmp
+            End If
+            If config.Elements("VerticalLock").Any AndAlso config.Element("VerticalLock").Value.ToLower = "false" Then
+                verticalLock = False
+            End If
+            If config.Elements("ResolutionLock").Any AndAlso config.Element("ResolutionLock").Value.ToLower = "false" Then
+                resolutionLock = False
+            End If
+            If config.Elements("VerticalOptimize").Any AndAlso config.Element("VerticalOptimize").Value.ToLower = "false" Then
+                verticalOptimize = False
+            End If
+            If config.Elements("HorizontalOptimize").Any AndAlso config.Element("HorizontalOptimize").Value.ToLower = "false" Then
+                horizontalOptimize = False
+            End If
+            If config.Elements("Fadeout").Any AndAlso config.Element("Fadeout").Value.ToLower = "false" Then
+                fadeout = False
+            End If
+            If config.Elements("VerticalOptimizeRatio").Any Then verticalOptimizeR = config.Element("VerticalOptimizeRatio").Value
+            If config.Elements("HorizontalOptimizeRatio").Any Then horizontalOptimizeR = config.Element("HorizontalOptimizeRatio").Value
+            If config.Elements("Transit").Any Then transit = config.Element("Transit").Value
+            If config.Elements("LoadQuality").Any Then loadquality = config.Element("LoadQuality").Value
+            If config.Elements("ScaleMode").Any Then scalemode = config.Element("ScaleMode").Value
+            If config.Elements("BlurMode").Any Then blurmode = config.Elements("BlurMode").Value
+            If config.Elements("LoadMode").Any Then
+                loadmode_next = config.Elements("LoadMode").Value
+                loadmode = loadmode_next
+            End If
+
+            'loading music list
+            folders_music.Clear()
+            For Each ele In config.Element("Music").Elements
+                folders_music.Add(ele.Value)
+                If My.Computer.FileSystem.DirectoryExists(ele.Value) Then
+                    For Each f In My.Computer.FileSystem.GetFiles(ele.Value)
+                        ListOfMusic.Add(f)
+                    Next
+                End If
+            Next
+
             'loading ListOfPic
             ListOfPic.Clear()
             If config.Elements("DocumentElement").Any Then
@@ -137,7 +188,7 @@ Class MainWindow
             Next
 
             If ListOfPic.Rows.Count = 0 Then
-                If MsgBox("No pictures are found in specified folders. Would you like to open settings?", MsgBoxStyle.Question + MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
+                If MsgBox(Application.Current.Resources("msg_noimgerr"), MsgBoxStyle.Question + MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
                     Dim optwin As New OptWindow
                     optwin.ShowDialog()
                     optwin.Close()
@@ -160,79 +211,29 @@ Class MainWindow
             config.Save("config.xml")
         End Using
 
-        'loading music list
-        folders_music.Clear()
-        For Each ele In config.Element("Music").Elements
-            folders_music.Add(ele.Value)
-            If My.Computer.FileSystem.DirectoryExists(ele.Value) Then
-                For Each f In My.Computer.FileSystem.GetFiles(ele.Value)
-                    ListOfMusic.Add(f)
-                Next
-            End If
-        Next
-
-        AddHandler player.MediaEnded, Sub()
-                                          currentaudio += 1
-                                          If currentaudio = ListOfMusic.Count Then currentaudio = 0
-                                          player.Open(New Uri(ListOfMusic(currentaudio)))
-                                          player.Play()
-                                      End Sub
-
-        If config.Elements("Framerate").Any Then framerate = config.Element("Framerate").Value
-        If config.Elements("Duration").Any Then
-            Dim tmp = Convert.ToUInt32(config.Element("Duration").Value)
-            duration = tmp
-            If tmp >= 5 Then picmove_sec = tmp
-        End If
-        If config.Elements("VerticalLock").Any AndAlso config.Element("VerticalLock").Value.ToLower = "false" Then
-            verticalLock = False
-        End If
-        If config.Elements("ResolutionLock").Any AndAlso config.Element("ResolutionLock").Value.ToLower = "false" Then
-            resolutionLock = False
-        End If
-        If config.Elements("VerticalOptimize").Any AndAlso config.Element("VerticalOptimize").Value.ToLower = "false" Then
-            verticalOptimize = False
-        End If
-        If config.Elements("HorizontalOptimize").Any AndAlso config.Element("HorizontalOptimize").Value.ToLower = "false" Then
-            horizontalOptimize = False
-        End If
-        If config.Elements("Fadeout").Any AndAlso config.Element("Fadeout").Value.ToLower = "false" Then
-            fadeout = False
-        End If
-        If config.Elements("VerticalOptimizeRatio").Any Then verticalOptimizeR = config.Element("VerticalOptimizeRatio").Value
-        If config.Elements("HorizontalOptimizeRatio").Any Then horizontalOptimizeR = config.Element("HorizontalOptimizeRatio").Value
-        If config.Elements("Transit").Any Then transit = config.Element("Transit").Value
-        If config.Elements("LoadQuality").Any Then loadquality = config.Element("LoadQuality").Value
-        If config.Elements("ScaleMode").Any Then scalemode = config.Element("ScaleMode").Value
-        If config.Elements("BlurMode").Any Then blurmode = config.Elements("BlurMode").Value
-        If config.Elements("LoadMode").Any Then
-            loadmode_next = config.Elements("LoadMode").Value
-            loadmode = loadmode_next
-        End If
-
         tb_date0.FontSize = Me.Height / 12
         tb_date1.FontSize = Me.Height / 12
 
         Me.Background = Brushes.Black
 
         Select Case transit
-            Case "Ken Burns"
+            Case 0 'Ken Burns
                 worker_pic = New Thread(AddressOf mainThrd_KBE)
-            Case "Breath"
+            Case 1 'Breath
                 worker_pic = New Thread(AddressOf mainThrd_Breath)
-            Case "Throw"
+            Case 2 'Throw
                 worker_pic = New Thread(AddressOf mainThrd_Throw)
-            Case "Random"
+            Case 255 'Random
                 worker_pic = New Thread(AddressOf mainThrd_Mix)
             Case Else
-                MsgBox("Error reading transit value. Please delete config.xml file and try again. Program will exit now.", MsgBoxStyle.Critical)
+                MsgBox(Application.Current.Resources("msg_transerr"), MsgBoxStyle.Critical)
                 Me.Close()
                 Exit Sub
         End Select
         worker_pic.IsBackground = True
         worker_pic.Priority = ThreadPriority.Lowest 'this is not the UI thread
 
-        If loadmode = "All at Once" Then
+        If loadmode = 1 Then
             Task.Run(
                 Sub()
                     Dim count = ListOfPic.Rows.Count
@@ -315,13 +316,13 @@ Class MainWindow
                         'images at the scales that will be used by each transit animation. Numerous tests indicates that WPF seems 
                         'to cache different ScaleTransform results for further use. Sort of like a background mipmapping.
                         Select Case transit
-                            Case "Ken Burns"
+                            Case 0
                                 scales = {1, 1.2}
-                            Case "Breath"
+                            Case 1
                                 scales = {1, 1.3}
-                            Case "Throw"
+                            Case 2
                                 scales = {0.7, 1}
-                            Case "Random"
+                            Case 255
                                 scales = {0.7, 1, 1.3}
                             Case Else
                                 scales = {}
@@ -337,9 +338,11 @@ Class MainWindow
                                           LoadNextImg()
                                           worker_pic.Start()
                                       End Sub)
-        ElseIf loadmode = "One by One" Then
+        ElseIf loadmode = 0 Then
             LoadNextImg()
             worker_pic.Start()
+        Else
+            Me.Close()
         End If
 
 
@@ -778,14 +781,14 @@ Class MainWindow
 
     Private Sub LoadNextImg()
         Select Case loadmode
-            Case "All at Once"
+            Case 1
                 Dispatcher.Invoke(Sub()
                                       RenderOptions.SetBitmapScalingMode(slide_img0, scalemode)
                                       RenderOptions.SetBitmapScalingMode(slide_img1, scalemode)
                                   End Sub)
                 pic = pics(position)
                 position += 1
-            Case "One by One"
+            Case 0
                 Dispatcher.Invoke(Sub()
                                       RenderOptions.SetBitmapScalingMode(slide_img0, scalemode)
                                       RenderOptions.SetBitmapScalingMode(slide_img1, scalemode)
@@ -881,57 +884,64 @@ Class MainWindow
                 End If
             End If
         ElseIf e.Key = Key.R AndAlso Keyboard.Modifiers = ModifierKeys.Control AndAlso aborting = False Then
-            If worker_pic IsNot Nothing AndAlso worker_pic.IsAlive Then
-                aborting = True
-                Task.Run(AddressOf FadeoutAudio)
-                Task.Run(Sub()
-                             Dim black As Rectangle
-                             Dispatcher.Invoke(Sub()
-                                                   black = New Rectangle
-                                                   mainGrid.Children.Add(black)
-                                                   Panel.SetZIndex(black, 9)
-                                                   black.Fill = Windows.Media.Brushes.Black
-                                                   black.Width = w
-                                                   black.Height = h
-                                                   black.BeginAnimation(OpacityProperty, New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 1))))
-                                               End Sub)
-                             Thread.Sleep(1000)
-                             Dispatcher.Invoke(Sub()
-                                                   For Each child In mainGrid.Children
-                                                       If child.Name.StartsWith("slide_img") OrElse child.Name = "tgt" Then
-                                                           CType(child, Image).Source = Nothing
-                                                       ElseIf child.Name.StartsWith("tb_date") Then
-                                                           CType(child, TextBlock).Text = ""
-                                                       End If
-                                                   Next
-                                                   mainGrid.Children.Remove(black)
-                                                   black = Nothing
-                                               End Sub)
-                             worker_pic.Join()
+            RestartAll()
+            'ElseIf e.Key = Key.S AndAlso Keyboard.Modifiers = ModifierKeys.Control AndAlso aborting = False Then
+            '    RestartAll()
 
-                             'restart thread
-                             position = 0
-                             LoadNextImg()
-                             Select Case transit
-                                 Case "Ken Burns"
-                                     worker_pic = New Thread(AddressOf mainThrd_KBE)
-                                 Case "Breath"
-                                     worker_pic = New Thread(AddressOf mainThrd_Breath)
-                                 Case "Throw"
-                                     worker_pic = New Thread(AddressOf mainThrd_Throw)
-                                 Case "Random"
-                                     worker_pic = New Thread(AddressOf mainThrd_Mix)
-                                 Case Else
-                                     MsgBox("Error reading transit value. Program will exit now.", MsgBoxStyle.Critical)
-                                     Me.Close()
-                                     Exit Sub
-                             End Select
-                             worker_pic.IsBackground = True
-                             worker_pic.Priority = ThreadPriority.Lowest
-                             aborting = False
-                             worker_pic.Start()
-                         End Sub)
-            End If
+        End If
+    End Sub
+
+    Private Sub RestartAll()
+        If worker_pic IsNot Nothing AndAlso worker_pic.IsAlive Then
+            aborting = True
+            Task.Run(AddressOf FadeoutAudio)
+            Task.Run(Sub()
+                         Dim black As Rectangle
+                         Dispatcher.Invoke(Sub()
+                                               black = New Rectangle
+                                               mainGrid.Children.Add(black)
+                                               Panel.SetZIndex(black, 9)
+                                               black.Fill = Windows.Media.Brushes.Black
+                                               black.Width = w
+                                               black.Height = h
+                                               black.BeginAnimation(OpacityProperty, New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 1))))
+                                           End Sub)
+                         Thread.Sleep(1000)
+                         Dispatcher.Invoke(Sub()
+                                               For Each child In mainGrid.Children
+                                                   If child.Name.StartsWith("slide_img") OrElse child.Name = "tgt" Then
+                                                       CType(child, Image).Source = Nothing
+                                                   ElseIf child.Name.StartsWith("tb_date") Then
+                                                       CType(child, TextBlock).Text = ""
+                                                   End If
+                                               Next
+                                               mainGrid.Children.Remove(black)
+                                               black = Nothing
+                                           End Sub)
+                         worker_pic.Join()
+
+                         'restart thread
+                         position = 0
+                         LoadNextImg()
+                         Select Case transit
+                             Case 0
+                                 worker_pic = New Thread(AddressOf mainThrd_KBE)
+                             Case 1
+                                 worker_pic = New Thread(AddressOf mainThrd_Breath)
+                             Case 2
+                                 worker_pic = New Thread(AddressOf mainThrd_Throw)
+                             Case 255
+                                 worker_pic = New Thread(AddressOf mainThrd_Mix)
+                             Case Else
+                                 MsgBox(Application.Current.Resources("msg_transerr"), MsgBoxStyle.Critical)
+                                 Me.Close()
+                                 Exit Sub
+                         End Select
+                         worker_pic.IsBackground = True
+                         worker_pic.Priority = ThreadPriority.Lowest
+                         aborting = False
+                         worker_pic.Start()
+                     End Sub)
         End If
     End Sub
 
@@ -979,19 +989,19 @@ Class MainWindow
     Private Sub ApplyBlur(tgt As Image, easeout As Animation.IEasingFunction, easein As Animation.IEasingFunction,
                           Optional fadeindur As Double = 2, Optional fadeoutdur As Double = 2)
         'blur
-        If blurmode <> "None" Then
+        If blurmode <> 0 Then
             Dim rad = w * h / 15000
             Dim blur_fx As New Effects.BlurEffect
             Dim blur_anim As New Animation.DoubleAnimationUsingKeyFrames
-            If blurmode = "Only on Fade In" Then
+            If blurmode = 1 Then 'only fade in
                 blur_anim.KeyFrames.Add(New Animation.EasingDoubleKeyFrame(rad, Animation.KeyTime.FromTimeSpan(TimeSpan.FromSeconds(0))))
                 blur_anim.KeyFrames.Add(New Animation.EasingDoubleKeyFrame(0, Animation.KeyTime.FromTimeSpan(TimeSpan.FromSeconds(fadeindur)), easeout))
-            ElseIf blurmode = "Only on Fade Out" Then
+            ElseIf blurmode = 2 Then 'only fade out
                 blur_fx.Radius = 0
                 blur_anim.KeyFrames.Add(New Animation.EasingDoubleKeyFrame(0, Animation.KeyTime.FromTimeSpan(TimeSpan.FromSeconds(0))))
                 blur_anim.KeyFrames.Add(New Animation.EasingDoubleKeyFrame(0, Animation.KeyTime.FromTimeSpan(TimeSpan.FromSeconds(picmove_sec - fadeoutdur))))
                 blur_anim.KeyFrames.Add(New Animation.EasingDoubleKeyFrame(rad, Animation.KeyTime.FromTimeSpan(TimeSpan.FromSeconds(picmove_sec)), easein))
-            ElseIf blurmode = "Both" Then
+            ElseIf blurmode = 3 Then 'both
                 blur_anim.KeyFrames.Add(New Animation.EasingDoubleKeyFrame(rad, Animation.KeyTime.FromTimeSpan(TimeSpan.FromSeconds(0))))
                 blur_anim.KeyFrames.Add(New Animation.EasingDoubleKeyFrame(0, Animation.KeyTime.FromTimeSpan(TimeSpan.FromSeconds(fadeindur)), easeout))
                 blur_anim.KeyFrames.Add(New Animation.EasingDoubleKeyFrame(0, Animation.KeyTime.FromTimeSpan(TimeSpan.FromSeconds(picmove_sec - fadeoutdur))))

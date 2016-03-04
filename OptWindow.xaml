@@ -2,9 +2,9 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:Ken_Burns_Slideshow" x:Class="OptWindow"
-    Title="Options" Height="478.55" Width="479.213" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded" Icon="KenBurns.ico">
+    Title="{StaticResource options}" Height="499.55" Width="479.213" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded" Icon="KenBurns.ico">
     <Canvas>
-        <GroupBox Header="Details" Height="271" Width="330" Canvas.Left="10" Canvas.Top="161">
+        <GroupBox Header="{StaticResource details}" Height="271" Width="330" Canvas.Left="10" Canvas.Top="161">
             <Grid Margin="5,0">
                 <Grid.RowDefinitions>
                     <RowDefinition/>
@@ -21,67 +21,74 @@
                     <ColumnDefinition Width="97*"/>
                     <ColumnDefinition Width="57*"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="Framerate" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,8" Height="15" Width="58"/>
-                <TextBlock Text="Multiplier" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,8,0,7" Grid.Row="3" Grid.Column="1" Height="16" Width="71"/>
-                <TextBox x:Name="TB_Framerate" VerticalAlignment="Center" HorizontalAlignment="Right" Padding="1,0" ToolTip="Normally changing FPS will only make it worse." Height="20" Width="42"/>
-                <TextBox x:Name="TB_LoadQuality" VerticalAlignment="Center" Width="42" HorizontalAlignment="Right" Padding="1,0"  ToolTip="Restrict the longer edge of loaded image to screen width or height * multiplier.&#10;Only lower definition." Grid.Row="3" Grid.Column="1" Height="20"/>
-                <TextBlock Text="Duration (&gt;4s)" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="1" Margin="0,7,0,8" Height="16" Width="83"/>
-                <TextBox x:Name="TB_Duration" VerticalAlignment="Center" Padding="1,0" Grid.Row="1" ToolTip="Determine FOR THE NEXT RUN how long in seconds each image will be shown (including fade time)." Height="20" HorizontalAlignment="Right" Width="42"/>
-                <CheckBox x:Name="CB_ResLk" Content="Resolution Lock" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Whether to use reduced resolution for images whose longer edge is larger than 1.2 times of screen height / width.&#10;This is to reduce flickering when a new image is shown." IsChecked="True" Grid.Row="3" Height="16" Margin="1,7,0,8"/>
-                <CheckBox x:Name="CB_Fadeout" Content="Use fadeout" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Fading out animation consumes more CPU resource&#10;but the animation would look better when the next image is extra large.&#10;For Ken Burns animation, if fadeout is disabled and the program is waiting for the next image to load,&#10;instead of a black screen, the last still frame of the last image will be shown.&#10;No effect for Breath.&#10;* Disabled in current version." IsChecked="True" Grid.Row="4" Height="16" Margin="0,8,0,7" IsEnabled="False"/>
-                <CheckBox x:Name="CB_VerOptm" Content="Vertical Optimize" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Whether to only show the upper / lower part (depending on movement direction)&#10;for movement distance of animation larger than screen height / 1.5.&#10;This is to avoid image moving too fast thus less elegant." IsChecked="True" Grid.Row="5" Height="16" Margin="0,7,0,8"/>
-                <CheckBox x:Name="CB_HorOptm" Content="Horizontal Optimize" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Whether to only show the left / right part (depending on movement direction)&#10;for movement distance of animation larger than screen height / 1.5.&#10;This is to avoid image moving too fast thus less elegant." IsChecked="True" Grid.Row="6" Height="16" Margin="0,8"/>
-                <CheckBox x:Name="CB_VerLk" Content="Vertical Lock" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Whether to lock movement direction to &quot;down only&quot; for images with height larger than screen height * 1.5.&#10;This setting suits better for portraits that usually have faces at the upper part of the image." IsChecked="True" Grid.Row="7" Height="16" Margin="0,8,0,7"/>
-                <TextBox x:Name="TB_VORatio" HorizontalAlignment="Right" VerticalAlignment="Center" Width="42" ToolTip="Determine how much of the image to be shown while Vertical Optimize is in effect.&#10;1 = showing complete image.&#10;0 = showing minimum." Padding="1,0" Grid.Column="1" Grid.Row="5" Height="20"/>
-                <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="Ratio (0 - 1)" VerticalAlignment="Center" Grid.Column="1" Grid.Row="5" Height="16" Margin="0,7,0,8" Width="68"/>
-                <TextBox x:Name="TB_HORatio" HorizontalAlignment="Right" VerticalAlignment="Center" Width="42" ToolTip="Determine how much of the image to be shown while Horizontal Optimize is in effect.&#10;1 = showing complete image.&#10;0 = showing minimum." Padding="1,0" Grid.Column="1" Grid.Row="6" Height="20"/>
-                <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="Ratio (0 - 1)" VerticalAlignment="Center" Grid.Column="1" Grid.Row="6" Height="16" Margin="0,8" Width="68"/>
-                <TextBlock Text="Scaling Quality" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="2" Margin="0,7,0,8" Height="16" Width="86"/>
-                <ComboBox x:Name="CbB_ScaleMode" Grid.Row="2" Margin="0,5" HorizontalAlignment="Right" Width="103" ToolTip="Set bitmap scaling quality.&#10;Lower quality is not necessarily faster than high quality on some systems.">
+                <TextBlock Text="{StaticResource framerate}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,8" Height="15"/>
+                <TextBlock Text="{StaticResource multiplier}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,8,0,7" Grid.Row="3" Grid.Column="1" Height="16"/>
+                <TextBox x:Name="TB_Framerate" VerticalAlignment="Center" HorizontalAlignment="Right" Padding="1,0" Height="20" Width="42" ToolTip="{StaticResource tip_framerate}"/>
+                <TextBox x:Name="TB_LoadQuality" VerticalAlignment="Center" Width="42" HorizontalAlignment="Right" Padding="1,0"  ToolTip="{StaticResource tip_loadquality}" Grid.Row="3" Grid.Column="1" Height="20"/>
+                <TextBlock Text="{Binding Mode=OneTime, Source={StaticResource duration}, StringFormat='* {0} (&gt;4s)'}" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="1" Margin="0,7,0,8" Height="16"/>
+                <TextBox x:Name="TB_Duration" VerticalAlignment="Center" Padding="1,0" Grid.Row="1" ToolTip="{StaticResource tip_duration}" Height="20" HorizontalAlignment="Right" Width="42"/>
+                <CheckBox x:Name="CB_ResLk" Content="{StaticResource resolution lock}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="{StaticResource tip_loadquality}" IsChecked="True" Grid.Row="3" Height="16" Margin="1,7,0,8"/>
+                <CheckBox x:Name="CB_Fadeout" Content="{StaticResource fadeout}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="{StaticResource tip_fadeout}" IsChecked="True" Grid.Row="4" Height="16" Margin="0,8,0,7" IsEnabled="False"/>
+                <CheckBox x:Name="CB_VerOptm" Content="{StaticResource vertical optimize}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="{StaticResource tip_veroptm}" IsChecked="True" Grid.Row="5" Height="16" Margin="0,7,0,8"/>
+                <CheckBox x:Name="CB_HorOptm" Content="{StaticResource horizontal optimize}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="{StaticResource tip_horoptm}" IsChecked="True" Grid.Row="6" Height="16" Margin="0,8"/>
+                <CheckBox x:Name="CB_VerLk" Content="{StaticResource vertical lock}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="{StaticResource tip_verlock}" IsChecked="True" Grid.Row="7" Height="16" Margin="0,8,0,7"/>
+                <TextBox x:Name="TB_VORatio" HorizontalAlignment="Right" VerticalAlignment="Center" Width="42" ToolTip="{StaticResource tip_veroptmR}" Padding="1,0" Grid.Column="1" Grid.Row="5" Height="20"/>
+                <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="{Binding Mode=OneTime, Source={StaticResource ratio}, StringFormat='\{0} (0 - 1)'}" VerticalAlignment="Center" Grid.Column="1" Grid.Row="5" Height="16" Margin="0,7,0,8"/>
+                <TextBox x:Name="TB_HORatio" HorizontalAlignment="Right" VerticalAlignment="Center" Width="42" ToolTip="{StaticResource tip_horoptmR}" Padding="1,0" Grid.Column="1" Grid.Row="6" Height="20"/>
+                <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="{Binding Mode=OneTime, Source={StaticResource ratio}, StringFormat='\{0} (0 - 1)'}" VerticalAlignment="Center" Grid.Column="1" Grid.Row="6" Height="16" Margin="0,8"/>
+                <TextBlock Text="{StaticResource scaling quality}" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="2" Margin="0,7,0,8" Height="16"/>
+                <ComboBox x:Name="CbB_ScaleMode" Grid.Row="2" Margin="0,3" HorizontalAlignment="Right" Width="103" ToolTip="{StaticResource tip_scalemode}">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Path=Value}"/>
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
-                <TextBlock Text="Blur Mode" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="8" Height="16" Margin="0,8,0,7"/>
-                <ComboBox x:Name="CbB_BlurMode" Grid.Row="8" Margin="0,5" HorizontalAlignment="Right" Width="103" ToolTip="Whether to apply blur effect to certain animation. Choose None for smoother movement.">
-                    <ComboBoxItem Content="None"/>
-                    <ComboBoxItem Content="Only on Fade In"/>
-                    <ComboBoxItem Content="Only on Fade Out"/>
-                    <ComboBoxItem Content="Both"/>
+                <TextBlock Text="{StaticResource blur mode}" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="8" Height="16" Margin="0,8,0,7"/>
+                <ComboBox x:Name="CbB_BlurMode" Grid.Row="8" Margin="0,3" HorizontalAlignment="Right" Width="103" ToolTip="{StaticResource tip_blurmode}">
+                    <ComboBoxItem Content="{StaticResource blur_none}"/>
+                    <ComboBoxItem Content="{StaticResource blur_fadein}"/>
+                    <ComboBoxItem Content="{StaticResource blur_fadeout}"/>
+                    <ComboBoxItem Content="{StaticResource blur_fadeinout}"/>
                 </ComboBox>
             </Grid>
         </GroupBox>
-        <Button x:Name="Btn_OK" Content="OK" HorizontalAlignment="Left" VerticalAlignment="Top" Width="108" Height="28" IsDefault="True" Canvas.Left="345" Canvas.Top="370"/>
-        <Button x:Name="Btn_Cancel" Content="Cancel" HorizontalAlignment="Left" VerticalAlignment="Top" Width="108" Height="28" IsCancel="True" Canvas.Left="345" Canvas.Top="403"/>
-        <GroupBox Header="Image Folders" HorizontalAlignment="Left" VerticalAlignment="Top" Height="146" Width="219" Canvas.Left="10" Canvas.Top="10">
+        <Button x:Name="Btn_OK" Content="{StaticResource ok}" HorizontalAlignment="Left" VerticalAlignment="Top" Width="108" Height="28" IsDefault="True" Canvas.Left="345" Canvas.Top="370"/>
+        <Button x:Name="Btn_Cancel" Content="{StaticResource cancel}" HorizontalAlignment="Left" VerticalAlignment="Top" Width="108" Height="28" IsCancel="True" Canvas.Left="345" Canvas.Top="403"/>
+        <GroupBox HorizontalAlignment="Left" VerticalAlignment="Top" Height="146" Width="219" Canvas.Left="10" Canvas.Top="10">
+            <GroupBox.Header>
+                <Run Text="{Binding Mode=OneTime, Source={StaticResource image folders}, StringFormat='* {0}'}"/>
+            </GroupBox.Header>
             <Canvas>
-                <ListBox x:Name="LB_ImgFolder" Height="97" Width="207" ToolTip="Folders containing images that will be loaded IN THE NEXT RUN."/>
-                <Button x:Name="Btn_Img_Add" Content="Add" Canvas.Top="102" Width="67"/>
-                <Button x:Name="Btn_Img_Rmv" Content="Remove" Canvas.Top="102" Width="65" Canvas.Left="142"/>
-                <Button x:Name="Btn_Img_Edit" Content="Edit" Canvas.Top="102" Width="65" Canvas.Left="72"/>
+                <ListBox x:Name="LB_ImgFolder" Height="97" Width="207" ToolTip="{StaticResource tip_imagefolder}"/>
+                <Button x:Name="Btn_Img_Add" Content="{StaticResource add}" Canvas.Top="102" Width="67"/>
+                <Button x:Name="Btn_Img_Rmv" Content="{StaticResource remove}" Canvas.Top="102" Width="65" Canvas.Left="142"/>
+                <Button x:Name="Btn_Img_Edit" Content="{StaticResource edit}" Canvas.Top="102" Width="65" Canvas.Left="72"/>
             </Canvas>
         </GroupBox>
-        <GroupBox Header="Music Folders" HorizontalAlignment="Left" VerticalAlignment="Top" Height="146" Width="219" Canvas.Left="234" Canvas.Top="10">
+        <GroupBox HorizontalAlignment="Left" VerticalAlignment="Top" Height="146" Width="219" Canvas.Left="234" Canvas.Top="10">
+            <GroupBox.Header>
+                <Run Text="{Binding Mode=OneTime, Source={StaticResource music folders}, StringFormat='* {0}'}"/>
+            </GroupBox.Header>
             <Canvas>
-                <ListBox x:Name="LB_BGMFolder" Height="97" Width="207" ToolTip="Folders containing music that will be loaded IN THE NEXT RUN."/>
-                <Button x:Name="Btn_BGM_Add" Content="Add" Canvas.Top="102" Width="67"/>
-                <Button x:Name="Btn_BGM_Rmv" Content="Remove" Canvas.Top="102" Width="65" Canvas.Left="142"/>
-                <Button x:Name="Btn_BGM_Edit" Content="Edit" Canvas.Top="102" Width="65" Canvas.Left="72"/>
+                <ListBox x:Name="LB_BGMFolder" Height="97" Width="207" ToolTip="{StaticResource tip_musicfolder}"/>
+                <Button x:Name="Btn_BGM_Add" Content="{StaticResource add}" Canvas.Top="102" Width="67"/>
+                <Button x:Name="Btn_BGM_Rmv" Content="{StaticResource remove}" Canvas.Top="102" Width="65" Canvas.Left="142"/>
+                <Button x:Name="Btn_BGM_Edit" Content="{StaticResource edit}" Canvas.Top="102" Width="65" Canvas.Left="72"/>
             </Canvas>
         </GroupBox>
-        <ComboBox x:Name="CbB_Transit" Canvas.Left="345" Canvas.Top="183" Width="108" SelectedIndex="0" ToolTip="Choose the transition effect to be used FOR THE NEXT RUN.">
-            <ComboBoxItem Content="Ken Burns"/>
-            <ComboBoxItem Content="Breath"/>
-            <ComboBoxItem Content="Throw"/>
-            <ComboBoxItem Content="Random"/>
+        <ComboBox x:Name="CbB_Transit" Canvas.Left="345" Canvas.Top="183" Width="108" SelectedIndex="0">
+            <ComboBoxItem Content="{StaticResource trans_kenburns}"/>
+            <ComboBoxItem Content="{StaticResource trans_breath}"/>
+            <ComboBoxItem Content="{StaticResource trans_throw}"/>
+            <ComboBoxItem Content="{StaticResource trans_random}"/>
         </ComboBox>
-        <TextBlock Canvas.Left="345" TextWrapping="Wrap" Text="Active transition" Canvas.Top="163"/>
-        <TextBlock Canvas.Left="345" TextWrapping="Wrap" Text="Loading Mode" Canvas.Top="221"/>
-        <ComboBox x:Name="CbB_LoadMode" Canvas.Left="345" Canvas.Top="242" Width="108" SelectedIndex="0" ToolTip="In the next run, load all image to memory at once or load images one by one.&#10;Choose One by One to for less memory usage.&#10;Choose All at Once for smoother animation.">
-            <ComboBoxItem Content="One by One"/>
-            <ComboBoxItem Content="All at Once"/>
+        <TextBlock Canvas.Left="345" TextWrapping="Wrap" Text="{Binding Mode=OneTime, Source={StaticResource active transition},StringFormat='* {0}'}" Canvas.Top="163"/>
+        <TextBlock Canvas.Left="345" TextWrapping="Wrap" Text="{Binding Mode=onetime, Source={StaticResource loading mode}, StringFormat='* {0}'}" Canvas.Top="221"/>
+        <ComboBox x:Name="CbB_LoadMode" Canvas.Left="345" Canvas.Top="242" Width="108" SelectedIndex="0" ToolTip="{StaticResource tip_loadmode}">
+            <ComboBoxItem Content="{StaticResource load_onebyone}"/>
+            <ComboBoxItem Content="{StaticResource load_allatonce}"/>
         </ComboBox>
+        <TextBlock Canvas.Left="10" TextWrapping="Wrap" Text="{StaticResource star}" Canvas.Top="437"/>
     </Canvas>
 </Window>

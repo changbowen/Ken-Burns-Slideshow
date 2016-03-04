@@ -22,6 +22,9 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
 - Options for each slide is now available by pressing F11.
 
 ## Updates
+- 2016-03-04
+  - Added simplified Chinese language.
+  - Minor changes.
 - 2016-03-01
   - Added Load Mode option for better performance. **Greatly improved transition framerate under All-at-Once mode.**
 - 2016-02-26
