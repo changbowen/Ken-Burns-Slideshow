@@ -26,7 +26,7 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
   - Added simplified Chinese language.
   - Minor changes.
 - 2016-03-01
-  - Added Load Mode option for better performance. **Greatly improved transition framerate under All-at-Once mode.**
+  - Added Load Mode option for better performance. Improved transition framerate under All-at-Once mode.
 - 2016-02-26
   - **New transition animation "Throw" added!**
   - Changed how certain animations are handled.
