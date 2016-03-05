@@ -23,6 +23,8 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
 
 ## Updates
 - 2016-03-04
+  - Added control window from where pause, restart and other functions can be accessed.
+- 2016-03-04
   - Added simplified Chinese language.
   - Minor changes.
 - 2016-03-01
