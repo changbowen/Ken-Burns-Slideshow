@@ -1,0 +1,33 @@
+﻿<Window x:Class="ControlWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="{Binding Mode=OneTime, Source={StaticResource control}, StringFormat='\{0} (F1)'}" Height="140" Width="355.786" ResizeMode="CanMinimize" Closing="Window_Closing" Icon="KenBurns.ico" PreviewKeyDown="Window_PreviewKeyDown">
+    <Canvas>
+        <Button x:Name="Btn_SwitchImage" Canvas.Left="10" Canvas.Top="10" Width="196" Height="24">
+            <Button.Content>
+                <Run Text="{Binding Mode=OneTime, Source={StaticResource switch_image}, StringFormat='\{0} (Ctrl+P)'}"></Run>
+            </Button.Content>
+        </Button>
+        <Button x:Name="Btn_SwitchAudio" Canvas.Left="10" Canvas.Top="39" Width="196" Height="24">
+            <Button.Content>
+                <Run Text="{Binding Mode=OneTime, Source={StaticResource switch_music}, StringFormat='\{0} (Shift+P)'}"></Run>
+            </Button.Content>
+        </Button>
+        <Button x:Name="Btn_Restart" Canvas.Left="10" Canvas.Top="68" Width="196" Height="24">
+            <Button.Content>
+                <Run Text="{Binding Mode=OneTime, Source={StaticResource restart}, StringFormat='\{0} (Ctrl+R)'}"></Run>
+            </Button.Content>
+        </Button>
+        <Button x:Name="Btn_Options" Canvas.Left="211" Canvas.Top="10" Width="118" Height="24">
+            <Button.Content>
+                <Run Text="{Binding Mode=OneTime, Source={StaticResource options}, StringFormat='\{0} (F12)'}"></Run>
+            </Button.Content>
+        </Button>
+        <Button x:Name="Btn_EditSlide" Canvas.Left="211" Canvas.Top="39" Width="118" Height="24">
+            <Button.Content>
+                <Run Text="{Binding Mode=OneTime, Source={StaticResource edit slides}, StringFormat='\{0} (F11)'}"></Run>
+            </Button.Content>
+        </Button>
+        <Button x:Name="Btn_Exit" Content="{StaticResource exit}" Canvas.Left="211" Canvas.Top="68" Width="118" Height="24"/>
+    </Canvas>
+</Window>

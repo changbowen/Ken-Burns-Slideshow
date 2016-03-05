@@ -18,6 +18,7 @@ Class MainWindow
     Dim moveon As Boolean = True
     Dim aborting As Boolean = False
     Dim worker_pic As Thread
+    Dim ctrlwindow As Window
     Public Shared framerate As UInteger = 60
     Public Shared duration As UInteger = 7 'only serves as a store. program will read duration value from picmove_sec.
     Public Shared folders_image As New List(Of String)
@@ -213,7 +214,6 @@ Class MainWindow
 
         tb_date0.FontSize = Me.Height / 12
         tb_date1.FontSize = Me.Height / 12
-
         Me.Background = Brushes.Black
 
         Select Case transit
@@ -337,10 +337,22 @@ Class MainWindow
                 End Sub).ContinueWith(Sub()
                                           LoadNextImg()
                                           worker_pic.Start()
+                                          Dispatcher.Invoke(Sub()
+                                                                If ctrlwindow Is Nothing Then
+                                                                    ctrlwindow = New ControlWindow
+                                                                    ctrlwindow.Owner = Me
+                                                                End If
+                                                                ctrlwindow.Show()
+                                                            End Sub)
                                       End Sub)
         ElseIf loadmode = 0 Then
             LoadNextImg()
             worker_pic.Start()
+            If ctrlwindow Is Nothing Then
+                ctrlwindow = New ControlWindow
+                ctrlwindow.Owner = Me
+            End If
+            ctrlwindow.Show()
         Else
             Me.Close()
         End If
@@ -352,7 +364,7 @@ Class MainWindow
         ExecState_Set = True
     End Sub
 
-    Public Function RandomNum(min As UInteger, max As UInteger, neg As Boolean)
+    Private Function RandomNum(min As UInteger, max As UInteger, neg As Boolean)
         If neg Then
             If ran.Next(2) = 0 Then
                 Return -ran.Next(min, max)
@@ -865,37 +877,53 @@ Class MainWindow
             Dim editwin As New EditWindow
             editwin.ShowDialog()
             editwin.Close()
+        ElseIf e.Key = Key.F1 Then
+            If ctrlwindow Is Nothing Then
+                ctrlwindow = New ControlWindow
+                ctrlwindow.Owner = Me
+            End If
+            ctrlwindow.Show()
         ElseIf e.Key = Key.P Then
-            If worker_pic IsNot Nothing AndAlso worker_pic.IsAlive Then
-                If Keyboard.Modifiers = ModifierKeys.Control Then 'pause image
-                    If moveon = True Then
-                        moveon = False
-                    Else
-                        moveon = True
-                    End If
-                ElseIf Keyboard.Modifiers = ModifierKeys.Shift Then 'fadeout audio only
-                    If Not audiofading Then
-                        If playing Then
-                            Task.Run(AddressOf FadeoutAudio)
-                        Else
-                            Task.Run(AddressOf FadeinAudio)
-                        End If
-                    End If
-                End If
+            If Keyboard.Modifiers = ModifierKeys.Control Then 'pause image
+                SwitchImage()
+            ElseIf Keyboard.Modifiers = ModifierKeys.Shift Then 'fadeout audio only
+                SwitchAudio()
             End If
         ElseIf e.Key = Key.R AndAlso Keyboard.Modifiers = ModifierKeys.Control AndAlso aborting = False Then
             RestartAll()
             'ElseIf e.Key = Key.S AndAlso Keyboard.Modifiers = ModifierKeys.Control AndAlso aborting = False Then
             '    RestartAll()
-
         End If
     End Sub
 
-    Private Sub RestartAll()
+    Friend Sub SwitchImage()
+        If worker_pic IsNot Nothing AndAlso worker_pic.IsAlive Then
+            If moveon = True Then
+                moveon = False
+            Else
+                moveon = True
+            End If
+        End If
+    End Sub
+
+    Friend Sub SwitchAudio()
+        If worker_pic IsNot Nothing AndAlso worker_pic.IsAlive Then
+            If Not audiofading Then
+                If playing Then
+                    Task.Run(AddressOf FadeoutAudio)
+                Else
+                    Task.Run(AddressOf FadeinAudio)
+                End If
+            End If
+        End If
+    End Sub
+
+    Friend Sub RestartAll()
         If worker_pic IsNot Nothing AndAlso worker_pic.IsAlive Then
             aborting = True
             Task.Run(AddressOf FadeoutAudio)
             Task.Run(Sub()
+                         moveon = True
                          Dim black As Rectangle
                          Dispatcher.Invoke(Sub()
                                                black = New Rectangle
@@ -941,6 +969,13 @@ Class MainWindow
                          worker_pic.Priority = ThreadPriority.Lowest
                          aborting = False
                          worker_pic.Start()
+                         Dispatcher.Invoke(Sub()
+                                               If ctrlwindow Is Nothing Then
+                                                   ctrlwindow = New ControlWindow
+                                                   ctrlwindow.Owner = Me
+                                               End If
+                                               ctrlwindow.Show()
+                                           End Sub)
                      End Sub)
         End If
     End Sub
@@ -983,6 +1018,8 @@ Class MainWindow
     End Sub
 
     Private Sub Window_Closing(sender As Object, e As ComponentModel.CancelEventArgs)
+        ControlWindow.reallyclose = True
+        If ctrlwindow IsNot Nothing Then ctrlwindow.Close()
         If ExecState_Set Then SetThreadExecutionState(EXECUTION_STATE.ES_CONTINUOUS)
     End Sub
 

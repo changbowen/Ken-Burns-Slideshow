@@ -108,12 +108,19 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ControlWindow.xaml.vb">
+      <DependentUpon>ControlWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="EditWindow.xaml.vb">
       <DependentUpon>EditWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="OptWindow.xaml.vb">
       <DependentUpon>OptWindow.xaml</DependentUpon>
     </Compile>
+    <Page Include="ControlWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="EditWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
