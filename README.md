@@ -22,6 +22,9 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
 - Options for each slide is now available by pressing F11.
 
 ## Updates
+- 2016-03-09
+  - Fixed Random transition not working properly.
+  - Minor changes on how date animation is handled.
 - 2016-03-04
   - Added control window from where pause, restart and other functions can be accessed.
   - Added simplified Chinese language.
