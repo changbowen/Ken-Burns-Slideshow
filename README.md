@@ -24,7 +24,6 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
 ## Updates
 - 2016-03-04
   - Added control window from where pause, restart and other functions can be accessed.
-- 2016-03-04
   - Added simplified Chinese language.
   - Minor changes.
 - 2016-03-01
@@ -73,6 +72,7 @@ transitions.
   - Improved error handling when dealing with corruptions. Instead of showing error prompt and exit, program will now replace the problematic image with a black screen as a placeholder in case dates are being displayed.
 
 ## Note
+- Press **F1** to re-open control panel after it is closed.
 - Press **F12** at runtime for options.
 - Press **F11** at runtime for Edit Mode dialog.
 - Press **Ctrl+P** at runtime to hold off transition to the next image (i.e. pause).
