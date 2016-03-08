@@ -223,7 +223,7 @@ Class MainWindow
                 worker_pic = New Thread(AddressOf mainThrd_Breath)
             Case 2 'Throw
                 worker_pic = New Thread(AddressOf mainThrd_Throw)
-            Case 255 'Random
+            Case 3 'Random
                 worker_pic = New Thread(AddressOf mainThrd_Mix)
             Case Else
                 MsgBox(Application.Current.Resources("msg_transerr"), MsgBoxStyle.Critical)
@@ -322,7 +322,7 @@ Class MainWindow
                                 scales = {1, 1.3}
                             Case 2
                                 scales = {0.7, 1}
-                            Case 255
+                            Case 3
                                 scales = {0.7, 1, 1.3}
                             Case Else
                                 scales = {}
@@ -428,15 +428,18 @@ Class MainWindow
                                   tgt_tb = CType(mainGrid.FindName("tb_date" & mm), TextBlock)
                                   tgt_tb.Text = tmpdate
                                   Dim anim_tbfadein As New Animation.DoubleAnimation(0, 0.7, New Duration(New TimeSpan(0, 0, 2)))
-                                  Dim anim_tbmove As New Animation.ThicknessAnimation(New Thickness(w / 5, h * 0.75, 0, 0), New Thickness(w / 5 + RandomNum(h / 32, h / 25, True), h * 0.75 + RandomNum(h / 32, h / 25, True), 0, 0), New Duration(New TimeSpan(0, 0, tbmove_sec)))
-                                  'Dim anim_tbzoom = New Animation.DoubleAnimation(tgt_tb.FontSize * 1.2, New Duration(New TimeSpan(0, 0, tbmove_sec)))
+                                  Dim anim_tbmovex As New Animation.DoubleAnimation(w / 5, w / 5 + RandomNum(h / 32, h / 25, True), New Duration(New TimeSpan(0, 0, tbmove_sec)))
+                                  Dim anim_tbmovey As New Animation.DoubleAnimation(h * 0.75, h * 0.75 + RandomNum(h / 32, h / 25, True), New Duration(New TimeSpan(0, 0, tbmove_sec)))
+                                  'Dim anim_tbmove As New Animation.ThicknessAnimation(New Thickness(w / 5, h * 0.75, 0, 0), New Thickness(w / 5 + RandomNum(h / 32, h / 25, True), h * 0.75 + RandomNum(h / 32, h / 25, True), 0, 0), New Duration(New TimeSpan(0, 0, tbmove_sec)))
                                   Animation.Timeline.SetDesiredFrameRate(anim_tbfadein, framerate)
-                                  Animation.Timeline.SetDesiredFrameRate(anim_tbmove, framerate)
-                                  'Animation.Timeline.SetDesiredFrameRate(anim_tbzoom, framerate)
+                                  Animation.Timeline.SetDesiredFrameRate(anim_tbmovex, framerate)
+                                  Animation.Timeline.SetDesiredFrameRate(anim_tbmovey, framerate)
+                                  Dim trans_trans As New TranslateTransform(w / 5, h * 0.75)
+                                  tgt_tb.RenderTransform = trans_trans
 
-                                  'tgt_tb.BeginAnimation(TextBlock.FontSizeProperty, anim_tbzoom)
                                   tgt_tb.BeginAnimation(TextBlock.OpacityProperty, anim_tbfadein)
-                                  tgt_tb.BeginAnimation(TextBlock.MarginProperty, anim_tbmove)
+                                  trans_trans.BeginAnimation(TranslateTransform.XProperty, anim_tbmovex)
+                                  trans_trans.BeginAnimation(TranslateTransform.YProperty, anim_tbmovey)
                               End Sub)
 
             Thread.Sleep((tbmove_sec - 1) * 1000)
@@ -958,7 +961,7 @@ Class MainWindow
                                  worker_pic = New Thread(AddressOf mainThrd_Breath)
                              Case 2
                                  worker_pic = New Thread(AddressOf mainThrd_Throw)
-                             Case 255
+                             Case 3
                                  worker_pic = New Thread(AddressOf mainThrd_Mix)
                              Case Else
                                  MsgBox(Application.Current.Resources("msg_transerr"), MsgBoxStyle.Critical)

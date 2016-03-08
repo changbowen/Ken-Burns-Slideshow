@@ -1,0 +1,77 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:system="clr-namespace:System;assembly=mscorlib">
+    <system:String x:Key="options">Options</system:String>
+    <system:String x:Key="ok">OK</system:String>
+    <system:String x:Key="cancel">Cancel</system:String>
+    <system:String x:Key="image folders">Image Folders</system:String>
+    <system:String x:Key="music folders">Music Folders</system:String>
+    <system:String x:Key="none">None</system:String>
+    <system:String x:Key="add">Add</system:String>
+    <system:String x:Key="edit">Edit</system:String>
+    <system:String x:Key="remove">Remove</system:String>
+    <system:String x:Key="details">Details</system:String>
+    <system:String x:Key="framerate">Framerate</system:String>
+    <system:String x:Key="duration">Duration</system:String>
+    <system:String x:Key="active transition">Active Transition</system:String>
+    <system:String x:Key="loading mode">Image Load Mode</system:String>
+    <system:String x:Key="scaling quality">Scaling Quality</system:String>
+    <system:String x:Key="resolution lock">Resolution Optimize</system:String>
+    <system:String x:Key="fadeout">Fade out</system:String>
+    <system:String x:Key="multiplier">Multiplier</system:String>
+    <system:String x:Key="vertical optimize">Vertical Optimize</system:String>
+    <system:String x:Key="horizontal optimize">Horizontal Optimize</system:String>
+    <system:String x:Key="ratio">Ratio</system:String>
+    <system:String x:Key="vertical lock">Vertical Lock</system:String>
+    <system:String x:Key="blur mode">Blur Mode</system:String>
+    <system:String x:Key="(default) high">(Default) High</system:String>
+    <system:String x:Key="medium">Medium</system:String>
+    <system:String x:Key="low">Low</system:String>
+    <system:String x:Key="blur_none">None</system:String>
+    <system:String x:Key="blur_fadein">Only on Fade In</system:String>
+    <system:String x:Key="blur_fadeout">Only on Fade Out</system:String>
+    <system:String x:Key="blur_fadeinout">Both</system:String>
+    <system:String x:Key="trans_kenburns">Ken Burns</system:String>
+    <system:String x:Key="trans_breath">Breath</system:String>
+    <system:String x:Key="trans_throw">Throw</system:String>
+    <system:String x:Key="trans_random">Random</system:String>
+    <system:String x:Key="load_onebyone">One by One</system:String>
+    <system:String x:Key="load_allatonce">All at Once</system:String>
+    <system:String x:Key="tip_framerate">Normally changing FPS will only make it worse.</system:String>
+    <system:String x:Key="tip_loadquality" xml:space="preserve">When loading a large image, decode the image at lower resolution by restricting the longer edge of the image to screen width or height * multiplier. Only lower definition.&#x0d;&#x0a;This is useful for reducing frame-drops while displaying HD images.</system:String>
+    <system:String x:Key="tip_duration">Determine how long in seconds each image will be shown (including fade time).</system:String>
+    <system:String x:Key="tip_fadeout">* Disabled in current version.</system:String>
+    <system:String x:Key="tip_veroptm" xml:space="preserve">Whether to only show the upper / lower part (depending on movement direction) &#x0d;&#x0a;for movement distance of animation larger than screen height / 1.5.&#x0d;&#x0a;This is to avoid image moving too fast thus less elegant.</system:String>
+    <system:String x:Key="tip_horoptm" xml:space="preserve">Whether to only show the left / right part (depending on movement direction) &#x0d;&#x0a;for movement distance of animation larger than screen height / 1.5.&#x0d;&#x0a;This is to avoid image moving too fast thus less elegant.</system:String>
+    <system:String x:Key="tip_veroptmR" xml:space="preserve">Determine how much of the image to be shown while Vertical Optimize is in effect.&#x0d;&#x0a;1 = showing complete image.&#x0d;&#x0a;0 = showing minimum.</system:String>
+    <system:String x:Key="tip_horoptmR" xml:space="preserve">Determine how much of the image to be shown while Horizontal Optimize is in effect.&#x0d;&#x0a;1 = showing complete image.&#x0d;&#x0a;0 = showing minimum.</system:String>
+    <system:String x:Key="tip_verlock" xml:space="preserve">Whether to lock movement direction to "down only" for images with height larger than screen height * 1.5.&#x0d;&#x0a;This setting suits better for portraits that usually have faces at the upper part of the image.</system:String>
+    <system:String x:Key="tip_blurmode">Whether to apply blur effect to certain animation. Choose None for smoother movement.</system:String>
+    <system:String x:Key="tip_imagefolder">Folders containing images.</system:String>
+    <system:String x:Key="tip_musicfolder">Folders containing music.</system:String>
+    <system:String x:Key="tip_loadmode" xml:space="preserve">Choose to load images one by one or to load all images to memory at program start.&#x0d;&#x0a;Choose One by One to for less memory usage.&#x0d;&#x0a;Choose All at Once for smoother animation.</system:String>
+    <system:String x:Key="tip_scalemode" xml:space="preserve">Set bitmap scaling quality.&#x0d;&#x0a;Lower quality is not necessarily faster than high quality on some systems.</system:String>
+    <system:String x:Key="star">* indicates program restart is required for the option to be in effect.</system:String>
+    <system:String x:Key="edit slides">Edit Slides</system:String>
+    <system:String x:Key="image list">Image List</system:String>
+    <system:String x:Key="onscreen date">On-screen dates shown</system:String>
+    <system:String x:Key="title slide">Title slide</system:String>
+    <system:String x:Key="reset list">Reset list</system:String>
+    <system:String x:Key="save">Save</system:String>
+    <system:String x:Key="tip_resetlist">This will reset customized information such as ordering, title slide attributes etc.</system:String>
+    <system:String x:Key="tip_titleslide">Title slide transition differs from others with only a simple fade in and out while lasting longer.</system:String>
+    <system:String x:Key="msg_loadcfgerr">Error loading configuration. Would you like to open settings?</system:String>
+    <system:String x:Key="msg_noimgerr">No pictures are found in specified folders. Would you like to open settings?</system:String>
+    <system:String x:Key="msg_transerr">Error reading transit value. Please delete config.xml file and try again. Program will exit now.</system:String>
+    <system:String x:Key="msg_invVOR">Invalid vertical optimize ratio.</system:String>
+    <system:String x:Key="msg_invHOR">Invalid horizontal optimize ratio.</system:String>
+    <system:String x:Key="msg_invfps">Invalid framerate value.</system:String>
+    <system:String x:Key="msg_invdur">Invalid duration value.</system:String>
+    <system:String x:Key="msg_invmul">Invalid multiplier value.</system:String>
+    <system:String x:Key="msg_reslockwarning" xml:space="preserve">It is highly recommended to enable Resolution Lock when Load Mode is set to All at Once. Otherwise it can easily run out of memory when loading large images."&#x0d;&#x0a;Click OK to enable Resolution Lock.</system:String>
+    <system:String x:Key="control">Control</system:String>
+    <system:String x:Key="switch_image">Pause / Resume image</system:String>
+    <system:String x:Key="switch_music">Pause / Resume music</system:String>
+    <system:String x:Key="restart">Restart</system:String>
+    <system:String x:Key="exit">Exit</system:String>
+</ResourceDictionary>
