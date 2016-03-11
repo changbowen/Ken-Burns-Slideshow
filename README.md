@@ -22,6 +22,11 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
 - Options for each slide is now available by pressing F11.
 
 ## Updates
+- 2016-03-11
+  - Added custom text display.
+  - Added version verification.
+  - Added output preview in Edit Slide window.
+  - Improved text / date display loop.
 - 2016-03-09
   - Fixed Random transition not working properly.
   - Minor changes on how date animation is handled.
