@@ -29,6 +29,7 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
   - Added output preview in Edit Slide window.
   - Improved text / date display loop.
   - Option to add a shortcut menu entry for folders, from where the show can be launched directly.
+  - Added fade out while application is closing.
 - 2016-03-09
   - Fixed Random transition not working properly.
   - Minor changes on how date animation is handled.
