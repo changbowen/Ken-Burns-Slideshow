@@ -1,5 +1,5 @@
 ﻿# Ken Burns Slideshow
-Create instant & real-time full-screen slideshow with the Ken Burns effect (**and more!**) for a set of images.
+Instant, portable, full-screen slideshow application with the Ken Burns effect (**and more**)!
 ## Motivation
 This idea came to me while watching a slideshow on iPad. How nice would it be if we can create instant slideshows on a Windows machine with only a single executable and a folder of images.
 ## Preview
