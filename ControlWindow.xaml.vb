@@ -1,10 +1,8 @@
 ﻿Public Class ControlWindow
-    Public Shared reallyclose As Boolean = False
-
     Private Sub Window_Closing(sender As Object, e As ComponentModel.CancelEventArgs)
-        If Not reallyclose Then
+        If Not MainWindow.reallyclose Then
             e.Cancel = True
-            Me.Hide()
+            Me.Hide() 'if close, next F1 will throw exception
         End If
     End Sub
 

@@ -4,7 +4,7 @@
 
 
     Private Sub Window_Loaded(sender As Object, e As RoutedEventArgs)
-        config = XElement.Load("config.xml")
+        config = XElement.Load(MainWindow.config_path)
         Try
             ListOfPic = MainWindow.ListOfPic.Clone
             ListOfPic.ReadXml(New IO.StringReader(config.Element("DocumentElement").ToString))
@@ -46,12 +46,13 @@
                              Catch
                                  pic = New BitmapImage
                                  Dim encoder As New BmpBitmapEncoder
-                                 Dim bmpsource = BitmapSource.Create(64, 64, 96, 96, PixelFormats.Indexed1, BitmapPalettes.BlackAndWhite, New Byte(64 * 8) {}, 8)
+                                 Dim bmpsource = BitmapSource.Create(256, 192, 96, 96, PixelFormats.Indexed1, BitmapPalettes.BlackAndWhite, New Byte(192 * 32) {}, 32)
                                  encoder.Frames.Add(BitmapFrame.Create(bmpsource))
                                  Using ms As New IO.MemoryStream
                                      encoder.Save(ms)
                                      ms.Position = 0
                                      pic.BeginInit()
+                                     pic.CacheOption = BitmapCacheOption.OnLoad
                                      pic.StreamSource = ms
                                      pic.EndInit()
                                  End Using
@@ -76,7 +77,7 @@
                                                        With date_tb
                                                            .Text = T_DateShown.Text
                                                            .FontFamily = New FontFamily("Georgia")
-                                                           .FontSize = h / 12
+                                                           .FontSize = 15
                                                            .FontStyle = FontStyles.Italic
                                                            .Foreground = Brushes.White
                                                            .Effect = New Effects.DropShadowEffect With {.ShadowDepth = 2, .Opacity = 0.8}
@@ -90,7 +91,7 @@
                                                            .SnapsToDevicePixels = True
                                                            .Text = TB_TextShown.Text
                                                            .FontFamily = New FontFamily("Georgia")
-                                                           .FontSize = h / 12
+                                                           .FontSize = 15
                                                            .Foreground = Brushes.White
                                                            .Effect = New Effects.DropShadowEffect With {.ShadowDepth = 2, .Opacity = 0.8}
                                                        End With
@@ -113,10 +114,10 @@
             Dim lop As XElement = XElement.Parse(lop_str.ToString)
             config.Elements("DocumentElement").Remove()
             config.Add(lop)
-            config.Save("config.xml")
+            config.Save(MainWindow.config_path)
         End Using
         
-        'Using wt = Xml.XmlWriter.Create("config.xml")
+        'Using wt = Xml.XmlWriter.Create(config_path)
         '    wt.WriteStartElement("ConfigSlideRoot")
         '    wt.WriteStartElement("folders_image")
         '    For Each folder In MainWindow.folders_image

@@ -23,6 +23,12 @@
         TB_LoadQuality.Text = MainWindow.loadquality
         CbB_ScaleMode.SelectedItem = New KeyValuePair(Of Integer, String)(MainWindow.scalemode, MainWindow.ScaleMode_Dic(MainWindow.scalemode))
         CbB_BlurMode.SelectedIndex = MainWindow.blurmode
+
+        If Microsoft.Win32.Registry.CurrentUser.OpenSubKey("Software\Classes\Directory\shell\OpenWithKenBurns\command") Is Nothing Then
+            Btn_FolderAsso.Content = Application.Current.Resources("register menu")
+        Else
+            Btn_FolderAsso.Content = Application.Current.Resources("unregister menu")
+        End If
     End Sub
 
     Private Sub CB_HorOptm_Change() Handles CB_HorOptm.Unchecked, CB_HorOptm.Checked, CB_HorOptm.Loaded
@@ -144,7 +150,7 @@
             MainWindow.ListOfPic.WriteXml(lop_str)
             Dim lop = XElement.Parse(lop_str.ToString)
             config.Add(lop)
-            config.Save("config.xml")
+            config.Save(MainWindow.config_path)
         End Using
 
         Me.Close()
@@ -223,6 +229,23 @@
                     CB_ResLk.IsChecked = True
                 End If
             End If
+        End If
+    End Sub
+
+    Private Sub Btn_FolderAsso_Click(sender As Object, e As RoutedEventArgs) Handles Btn_FolderAsso.Click
+        If Microsoft.Win32.Registry.CurrentUser.OpenSubKey("Software\Classes\Directory\shell\OpenWithKenBurns\command") Is Nothing Then
+            Dim shellkey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey("Software\Classes\Directory\shell\OpenWithKenBurns")
+            shellkey.SetValue("", Application.Current.Resources("ken burns me"), Microsoft.Win32.RegistryValueKind.String)
+            shellkey.CreateSubKey("command").SetValue("", """" & Reflection.Assembly.GetExecutingAssembly.Location & """ ""%1")
+            Btn_FolderAsso.Content = Application.Current.Resources("unregister menu")
+        Else
+            Dim dirkey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey("Software\Classes\Directory", True)
+            dirkey.DeleteSubKeyTree("shell\OpenWithKenBurns")
+            Dim shellkey = dirkey.OpenSubKey("shell", True)
+            If shellkey.SubKeyCount = 0 AndAlso shellkey.ValueCount = 0 Then
+                dirkey.DeleteSubKeyTree("shell")
+            End If
+            Btn_FolderAsso.Content = Application.Current.Resources("register menu")
         End If
     End Sub
 End Class

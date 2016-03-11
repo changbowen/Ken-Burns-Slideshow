@@ -76,4 +76,8 @@
     <system:String x:Key="exit">退出</system:String>
     <system:String x:Key="text shown">显示文本</system:String>
     <system:String x:Key="msg_versionerr">当前配置文件版本过低。请删除config.xml文件再试。程序将退出。</system:String>
+    <system:String x:Key="ken burns me">用 Ken Burns Slideshow 播放</system:String>
+    <system:String x:Key="register menu">注册文件夹关联</system:String>
+    <system:String x:Key="unregister menu">解除文件夹关联</system:String>
+    <system:String x:Key="tip_registermenu">在Windows资源管理器的文件夹右键菜单中添加播放选项。</system:String>
 </ResourceDictionary>

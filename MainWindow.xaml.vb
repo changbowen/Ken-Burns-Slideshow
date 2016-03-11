@@ -3,6 +3,8 @@
 Class MainWindow
     Public Shared ListOfPic As New System.Data.DataTable("ImageList")
     Public Shared PicFormats() As String = {".jpg", ".jpeg", ".bmp", ".png", ".tif", ".tiff"}
+    Private BGMFormats() As String = {".mp3", ".wma", ".m4a", ".aac", ".wav", "asf"}
+    Public Shared config_path As String = "config.xml"
     Dim ListOfMusic As New List(Of String)
     Dim ran As New Random
     Dim player As New System.Windows.Media.MediaPlayer
@@ -39,6 +41,7 @@ Class MainWindow
     Public Shared blurmode As Integer = 0
     Private Declare Function SetThreadExecutionState Lib "kernel32" (ByVal esFlags As EXECUTION_STATE) As EXECUTION_STATE
     Dim ExecState_Set As Boolean
+    Public Shared reallyclose As Boolean = False
     Private Enum EXECUTION_STATE As Integer
         ''' <summary>
         ''' Informs the system that the state being set should remain in effect until the next call that uses ES_CONTINUOUS and one of the other state flags is cleared.
@@ -71,23 +74,50 @@ Class MainWindow
         ScaleMode_Dic.Add(3, Application.Current.Resources("medium"))
         ScaleMode_Dic.Add(1, Application.Current.Resources("low"))
 
-        'loading config.xml
+        'set working dir
+        IO.Directory.SetCurrentDirectory(IO.Path.GetDirectoryName(Reflection.Assembly.GetExecutingAssembly.Location))
+
+        'check cmd args and load config
+        Dim cmdargs = Environment.GetCommandLineArgs
+        'Dim cmdargs() As String = {"asdasd", "F:\Pictures\Giant", "F:\Pictures\Giant\1"}
         Dim config As XElement
-        Do
-            Try
-                config = XElement.Load("config.xml")
-                Exit Do
-            Catch
-                If MsgBox(Application.Current.Resources("msg_loadcfgerr"), MsgBoxStyle.Question + MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
-                    Dim optwin As New OptWindow
-                    optwin.ShowDialog()
-                    optwin.Close()
-                Else
-                    Me.Close()
-                    Exit Sub
-                End If
-            End Try
-        Loop
+        If cmdargs.Length > 1 Then 'parametered start
+            If My.Computer.FileSystem.FileExists("config_instant.xml") Then
+                config = XElement.Load("config_instant.xml")
+                config.Element("PicDir").RemoveAll()
+                config.Element("Music").RemoveAll()
+            ElseIf My.Computer.FileSystem.FileExists(config_path) Then
+                config = XElement.Load(config_path)
+                config.Element("PicDir").RemoveAll()
+                config.Element("Music").RemoveAll()
+            Else 'generate necessary settings
+                config = New XElement("CfgRoot")
+                config.Add(New XElement("Version", FileVersionInfo.GetVersionInfo(Reflection.Assembly.GetExecutingAssembly().Location).FileVersion))
+                config.Add(New XElement("PicDir"))
+                config.Add(New XElement("Music"))
+            End If
+            config_path = "config_instant.xml"
+            For i = 1 To cmdargs.Length - 1
+                config.Element("PicDir").Add(New XElement("dir", New XCData(cmdargs(i))))
+                config.Element("Music").Add(New XElement("dir", New XCData(cmdargs(i))))
+            Next
+        Else 'normal start. loading config.xml
+            Do
+                Try
+                    config = XElement.Load(config_path)
+                    Exit Do
+                Catch
+                    If MsgBox(Application.Current.Resources("msg_loadcfgerr"), MsgBoxStyle.Question + MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
+                        Dim optwin As New OptWindow
+                        optwin.ShowDialog()
+                        optwin.Close()
+                    Else
+                        Me.Close()
+                        Exit Sub
+                    End If
+                End Try
+            Loop
+        End If
 
         'config.xml version check
         If config.Elements("Version").Any Then
@@ -147,14 +177,7 @@ Class MainWindow
 
             'loading music list
             folders_music.Clear()
-            For Each ele In config.Element("Music").Elements
-                folders_music.Add(ele.Value)
-                If My.Computer.FileSystem.DirectoryExists(ele.Value) Then
-                    For Each f In My.Computer.FileSystem.GetFiles(ele.Value)
-                        ListOfMusic.Add(f)
-                    Next
-                End If
-            Next
+            FillMusic(config.Element("Music"))
 
             'loading ListOfPic
             ListOfPic.Clear()
@@ -163,34 +186,8 @@ Class MainWindow
             End If
 
             folders_image.Clear()
-            For Each ele In config.Element("PicDir").Elements
-                folders_image.Add(ele.Value)
-                If My.Computer.FileSystem.DirectoryExists(ele.Value) Then
-                    For Each f In My.Computer.FileSystem.GetFiles(ele.Value)
-                        Dim filefullname = My.Computer.FileSystem.GetName(f)
-                        Dim filename = IO.Path.GetFileNameWithoutExtension(filefullname)
-                        Dim ext = IO.Path.GetExtension(filefullname)
-                        If PicFormats.Contains(ext.ToLower) Then
-                            Dim row = ListOfPic.Rows.Find(f)
-                            If row IsNot Nothing Then
-                                Dim tmpdate As Date
-                                If DateTime.TryParse(filename, tmpdate) Then
-                                    row("Date") = DateTime.Parse(filename).ToString
-                                End If
-                            Else
-                                Dim tmprow = ListOfPic.NewRow
-                                tmprow("Path") = f
-                                Dim tmpdate As Date
-                                If DateTime.TryParse(filename, tmpdate) Then
-                                    tmprow("Date") = DateTime.Parse(filename).ToString
-                                End If
-                                ListOfPic.Rows.Add(tmprow)
-                            End If
+            FillPic(config.Element("PicDir"))
 
-                        End If
-                    Next
-                End If
-            Next
             'remove old paths
             Dim tmplst As New List(Of System.Data.DataRow)
             For Each row As System.Data.DataRow In ListOfPic.Rows
@@ -204,12 +201,13 @@ Class MainWindow
                 ListOfPic.Rows.Remove(row)
             Next
 
+            'check if no image
             If ListOfPic.Rows.Count = 0 Then
                 If MsgBox(Application.Current.Resources("msg_noimgerr"), MsgBoxStyle.Question + MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
                     Dim optwin As New OptWindow
                     optwin.ShowDialog()
                     optwin.Close()
-                    config = XElement.Load("config.xml")
+                    config = XElement.Load(config_path)
                 Else
                     Me.Close()
                     Exit Sub
@@ -225,7 +223,7 @@ Class MainWindow
             Dim lop = XElement.Parse(lop_str.ToString)
             config.Elements("DocumentElement").Remove()
             config.Add(lop)
-            config.Save("config.xml")
+            config.Save(config_path)
         End Using
 
         tb_date0.FontSize = h / 12
@@ -303,6 +301,7 @@ Class MainWindow
                                 encoder.Save(ms)
                                 ms.Position = 0
                                 img.BeginInit()
+                                img.CacheOption = BitmapCacheOption.OnLoad
                                 img.StreamSource = ms
                                 img.EndInit()
                             End Using
@@ -380,6 +379,51 @@ Class MainWindow
         ExecState_Set = True
     End Sub
 
+    Private Sub FillPic(PicDir_ele As XElement)
+        For Each ele In PicDir_ele.Elements
+            folders_image.Add(ele.Value)
+            If My.Computer.FileSystem.DirectoryExists(ele.Value) Then
+                For Each f In My.Computer.FileSystem.GetFiles(ele.Value)
+                    Dim filefullname = My.Computer.FileSystem.GetName(f)
+                    Dim filename = IO.Path.GetFileNameWithoutExtension(filefullname)
+                    Dim ext = IO.Path.GetExtension(filefullname)
+                    If PicFormats.Contains(ext.ToLower) Then
+                        Dim row = ListOfPic.Rows.Find(f)
+                        If row IsNot Nothing Then
+                            Dim tmpdate As Date
+                            If DateTime.TryParse(filename, tmpdate) Then
+                                row("Date") = DateTime.Parse(filename).ToString
+                            End If
+                        Else
+                            Dim tmprow = ListOfPic.NewRow
+                            tmprow("Path") = f
+                            Dim tmpdate As Date
+                            If DateTime.TryParse(filename, tmpdate) Then
+                                tmprow("Date") = DateTime.Parse(filename).ToString
+                            End If
+                            ListOfPic.Rows.Add(tmprow)
+                        End If
+
+                    End If
+                Next
+            End If
+        Next
+    End Sub
+
+    Private Sub FillMusic(Music_ele As XElement)
+        For Each ele In Music_ele.Elements
+            folders_music.Add(ele.Value)
+            If My.Computer.FileSystem.DirectoryExists(ele.Value) Then
+                For Each f In My.Computer.FileSystem.GetFiles(ele.Value)
+                    Dim ext = IO.Path.GetExtension(f)
+                    If BGMFormats.Contains(ext.ToLower) Then
+                        ListOfMusic.Add(f)
+                    End If
+                Next
+            End If
+        Next
+    End Sub
+
     Private Function RandomNum(min As UInteger, max As UInteger, neg As Boolean)
         If neg Then
             If ran.Next(2) = 0 Then
@@ -446,7 +490,7 @@ Class MainWindow
                         .Effect = New Effects.DropShadowEffect With {.ShadowDepth = 2, .Opacity = 0.8}
                     End With
                     mainGrid.Children.Add(txt_tb)
-                    Panel.SetZIndex(txt_tb, 20)
+                    Panel.SetZIndex(txt_tb, 8)
 
                     Dim anim_tbfadein As New Animation.DoubleAnimation(0, 0.7, New Duration(New TimeSpan(0, 0, 2)))
                     Dim anim_tbmovex As New Animation.DoubleAnimation(w * 0.7, w * 0.7 + RandomNum(h / 32, h / 25, True), New Duration(New TimeSpan(0, 0, tbmove_sec)))
@@ -979,6 +1023,7 @@ Class MainWindow
                         encoder.Save(ms)
                         ms.Position = 0
                         pic.BeginInit()
+                        pic.CacheOption = BitmapCacheOption.OnLoad
                         pic.StreamSource = ms
                         pic.EndInit()
                     End Using
@@ -1132,9 +1177,33 @@ Class MainWindow
     End Sub
 
     Private Sub Window_Closing(sender As Object, e As ComponentModel.CancelEventArgs)
-        ControlWindow.reallyclose = True
-        If ctrlwindow IsNot Nothing Then ctrlwindow.Close()
-        If ExecState_Set Then SetThreadExecutionState(EXECUTION_STATE.ES_CONTINUOUS)
+        If Not reallyclose Then
+            e.Cancel = True
+            If worker_pic IsNot Nothing AndAlso worker_pic.IsAlive Then
+                'closing animation
+                Task.Run(AddressOf FadeoutAudio)
+                Dim black As New Rectangle
+                mainGrid.Children.Add(black)
+                Panel.SetZIndex(black, 9)
+                black.Fill = Windows.Media.Brushes.Black
+                black.Width = w
+                black.Height = h
+                Dim exit_fadeout As New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 3)))
+                AddHandler exit_fadeout.Completed, Sub()
+                                                       reallyclose = True
+                                                       Me.Close()
+                                                   End Sub
+                black.BeginAnimation(OpacityProperty, exit_fadeout)
+            Else
+                Dispatcher.BeginInvoke(Sub()
+                                           reallyclose = True
+                                           Me.Close()
+                                       End Sub)
+            End If
+        Else
+            If ctrlwindow IsNot Nothing Then ctrlwindow.Close()
+            If ExecState_Set Then SetThreadExecutionState(EXECUTION_STATE.ES_CONTINUOUS)
+        End If
     End Sub
 
     Private Sub ApplyBlur(tgt As Image, easeout As Animation.IEasingFunction, easein As Animation.IEasingFunction,

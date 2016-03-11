@@ -20,6 +20,7 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
 - Support audio files to be played in loop at background.
 - Options to load large images at lower resolution to improve performance.
 - Options for each slide is now available by pressing F11.
+- Support launching slideshow directly from a folder containing images and audio files.
 
 ## Updates
 - 2016-03-11
@@ -27,6 +28,7 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
   - Added version verification.
   - Added output preview in Edit Slide window.
   - Improved text / date display loop.
+  - Option to add a shortcut menu entry for folders, from where the show can be launched directly.
 - 2016-03-09
   - Fixed Random transition not working properly.
   - Minor changes on how date animation is handled.
@@ -93,3 +95,4 @@ transitions.
 - Preferably a Windows 7 or above PC with a modern discrete GPU gives better / smoother performance.
 - Framedrops may occur when certain programs are opened such as Potplayer and Foobar 2000.
 - Choose "All at Once" under Load Mode to load all images at program start. It uses more memory but eliminates frame-drops in transition animation.
+- Audio files with URI escape marks in the file name (e.g. This%20is%20a%20song%28I%20am%20kidding%29.mp3) will not be recognized due to .Net won't take strings in Media.MediaPlayer.Open and the only URI it takes just keeps unescaping the file name whenever it can.

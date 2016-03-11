@@ -53,8 +53,9 @@
                 </ComboBox>
             </Grid>
         </GroupBox>
-        <Button x:Name="Btn_OK" Content="{StaticResource ok}" HorizontalAlignment="Left" VerticalAlignment="Top" Width="108" Height="28" IsDefault="True" Canvas.Left="345" Canvas.Top="370"/>
-        <Button x:Name="Btn_Cancel" Content="{StaticResource cancel}" HorizontalAlignment="Left" VerticalAlignment="Top" Width="108" Height="28" IsCancel="True" Canvas.Left="345" Canvas.Top="403"/>
+        <Button x:Name="Btn_FolderAsso" Content="{StaticResource register menu}" Canvas.Left="345" Canvas.Top="341" Width="108" Height="24" ToolTip="{StaticResource tip_registermenu}"/>
+        <Button x:Name="Btn_OK" Content="{StaticResource ok}" Width="108" Height="28" IsDefault="True" Canvas.Left="345" Canvas.Top="370"/>
+        <Button x:Name="Btn_Cancel" Content="{StaticResource cancel}" Width="108" Height="28" IsCancel="True" Canvas.Left="345" Canvas.Top="403"/>
         <GroupBox HorizontalAlignment="Left" VerticalAlignment="Top" Height="146" Width="219" Canvas.Left="10" Canvas.Top="10">
             <GroupBox.Header>
                 <Run Text="{Binding Mode=OneTime, Source={StaticResource image folders}, StringFormat='* {0}'}"/>

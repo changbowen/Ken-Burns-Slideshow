@@ -76,4 +76,8 @@
     <system:String x:Key="exit">Exit</system:String>
     <system:String x:Key="text shown">Text shown</system:String>
     <system:String x:Key="msg_versionerr">You are using an outdated version of configuration file. Please delete config.xml and try again. Program will exit now.</system:String>
+    <system:String x:Key="ken burns me">Ken Burns Me!</system:String>
+    <system:String x:Key="register menu">Register menu</system:String>
+    <system:String x:Key="unregister menu">Unregister menu</system:String>
+    <system:String x:Key="tip_registermenu">Register right-click menu entry for folders in Windows Explorer.</system:String>
 </ResourceDictionary>
