@@ -58,7 +58,7 @@
     <system:String x:Key="title slide">Title slide</system:String>
     <system:String x:Key="reset list">Reset list</system:String>
     <system:String x:Key="save">Save</system:String>
-    <system:String x:Key="tip_resetlist">This will reset customized information such as ordering, title slide attributes etc.</system:String>
+    <system:String x:Key="tip_resetlist">This will clear customized ordering.</system:String>
     <system:String x:Key="tip_titleslide">Title slide transition differs from others with only a simple fade in and out while lasting longer.</system:String>
     <system:String x:Key="msg_loadcfgerr">Error loading configuration. Would you like to open settings?</system:String>
     <system:String x:Key="msg_noimgerr">No pictures are found in specified folders. Would you like to open settings?</system:String>
@@ -74,4 +74,6 @@
     <system:String x:Key="switch_music">Pause / Resume music</system:String>
     <system:String x:Key="restart">Restart</system:String>
     <system:String x:Key="exit">Exit</system:String>
+    <system:String x:Key="text shown">Text shown</system:String>
+    <system:String x:Key="msg_versionerr">You are using an outdated version of configuration file. Please delete config.xml and try again. Program will exit now.</system:String>
 </ResourceDictionary>

@@ -63,6 +63,7 @@ Class MainWindow
         ListOfPic.Columns.Add("Path", GetType(String))
         ListOfPic.Columns.Add("Date", GetType(String))
         ListOfPic.Columns.Add("CB_Title", GetType(Boolean)).DefaultValue = False
+        ListOfPic.Columns.Add("Text", GetType(String)).DefaultValue = ""
         ListOfPic.PrimaryKey = {ListOfPic.Columns("Path")}
 
         'loading other settings
@@ -87,6 +88,21 @@ Class MainWindow
                 End If
             End Try
         Loop
+
+        'config.xml version check
+        If config.Elements("Version").Any Then
+            Dim xmlver As New System.Version(config.Element("Version").Value)
+            Dim appver As New System.Version(FileVersionInfo.GetVersionInfo(Reflection.Assembly.GetExecutingAssembly().Location).FileVersion)
+            If xmlver < appver Then
+                MsgBox(Application.Current.Resources("msg_versionerr"), MsgBoxStyle.Exclamation)
+                Me.Close()
+                Exit Sub
+            End If
+        Else
+            MsgBox(Application.Current.Resources("msg_versionerr"), MsgBoxStyle.Exclamation)
+            Me.Close()
+            Exit Sub
+        End If
 
         AddHandler player.MediaEnded, Sub()
                                           currentaudio += 1
@@ -212,8 +228,8 @@ Class MainWindow
             config.Save("config.xml")
         End Using
 
-        tb_date0.FontSize = Me.Height / 12
-        tb_date1.FontSize = Me.Height / 12
+        tb_date0.FontSize = h / 12
+        tb_date1.FontSize = h / 12
         Me.Background = Brushes.Black
 
         Select Case transit
@@ -395,30 +411,105 @@ Class MainWindow
         Dispatcher.Invoke(Sub() mainGrid.Children.Remove(tgt))
     End Sub
 
-    Private Sub textThrd_KBE(pos As Integer, ByRef output As Integer)
-        If Not IsDBNull(ListOfPic.Rows(pos - 1)("Date")) Then
-            Dim tgt_tb As TextBlock
-            'determining future pics with same year and month
-            Dim tmpdate = Date.Parse(ListOfPic.Rows(pos - 1)("Date")).ToString("yyyy.M")
-            Dim tbmove_sec = picmove_sec
-            For n = 1 To ListOfPic.Rows.Count - pos 'not running if it is the last pic as ListOfPic.Count-pos=0
-                If Not IsDBNull(ListOfPic.Rows(pos - 1 + n)("Date")) Then
-                    If Date.Parse(ListOfPic.Rows(pos - 1 + n)("Date")).ToString("yyyy.M") = tmpdate Then
-                        tbmove_sec += (picmove_sec - 1)
-                        output = pos + n
-                        If output = ListOfPic.Rows.Count Then
-                            output = ListOfPic.Rows.Count + 1
-                        End If
-                    Else
-                        output = pos + n
-                        Exit For
-                    End If
+    Private Sub textThrd(pos As Integer, ByRef output As Integer)
+        'determine future same texts
+        Dim tmpstr As String = ListOfPic.Rows(pos - 1)("Text").ToString.Trim
+        Dim tbmove_sec = picmove_sec
+        For n = 1 To ListOfPic.Rows.Count - pos 'not running if it is the last pic as ListOfPic.Count-pos=0
+            If ListOfPic.Rows(pos - 1 + n)("Text").ToString.Trim = tmpstr Then
+                output = pos + n
+                If output = ListOfPic.Rows.Count Then output = 1
+                tbmove_sec += (picmove_sec - 1)
+            Else
+                If ListOfPic.Rows(pos - 1 + n)("Text").ToString.Trim = "" Then
+                    output = pos + n
+                    If output = ListOfPic.Rows.Count Then output = 1 'if next (also the last) is empty, skip to the beginning directly
                 Else
-                    output = pos + n + 1
+                    output = pos + n
+                    Exit For
+                End If
+            End If
+        Next
+
+        'displaying custom text
+        If Not ListOfPic.Rows(pos - 1)("Text").ToString.Trim = "" Then
+            Dim txt_tb As TextBlock
+            Dispatcher.Invoke(
+                Sub()
+                    txt_tb = New TextBlock
+                    With txt_tb
+                        .Text = tmpstr
+                        .FontFamily = New FontFamily("Georgia")
+                        .FontSize = h / 12
+                        .Foreground = Brushes.White
+                        .CacheMode = New BitmapCache
+                        .Effect = New Effects.DropShadowEffect With {.ShadowDepth = 2, .Opacity = 0.8}
+                    End With
+                    mainGrid.Children.Add(txt_tb)
+                    Panel.SetZIndex(txt_tb, 20)
+
+                    Dim anim_tbfadein As New Animation.DoubleAnimation(0, 0.7, New Duration(New TimeSpan(0, 0, 2)))
+                    Dim anim_tbmovex As New Animation.DoubleAnimation(w * 0.7, w * 0.7 + RandomNum(h / 32, h / 25, True), New Duration(New TimeSpan(0, 0, tbmove_sec)))
+                    Dim anim_tbmovey As New Animation.DoubleAnimation(h * 0.15, h * 0.15 + RandomNum(h / 32, h / 25, True), New Duration(New TimeSpan(0, 0, tbmove_sec)))
+                    Animation.Timeline.SetDesiredFrameRate(anim_tbfadein, framerate)
+                    Animation.Timeline.SetDesiredFrameRate(anim_tbmovex, framerate)
+                    Animation.Timeline.SetDesiredFrameRate(anim_tbmovey, framerate)
+                    Dim trans_trans As New TranslateTransform
+                    txt_tb.RenderTransform = trans_trans
+                    txt_tb.BeginAnimation(TextBlock.OpacityProperty, anim_tbfadein)
+                    trans_trans.BeginAnimation(TranslateTransform.XProperty, anim_tbmovex)
+                    trans_trans.BeginAnimation(TranslateTransform.YProperty, anim_tbmovey)
+                End Sub)
+
+            Thread.Sleep((tbmove_sec - 1) * 1000)
+            Dispatcher.Invoke(Sub()
+                                  Dim anim_tbfadeout As New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1)))
+                                  AddHandler anim_tbfadeout.Completed, Sub(s As Animation.AnimationClock, e As EventArgs)
+                                                                           mainGrid.Children.Remove(Animation.Storyboard.GetTarget(s.Timeline))
+                                                                       End Sub
+                                  Animation.Storyboard.SetTarget(anim_tbfadeout, txt_tb)
+                                  Animation.Timeline.SetDesiredFrameRate(anim_tbfadeout, framerate)
+                                  txt_tb.BeginAnimation(TextBlock.OpacityProperty, anim_tbfadeout)
+                              End Sub)
+        End If
+    End Sub
+
+    Private Sub dateThrd(pos As Integer, ByRef output As Integer)
+        'determining future pics with same year and month
+        Dim crntdate = ListOfPic.Rows(pos - 1)("Date")
+        If IsDBNull(crntdate) Then
+            For n = 1 To ListOfPic.Rows.Count - pos
+                If IsDBNull(ListOfPic.Rows(pos - 1 + n)("Date")) Then
+                    output = pos + n
+                    If output = ListOfPic.Rows.Count Then output = 1
+                Else
+                    output = pos + n
                     Exit For
                 End If
             Next
+        Else 'current date is date
+            Dim tmpdate = Date.Parse(crntdate).ToString("yyyy.M")
+            Dim tbmove_sec = picmove_sec
+            For n = 1 To ListOfPic.Rows.Count - pos
+                Dim nextdate = ListOfPic.Rows(pos - 1 + n)("Date")
+                If IsDBNull(nextdate) Then
+                    output = pos + n
+                    If output = ListOfPic.Rows.Count Then output = 1
+                    tmpdate = "" 'to set output to the next real date seperated by non-dates, even when it has same month & year with crntdate
+                Else
+                    If Date.Parse(nextdate).ToString("yyyy.M") = tmpdate Then
+                        output = pos + n
+                        If output = ListOfPic.Rows.Count Then output = 1
+                        tbmove_sec += (picmove_sec - 1)
+                    Else
+                        output = pos + n 'no output=1. need to ensure the last different date is processed
+                        Exit For
+                    End If
+                End If
+            Next
 
+            tmpdate = Date.Parse(crntdate).ToString("yyyy.M")
+            Dim tgt_tb As TextBlock
             If mm = 0 Then
                 mm = 1
             Else
@@ -430,13 +521,11 @@ Class MainWindow
                                   Dim anim_tbfadein As New Animation.DoubleAnimation(0, 0.7, New Duration(New TimeSpan(0, 0, 2)))
                                   Dim anim_tbmovex As New Animation.DoubleAnimation(w / 5, w / 5 + RandomNum(h / 32, h / 25, True), New Duration(New TimeSpan(0, 0, tbmove_sec)))
                                   Dim anim_tbmovey As New Animation.DoubleAnimation(h * 0.75, h * 0.75 + RandomNum(h / 32, h / 25, True), New Duration(New TimeSpan(0, 0, tbmove_sec)))
-                                  'Dim anim_tbmove As New Animation.ThicknessAnimation(New Thickness(w / 5, h * 0.75, 0, 0), New Thickness(w / 5 + RandomNum(h / 32, h / 25, True), h * 0.75 + RandomNum(h / 32, h / 25, True), 0, 0), New Duration(New TimeSpan(0, 0, tbmove_sec)))
                                   Animation.Timeline.SetDesiredFrameRate(anim_tbfadein, framerate)
                                   Animation.Timeline.SetDesiredFrameRate(anim_tbmovex, framerate)
                                   Animation.Timeline.SetDesiredFrameRate(anim_tbmovey, framerate)
                                   Dim trans_trans As New TranslateTransform(w / 5, h * 0.75)
                                   tgt_tb.RenderTransform = trans_trans
-
                                   tgt_tb.BeginAnimation(TextBlock.OpacityProperty, anim_tbfadein)
                                   trans_trans.BeginAnimation(TranslateTransform.XProperty, anim_tbmovex)
                                   trans_trans.BeginAnimation(TranslateTransform.YProperty, anim_tbmovey)
@@ -448,20 +537,35 @@ Class MainWindow
                                   Animation.Timeline.SetDesiredFrameRate(anim_tbfadeout, framerate)
                                   tgt_tb.BeginAnimation(TextBlock.OpacityProperty, anim_tbfadeout)
                               End Sub)
-        Else
-            output = pos + 1
         End If
-    End Sub
 
-    'Private Sub textThrd_KBE(force_restart As Boolean)
-    '    Dispatcher.Invoke(
-    '        Sub()
-    '            Dim anim_tbfadeout As New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1)))
-    '            Animation.Timeline.SetDesiredFrameRate(anim_tbfadeout, framerate)
-    '            If tb_date0 IsNot Nothing Then tb_date0.BeginAnimation(TextBlock.OpacityProperty, anim_tbfadeout)
-    '            If tb_date1 IsNot Nothing Then tb_date1.BeginAnimation(TextBlock.OpacityProperty, anim_tbfadeout)
-    '        End Sub)
-    'End Sub
+        
+        ''Dim tmpdate = Date.Parse(ListOfPic.Rows(pos - 1)("Date")).ToString("yyyy.M")
+        ''Dim tbmove_sec = picmove_sec
+        'For n = 1 To ListOfPic.Rows.Count - pos 'not running if it is the last pic as ListOfPic.Count-pos=0
+        '    If Not IsDBNull(ListOfPic.Rows(pos - 1 + n)("Date")) Then
+        '        If Date.Parse(ListOfPic.Rows(pos - 1 + n)("Date")).ToString("yyyy.M") = tmpdate Then
+        '            tbmove_sec += (picmove_sec - 1)
+        '            output = pos + n
+        '            If output = ListOfPic.Rows.Count Then output = 1
+        '        Else
+        '            output = pos + n
+        '            Exit For
+        '        End If
+        '    Else 'date is null
+        '        output = pos + n
+        '        If output = ListOfPic.Rows.Count Then output = 1
+        '    End If
+        'Next
+
+        ''displaying date
+        'If Not IsDBNull(ListOfPic.Rows(pos - 1)("Date")) Then
+
+        'Else
+        '    output = pos + 1
+        'End If
+
+    End Sub
 
     Private Sub mainThrd_KBE()
         Do While audiofading
@@ -486,11 +590,15 @@ Class MainWindow
                 Panel.SetZIndex(tb_date1, 3)
             End Sub)
         Dim tgt_img As Image
-        Dim tbchkpoint As Integer = 1
+        Dim date_chkpoint As Integer = 1
+        Dim text_chkpoint As Integer = 1
 
         Do
-            If position >= tbchkpoint Then
-                Task.Run(Sub() textThrd_KBE(position, tbchkpoint))
+            If position = date_chkpoint Then
+                Task.Run(Sub() dateThrd(position, date_chkpoint))
+            End If
+            If position = text_chkpoint Then
+                Task.Run(Sub() textThrd(position, text_chkpoint))
             End If
 
             If ListOfPic.Rows(position - 1)("CB_Title") Then
@@ -510,7 +618,6 @@ Class MainWindow
                         Thread.CurrentThread.Priority = ThreadPriority.Lowest
                         If position = ListOfPic.Rows.Count Then
                             position = 0
-                            tbchkpoint = 1
                         End If
                         LoadNextImg()
                     End Sub)
@@ -557,12 +664,16 @@ Class MainWindow
                 Panel.SetZIndex(tb_date1, 3)
             End Sub)
         Dim tgt_img As Image
-        Dim tbchkpoint As Integer = 1
+        Dim date_chkpoint As Integer = 1
+        Dim text_chkpoint As Integer = 1
         Dim last_zoom = False
 
         Do
-            If position >= tbchkpoint Then
-                Task.Run(Sub() textThrd_KBE(position, tbchkpoint))
+            If position = date_chkpoint Then
+                Task.Run(Sub() dateThrd(position, date_chkpoint))
+            End If
+            If position = text_chkpoint Then
+                Task.Run(Sub() textThrd(position, text_chkpoint))
             End If
 
             If ListOfPic.Rows(position - 1)("CB_Title") Then
@@ -582,7 +693,6 @@ Class MainWindow
                         Thread.CurrentThread.Priority = ThreadPriority.Lowest
                         If position = ListOfPic.Rows.Count Then
                             position = 0
-                            tbchkpoint = 1
                         End If
                         LoadNextImg()
                     End Sub)
@@ -615,6 +725,7 @@ Class MainWindow
 
         Dim ease_in, ease_out, ease_inout As Animation.CubicEase
         Dim anim_fadein, anim_fadeout As Animation.DoubleAnimation
+        Dim direction As Boolean = ran.Next(2)
         Dispatcher.Invoke(
             Sub()
                 If ListOfMusic.Count > 0 Then
@@ -631,11 +742,15 @@ Class MainWindow
                 Panel.SetZIndex(tb_date1, 3)
             End Sub)
         Dim tgt_img As Image
-        Dim tbchkpoint As Integer = 1
+        Dim date_chkpoint As Integer = 1
+        Dim text_chkpoint As Integer = 1
 
         Do
-            If position >= tbchkpoint Then
-                Task.Run(Sub() textThrd_KBE(position, tbchkpoint))
+            If position = date_chkpoint Then
+                Task.Run(Sub() dateThrd(position, date_chkpoint))
+            End If
+            If position = text_chkpoint Then
+                Task.Run(Sub() textThrd(position, text_chkpoint))
             End If
 
             If ListOfPic.Rows(position - 1)("CB_Title") Then
@@ -644,7 +759,7 @@ Class MainWindow
                 Dispatcher.Invoke(
                 Sub()
                     SwitchTarget(tgt_img)
-                    Anim_Throw(tgt_img, ease_in, ease_out, ease_inout, anim_fadein)
+                    Anim_Throw(tgt_img, ease_in, ease_out, ease_inout, anim_fadein, direction)
                 End Sub)
             End If
 
@@ -654,7 +769,6 @@ Class MainWindow
                         Thread.CurrentThread.Priority = ThreadPriority.Lowest
                         If position = ListOfPic.Rows.Count Then
                             position = 0
-                            tbchkpoint = 1
                         End If
                         LoadNextImg()
                     End Sub)
@@ -686,8 +800,10 @@ Class MainWindow
         Dim ease_in, ease_out, ease_inout As Animation.CubicEase
         Dim anim_fadein1, anim_fadein2, anim_fadeout As Animation.DoubleAnimation
         Dim tgt_img As Image
-        Dim tbchkpoint As Integer = 1
+        Dim date_chkpoint As Integer = 1
+        Dim text_chkpoint As Integer = 1
         Dim last_zoom As Boolean = False
+        Dim direction As Boolean = ran.Next(2)
         Dispatcher.Invoke(
             Sub()
                 If ListOfMusic.Count > 0 Then
@@ -706,8 +822,11 @@ Class MainWindow
             End Sub)
 
         Do
-            If position >= tbchkpoint Then
-                Task.Run(Sub() textThrd_KBE(position, tbchkpoint))
+            If position = date_chkpoint Then
+                Task.Run(Sub() dateThrd(position, date_chkpoint))
+            End If
+            If position = text_chkpoint Then
+                Task.Run(Sub() textThrd(position, text_chkpoint))
             End If
 
             If ListOfPic.Rows(position - 1)("CB_Title") Then
@@ -734,7 +853,7 @@ Class MainWindow
                                           End Sub)
                         Thread.Sleep(500) 'dont miss this
                     Case 1
-                        Dispatcher.Invoke(Sub() Anim_Throw(tgt_img, ease_in, ease_out, ease_inout, anim_fadein2))
+                        Dispatcher.Invoke(Sub() Anim_Throw(tgt_img, ease_in, ease_out, ease_inout, anim_fadein2, direction))
                         Thread.Sleep((picmove_sec - 1) * 1000)
                         Dispatcher.Invoke(Sub()
                                               Dim fadeout As New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1)))
@@ -763,7 +882,6 @@ Class MainWindow
                         Thread.CurrentThread.Priority = ThreadPriority.Lowest
                         If position = ListOfPic.Rows.Count Then
                             position = 0
-                            tbchkpoint = 1
                         End If
                         LoadNextImg()
                     End Sub)
@@ -972,13 +1090,6 @@ Class MainWindow
                          worker_pic.Priority = ThreadPriority.Lowest
                          aborting = False
                          worker_pic.Start()
-                         Dispatcher.Invoke(Sub()
-                                               If ctrlwindow Is Nothing Then
-                                                   ctrlwindow = New ControlWindow
-                                                   ctrlwindow.Owner = Me
-                                               End If
-                                               ctrlwindow.Show()
-                                           End Sub)
                      End Sub)
         End If
     End Sub
@@ -1284,7 +1395,7 @@ Class MainWindow
 
     Private Sub Anim_Throw(tgt_img As Image,
                             ease_in As Animation.IEasingFunction, ease_out As Animation.IEasingFunction, ease_inout As Animation.IEasingFunction,
-                            anim_fadein As Animation.DoubleAnimation)
+                            anim_fadein As Animation.DoubleAnimation, direction As Boolean)
         'Dim delta As Double
         Dim tgt_trasform As New TransformGroup
         Dim trans_scale As ScaleTransform
@@ -1301,7 +1412,7 @@ Class MainWindow
             XorY = TranslateTransform.XProperty
 
             'move left or right
-            If ran.Next(2) = 0 Then 'means 0<=ran<2
+            If direction Then
                 'move left
                 tgt_img.RenderTransformOrigin = New Point(0, 0.5)
                 anim_move = New Animation.DoubleAnimationUsingKeyFrames
@@ -1341,7 +1452,7 @@ Class MainWindow
                 anim_zoom.KeyFrames.Add(New Animation.EasingDoubleKeyFrame(1, Animation.KeyTime.FromTimeSpan(TimeSpan.FromSeconds(picmove_sec / 2)), ease_out))
                 anim_zoom.KeyFrames.Add(New Animation.EasingDoubleKeyFrame(0.7, Animation.KeyTime.FromTimeSpan(TimeSpan.FromSeconds(picmove_sec)), ease_in))
             Else
-                If ran.Next(2) = 0 Then
+                If direction Then
                     tgt_img.RenderTransformOrigin = New Point(0.5, 0)
                     anim_move = New Animation.DoubleAnimationUsingKeyFrames
                     anim_move.KeyFrames.Add(New Animation.EasingDoubleKeyFrame(h, Animation.KeyTime.FromTimeSpan(TimeSpan.FromSeconds(0))))

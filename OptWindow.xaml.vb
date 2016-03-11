@@ -117,6 +117,7 @@
 
         'saving to file
         Dim config As New XElement("CfgRoot")
+        config.Add(New XElement("Version", FileVersionInfo.GetVersionInfo(Reflection.Assembly.GetExecutingAssembly().Location).FileVersion))
         config.Add(New XElement("PicDir"))
         For Each i As String In LB_ImgFolder.Items
             config.Element("PicDir").Add(New XElement("dir", New XCData(i)))

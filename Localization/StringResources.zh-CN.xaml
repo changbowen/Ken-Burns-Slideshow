@@ -58,7 +58,7 @@
     <system:String x:Key="title slide">标题幻灯片</system:String>
     <system:String x:Key="reset list">重置列表</system:String>
     <system:String x:Key="save">保存</system:String>
-    <system:String x:Key="tip_resetlist">重置列表会清除所有自定义设置，包括排序，标题幻灯片属性等。</system:String>
+    <system:String x:Key="tip_resetlist">重置列表会清除自定义排序。</system:String>
     <system:String x:Key="tip_titleslide">标题幻灯片过度效果与其它相比更简洁庄重，仅有淡入和淡出效果，持续时间稍长。</system:String>
     <system:String x:Key="msg_loadcfgerr">载入配置文件发生错误。要进行初始化设置吗？</system:String>
     <system:String x:Key="msg_noimgerr">预置文件夹中没有找到可用图片。点击确定打开设置。</system:String>
@@ -74,4 +74,6 @@
     <system:String x:Key="switch_music">暂停/播放音乐</system:String>
     <system:String x:Key="restart">重新开始</system:String>
     <system:String x:Key="exit">退出</system:String>
+    <system:String x:Key="text shown">显示文本</system:String>
+    <system:String x:Key="msg_versionerr">当前配置文件版本过低。请删除config.xml文件再试。程序将退出。</system:String>
 </ResourceDictionary>
