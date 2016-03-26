@@ -21,6 +21,7 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
 - Options to load large images at lower resolution to improve performance.
 - Options for each slide is now available by pressing F11.
 - Support launching slideshow directly from a folder containing images and audio files.
+- Simplified Chinese language support. 支持简体中文语言。
 
 ## Updates
 - 2016-03-11
