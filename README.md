@@ -84,6 +84,7 @@ transitions.
   - Improved error handling when dealing with corruptions. Instead of showing error prompt and exit, program will now replace the problematic image with a black screen as a placeholder in case dates are being displayed.
 
 ## Note
+- Press **ESC** to fade out and quit.
 - Press **F1** to re-open control panel after it is closed.
 - Press **F12** at runtime for options.
 - Press **F11** at runtime for Edit Mode dialog.
