@@ -20,7 +20,7 @@ Class MainWindow
     Dim moveon As Boolean = True
     Dim aborting As Boolean = False
     Dim worker_pic As Thread
-    Dim ctrlwindow As Window
+    Dim ctrlwindow As ControlWindow
     Public Shared framerate As UInteger = 60
     Public Shared duration As UInteger = 7 'only serves as a store. program will read duration value from picmove_sec.
     Public Shared folders_image As New List(Of String)
@@ -79,24 +79,25 @@ Class MainWindow
 
         'check cmd args and load config
         Dim cmdargs = Environment.GetCommandLineArgs
-        'Dim cmdargs() As String = {"asdasd", "F:\Pictures\Giant", "F:\Pictures\Giant\1"}
+        'Dim cmdargs() As String = {"asdasd", "F:\Pictures\Giant"}
         Dim config As XElement
         If cmdargs.Length > 1 Then 'parametered start
             If My.Computer.FileSystem.FileExists("config_instant.xml") Then
                 config = XElement.Load("config_instant.xml")
                 config.Element("PicDir").RemoveAll()
                 config.Element("Music").RemoveAll()
+                config_path = "config_instant.xml"
             ElseIf My.Computer.FileSystem.FileExists(config_path) Then
                 config = XElement.Load(config_path)
                 config.Element("PicDir").RemoveAll()
                 config.Element("Music").RemoveAll()
+                config_path = "config_instant.xml"
             Else 'generate necessary settings
                 config = New XElement("CfgRoot")
                 config.Add(New XElement("Version", FileVersionInfo.GetVersionInfo(Reflection.Assembly.GetExecutingAssembly().Location).FileVersion))
                 config.Add(New XElement("PicDir"))
                 config.Add(New XElement("Music"))
             End If
-            config_path = "config_instant.xml"
             For i = 1 To cmdargs.Length - 1
                 config.Element("PicDir").Add(New XElement("dir", New XCData(cmdargs(i))))
                 config.Element("Music").Add(New XElement("dir", New XCData(cmdargs(i))))
@@ -189,17 +190,28 @@ Class MainWindow
             FillPic(config.Element("PicDir"))
 
             'remove old paths
-            Dim tmplst As New List(Of System.Data.DataRow)
-            For Each row As System.Data.DataRow In ListOfPic.Rows
-                If Not folders_image.Contains(IO.Path.GetDirectoryName(row("Path"))) Then
-                    tmplst.Add(row)
-                ElseIf Not My.Computer.FileSystem.FileExists(row("Path")) Then
-                    tmplst.Add(row)
-                End If
-            Next
-            For Each row In tmplst
-                ListOfPic.Rows.Remove(row)
-            Next
+            If folders_image.Count > 0 Then
+                Dim tmplst As New List(Of System.Data.DataRow)
+                For Each row As System.Data.DataRow In ListOfPic.Rows
+                    If Not My.Computer.FileSystem.FileExists(row("Path")) Then
+                        tmplst.Add(row)
+                    Else
+                        Dim score As Integer = 0
+                        For i = 0 To folders_image.Count - 1
+                            If IO.Path.GetDirectoryName(row("Path")).Contains(folders_image(i)) Then
+                                score += 1
+                                Exit For
+                            End If
+                        Next
+                        If score = 0 Then tmplst.Add(row)
+                    End If
+                Next
+                For Each row In tmplst
+                    ListOfPic.Rows.Remove(row)
+                Next
+            Else
+                ListOfPic.Clear()
+            End If
 
             'check if no image
             If ListOfPic.Rows.Count = 0 Then
@@ -381,9 +393,9 @@ Class MainWindow
 
     Private Sub FillPic(PicDir_ele As XElement)
         For Each ele In PicDir_ele.Elements
-            folders_image.Add(ele.Value)
             If My.Computer.FileSystem.DirectoryExists(ele.Value) Then
-                For Each f In My.Computer.FileSystem.GetFiles(ele.Value)
+                folders_image.Add(ele.Value)
+                For Each f In My.Computer.FileSystem.GetFiles(ele.Value, FileIO.SearchOption.SearchAllSubDirectories)
                     Dim filefullname = My.Computer.FileSystem.GetName(f)
                     Dim filename = IO.Path.GetFileNameWithoutExtension(filefullname)
                     Dim ext = IO.Path.GetExtension(filefullname)
@@ -403,7 +415,6 @@ Class MainWindow
                             End If
                             ListOfPic.Rows.Add(tmprow)
                         End If
-
                     End If
                 Next
             End If
@@ -412,9 +423,9 @@ Class MainWindow
 
     Private Sub FillMusic(Music_ele As XElement)
         For Each ele In Music_ele.Elements
-            folders_music.Add(ele.Value)
             If My.Computer.FileSystem.DirectoryExists(ele.Value) Then
-                For Each f In My.Computer.FileSystem.GetFiles(ele.Value)
+                folders_music.Add(ele.Value)
+                For Each f In My.Computer.FileSystem.GetFiles(ele.Value, FileIO.SearchOption.SearchAllSubDirectories)
                     Dim ext = IO.Path.GetExtension(f)
                     If BGMFormats.Contains(ext.ToLower) Then
                         ListOfMusic.Add(f)
@@ -1049,14 +1060,33 @@ Class MainWindow
                 ctrlwindow.Owner = Me
             End If
             ctrlwindow.Show()
+            ctrlwindow.Focus()
+        ElseIf e.Key = Key.Escape Then
+            Me.Close()
+        ElseIf e.Key = Key.Q AndAlso Keyboard.Modifiers = ModifierKeys.Control Then 'immediately quit
+            reallyclose = True
+            Me.Close()
         ElseIf e.Key = Key.P Then
             If Keyboard.Modifiers = ModifierKeys.Control Then 'pause image
-                SwitchImage()
+                If ctrlwindow IsNot Nothing AndAlso ctrlwindow.IsVisible Then
+                    ctrlwindow.Btn_SwitchImage_Click(Nothing, Nothing)
+                Else
+                    SwitchImage()
+                End If
             ElseIf Keyboard.Modifiers = ModifierKeys.Shift Then 'fadeout audio only
-                SwitchAudio()
+                If ctrlwindow IsNot Nothing AndAlso ctrlwindow.IsVisible Then
+                    ctrlwindow.Btn_SwitchAudio_Click(Nothing, Nothing)
+                Else
+                    SwitchAudio()
+                End If
             End If
         ElseIf e.Key = Key.R AndAlso Keyboard.Modifiers = ModifierKeys.Control AndAlso aborting = False Then
-            RestartAll()
+            If ctrlwindow IsNot Nothing AndAlso ctrlwindow.IsVisible Then
+                ctrlwindow.Btn_Restart_Click(Nothing, Nothing)
+            Else
+                RestartAll()
+            End If
+            ' recording not implemented
             'ElseIf e.Key = Key.S AndAlso Keyboard.Modifiers = ModifierKeys.Control AndAlso aborting = False Then
             '    RestartAll()
         End If

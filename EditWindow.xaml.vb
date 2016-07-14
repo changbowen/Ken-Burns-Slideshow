@@ -189,7 +189,7 @@
             ListOfPic.Clear()
             For Each fd In MainWindow.folders_image
                 If My.Computer.FileSystem.DirectoryExists(fd) Then
-                    For Each f In My.Computer.FileSystem.GetFiles(fd)
+                    For Each f In My.Computer.FileSystem.GetFiles(fd, FileIO.SearchOption.SearchAllSubDirectories)
                         Dim filefullname = My.Computer.FileSystem.GetName(f)
                         Dim filename = IO.Path.GetFileNameWithoutExtension(filefullname)
                         Dim ext = IO.Path.GetExtension(filefullname)
