@@ -94,7 +94,7 @@ transitions.
 - ~~Please enclose the folder path with `<![CDATA[     ]]>` when the path contains markup chars in XML like &.~~
   - ~~Example: `<![CDATA[F:\Folder with & in name\images]]>`~~
 - Animation might not be as smooth when not using Windows Aero themes on Windows 7.
-- Preferably a Windows 7 or above PC with a modern discrete GPU gives better / smoother performance.
+- Preferably a Windows 7 or above PC with a modern discrete GPU gives better / smoother performance. If you have multiple monitors, set to duplicate or single monitor mode for better performance.
 - Framedrops may occur when certain programs are opened such as Potplayer and Foobar 2000.
 - Choose "All at Once" under Load Mode to load all images at program start. It uses more memory but eliminates frame-drops in transition animation.
 - Audio files with URI escape marks in the file name (e.g. This%20is%20a%20song%28I%20am%20kidding%29.mp3) will not be recognized due to .Net won't take strings in Media.MediaPlayer.Open and the only URI it takes just keeps unescaping the file name whenever it can.
