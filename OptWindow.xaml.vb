@@ -150,13 +150,15 @@
         config.Add(New XElement("LoadMode", CbB_LoadMode.SelectedIndex))
         config.Add(New XElement("Randomize", CB_Randomize.IsChecked.Value))
 
-        'copy slides data
-        Dim ori_config = XElement.Load(MainWindow.config_path)
-        If ori_config.Elements("DocumentElement").Any Then
-            config.Add(ori_config.Element("DocumentElement"))
+        'copy slides data if exists
+        If My.Computer.FileSystem.FileExists(MainWindow.config_path) Then
+            Dim ori_config = XElement.Load(MainWindow.config_path)
+            If ori_config.Elements("DocumentElement").Any Then
+                config.Add(ori_config.Element("DocumentElement"))
+            End If
         End If
-        config.Save(MainWindow.config_path)
 
+        config.Save(MainWindow.config_path)
         Me.Close()
     End Sub
 
