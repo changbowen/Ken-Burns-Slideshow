@@ -23,6 +23,7 @@
         TB_LoadQuality.Text = MainWindow.loadquality
         CbB_ScaleMode.SelectedItem = New KeyValuePair(Of Integer, String)(MainWindow.scalemode, MainWindow.ScaleMode_Dic(MainWindow.scalemode))
         CbB_BlurMode.SelectedIndex = MainWindow.blurmode
+        CB_Randomize.IsChecked = MainWindow.randomize
 
         If Microsoft.Win32.Registry.CurrentUser.OpenSubKey("Software\Classes\Directory\shell\OpenWithKenBurns\command") Is Nothing Then
             Btn_FolderAsso.Content = Application.Current.Resources("register menu")
@@ -120,6 +121,7 @@
         MainWindow.loadmode_next = CbB_LoadMode.SelectedIndex
         MainWindow.scalemode = CbB_ScaleMode.SelectedItem.Key
         MainWindow.blurmode = CbB_BlurMode.SelectedIndex
+        MainWindow.randomize = CB_Randomize.IsChecked
 
         'saving to file
         Dim config As New XElement("CfgRoot")
@@ -146,12 +148,14 @@
         config.Add(New XElement("ScaleMode", CbB_ScaleMode.SelectedItem.Key))
         config.Add(New XElement("BlurMode", CbB_BlurMode.SelectedIndex))
         config.Add(New XElement("LoadMode", CbB_LoadMode.SelectedIndex))
-        Using lop_str = New IO.StringWriter()
-            MainWindow.ListOfPic.WriteXml(lop_str)
-            Dim lop = XElement.Parse(lop_str.ToString)
-            config.Add(lop)
-            config.Save(MainWindow.config_path)
-        End Using
+        config.Add(New XElement("Randomize", CB_Randomize.IsChecked.Value))
+
+        'copy slides data
+        Dim ori_config = XElement.Load(MainWindow.config_path)
+        If ori_config.Elements("DocumentElement").Any Then
+            config.Add(ori_config.Element("DocumentElement"))
+        End If
+        config.Save(MainWindow.config_path)
 
         Me.Close()
     End Sub

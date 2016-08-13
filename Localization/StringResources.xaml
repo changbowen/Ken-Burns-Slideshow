@@ -45,7 +45,7 @@
     <system:String x:Key="tip_horoptm" xml:space="preserve">Whether to only show the left / right part (depending on movement direction) &#x0d;&#x0a;for movement distance of animation larger than screen height / 1.5.&#x0d;&#x0a;This is to avoid image moving too fast thus less elegant.</system:String>
     <system:String x:Key="tip_veroptmR" xml:space="preserve">Determine how much of the image to be shown while Vertical Optimize is in effect.&#x0d;&#x0a;1 = showing complete image.&#x0d;&#x0a;0 = showing minimum.</system:String>
     <system:String x:Key="tip_horoptmR" xml:space="preserve">Determine how much of the image to be shown while Horizontal Optimize is in effect.&#x0d;&#x0a;1 = showing complete image.&#x0d;&#x0a;0 = showing minimum.</system:String>
-    <system:String x:Key="tip_verlock" xml:space="preserve">Whether to lock movement direction to "down only" for images with height larger than screen height * 1.5.&#x0d;&#x0a;This setting suits better for portraits that usually have faces at the upper part of the image.</system:String>
+    <system:String x:Key="tip_verlock" xml:space="preserve">This setting suits better for portraits that usually have faces at the upper part of the image.&#x0d;&#x0a;Ken Burns - Enable to pan down only when image is greater in height.&#x0d;&#x0a;Breath - Enable to pan down only. Otherwise random.&#x0d;&#x0a;Throw - By default pan locks to a random direction. Enable this option to only pan down when image is greater in height.</system:String>
     <system:String x:Key="tip_blurmode">Whether to apply blur effect to certain animation. Choose None for smoother movement.</system:String>
     <system:String x:Key="tip_imagefolder">Folders containing images.</system:String>
     <system:String x:Key="tip_musicfolder">Folders containing music.</system:String>
@@ -80,4 +80,6 @@
     <system:String x:Key="register menu">Register menu</system:String>
     <system:String x:Key="unregister menu">Unregister menu</system:String>
     <system:String x:Key="tip_registermenu">Register right-click menu entry for folders in Windows Explorer.</system:String>
+    <system:String x:Key="randomize">Randomize order</system:String>
+    <system:String x:Key="tip_randomize">This will ignore custom ordering in Edit Slides for next runs.</system:String>
 </ResourceDictionary>

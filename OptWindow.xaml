@@ -85,11 +85,12 @@
             <ComboBoxItem Content="{StaticResource trans_random}"/>
         </ComboBox>
         <TextBlock Canvas.Left="345" TextWrapping="Wrap" Text="{Binding Mode=OneTime, Source={StaticResource active transition},StringFormat='* {0}'}" Canvas.Top="163"/>
-        <TextBlock Canvas.Left="345" TextWrapping="Wrap" Text="{Binding Mode=onetime, Source={StaticResource loading mode}, StringFormat='* {0}'}" Canvas.Top="221"/>
+        <TextBlock Canvas.Left="345" TextWrapping="Wrap" Text="{Binding Mode=Onetime, Source={StaticResource loading mode}, StringFormat='* {0}'}" Canvas.Top="221"/>
         <ComboBox x:Name="CbB_LoadMode" Canvas.Left="345" Canvas.Top="242" Width="108" SelectedIndex="0" ToolTip="{StaticResource tip_loadmode}">
             <ComboBoxItem Content="{StaticResource load_onebyone}"/>
             <ComboBoxItem Content="{StaticResource load_allatonce}"/>
         </ComboBox>
+        <CheckBox x:Name="CB_Randomize" Canvas.Left="345" Canvas.Top="280" ContentStringFormat="* {0}" Content="{StaticResource randomize}" ToolTip="{StaticResource tip_randomize}"/>
         <TextBlock Canvas.Left="10" TextWrapping="Wrap" Text="{StaticResource star}" Canvas.Top="437"/>
     </Canvas>
 </Window>

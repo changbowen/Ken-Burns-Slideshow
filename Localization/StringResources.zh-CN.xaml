@@ -45,7 +45,7 @@
     <system:String x:Key="tip_horoptm">开启后，当图像超长时为避免图像移动太快，根据移动方向不同只显示图像左/右部分。</system:String>
     <system:String x:Key="tip_veroptmR" xml:space="preserve">垂直移动优化开启后，指定图像要显示部分的比例。&#x0d;&#x0a;1 = 显示全部。&#x0d;&#x0a;0 = 显示最少。</system:String>
     <system:String x:Key="tip_horoptmR" xml:space="preserve">水平移动优化开启后，指定图像要显示部分的比例。&#x0d;&#x0a;1 = 显示全部。&#x0d;&#x0a;0 = 显示最少。</system:String>
-    <system:String x:Key="tip_verlock" xml:space="preserve">当图像超长时，指定是否锁定垂直移动方向为只向下移动。&#x0d;&#x0a;此项一般适用于脸部位于图像上半部分的人像照片。</system:String>
+    <system:String x:Key="tip_verlock" xml:space="preserve">此项一般适用于脸部位于图像上半部分的人像照片。&#x0d;&#x0a;Ken Burns：选择此项，则在图像超长时向下平移图像。&#x0d;&#x0a;呼吸：勾选此项会锁定垂直方向为向下，取消选择则为随机方向。&#x0d;&#x0a;浮现/轮换：默认固定为随机方向，勾选此项则会在图像超长时向下平移图像。</system:String>
     <system:String x:Key="tip_blurmode">是否为某些动画开启模糊效果。选择无动画会更加流畅。</system:String>
     <system:String x:Key="tip_imagefolder">包含图片的文件夹。</system:String>
     <system:String x:Key="tip_musicfolder">包含音乐的文件夹。</system:String>
@@ -80,4 +80,6 @@
     <system:String x:Key="register menu">注册文件夹关联</system:String>
     <system:String x:Key="unregister menu">解除文件夹关联</system:String>
     <system:String x:Key="tip_registermenu">在Windows资源管理器的文件夹右键菜单中添加播放选项。</system:String>
+    <system:String x:Key="randomize">随机顺序</system:String>
+    <system:String x:Key="tip_randomize">选择此项会忽视编辑幻灯片中的自定义顺序。下次启动生效。</system:String>
 </ResourceDictionary>

@@ -5,27 +5,28 @@ Class MainWindow
     Public Shared PicFormats() As String = {".jpg", ".jpeg", ".bmp", ".png", ".tif", ".tiff"}
     Private BGMFormats() As String = {".mp3", ".wma", ".m4a", ".aac", ".wav", "asf"}
     Public Shared config_path As String = "config.xml"
-    Dim ListOfMusic As New List(Of String)
-    Dim ran As New Random
-    Dim player As New System.Windows.Media.MediaPlayer
-    Dim currentaudio As Integer = 0
-    Dim playing As Boolean = False
-    Dim audiofading As Boolean = False
-    Dim w, h As Double
-    Dim position As Integer = 0
-    Dim m As Integer = 0, mm As Integer = 0
-    Dim pic As BitmapImage
-    Dim pics() As BitmapImage
-    Dim picmove_sec As UInteger = 7
-    Dim moveon As Boolean = True
-    Dim aborting As Boolean = False
-    Dim worker_pic As Thread
-    Dim ctrlwindow As ControlWindow
+    Private ListOfMusic As New List(Of String)
+    Private ran As New Random
+    Private player As New System.Windows.Media.MediaPlayer
+    Private currentaudio As Integer = 0
+    Private playing As Boolean = False
+    Private audiofading As Boolean = False
+    Private w, h As Double
+    Private position As Integer = 0
+    Private m As Integer = 0, mm As Integer = 0
+    Private pic As BitmapImage
+    Private pics() As BitmapImage
+    Private picmove_sec As UInteger = 7
+    Private moveon As Boolean = True
+    Private aborting As Boolean = False
+    Private worker_pic As Thread
+    Private ctrlwindow As ControlWindow
     Public Shared framerate As UInteger = 60
     Public Shared duration As UInteger = 7 'only serves as a store. program will read duration value from picmove_sec.
     Public Shared folders_image As New List(Of String)
     Public Shared folders_music As New List(Of String)
     Public Shared verticalLock As Boolean = True
+    Private verticalLockR As Double = 1.5
     Public Shared resolutionLock As Boolean = True
     Public Shared verticalOptimize As Boolean = True
     Public Shared horizontalOptimize As Boolean = True
@@ -42,6 +43,7 @@ Class MainWindow
     Private Declare Function SetThreadExecutionState Lib "kernel32" (ByVal esFlags As EXECUTION_STATE) As EXECUTION_STATE
     Dim ExecState_Set As Boolean
     Public Shared reallyclose As Boolean = False
+    Public Shared randomize As Boolean = False
     Private Enum EXECUTION_STATE As Integer
         ''' <summary>
         ''' Informs the system that the state being set should remain in effect until the next call that uses ES_CONTINUOUS and one of the other state flags is cleared.
@@ -175,6 +177,9 @@ Class MainWindow
                 loadmode_next = config.Elements("LoadMode").Value
                 loadmode = loadmode_next
             End If
+            If config.Elements("Randomize").Any AndAlso config.Element("Randomize").Value.ToLower = "true" Then
+                randomize = True
+            End If
 
             'loading music list
             folders_music.Clear()
@@ -237,6 +242,18 @@ Class MainWindow
             config.Add(lop)
             config.Save(config_path)
         End Using
+
+        If randomize Then
+            Using ListOfPic_Copy = ListOfPic.Clone
+                Dim ran As New Random
+                Do While ListOfPic.Rows.Count > 0
+                    Dim i = ran.Next(ListOfPic.Rows.Count) 'selecting a random row index
+                    ListOfPic_Copy.ImportRow(ListOfPic.Rows(i))
+                    ListOfPic.Rows.RemoveAt(i)
+                Loop
+                ListOfPic = ListOfPic_Copy.Copy
+            End Using
+        End If
 
         tb_date0.FontSize = h / 12
         tb_date1.FontSize = h / 12
@@ -1219,6 +1236,7 @@ Class MainWindow
                 black.Width = w
                 black.Height = h
                 Dim exit_fadeout As New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 3)))
+                exit_fadeout.EasingFunction = New Animation.ExponentialEase With {.EasingMode = Animation.EasingMode.EaseIn}
                 AddHandler exit_fadeout.Completed, Sub()
                                                        reallyclose = True
                                                        Me.Close()
@@ -1332,8 +1350,8 @@ Class MainWindow
             End If
 
             'move up or down or up only when long
-            If verticalLock AndAlso tgt_img.Height > h * 1.2 Then
-                'only move down for pics with height larger than 1.5 * screen height after converted to same width as screen
+            If verticalLock AndAlso tgt_img.Height > h * verticalLockR Then
+                'only move down for pics with height larger than verticalLockR * screen height after converted to same width as screen
                 tgt_img.RenderTransformOrigin = New Point(0.5, 1) 'transform align with bottom
                 anim_move = New Animation.DoubleAnimation(-startpoint, If(zoomin = True, tgt_img.Height * 0.2, 0), New Duration(New TimeSpan(0, 0, picmove_sec)))
             Else
@@ -1409,14 +1427,12 @@ Class MainWindow
 
             If ran.Next(2) = 0 Then
                 tgt_img.RenderTransformOrigin = New Point(0, 0.5) 'transform align with left
-                anim_move = New Animation.DoubleAnimation(startpoint - delta, If(last_zoom = False, -delta - tgt_img.Width * 0.1, -delta), New Duration(New TimeSpan(0, 0, 0, picmove_sec - 1, 500)))
+                anim_move = New Animation.DoubleAnimation(startpoint - delta, If(last_zoom = False, -delta - tgt_img.Width * 0.1, -delta), New Duration(New TimeSpan(0, 0, 0, picmove_sec - 1, 500))) 'the 0.1 here and below correspond to the 1.1 above
             Else
                 tgt_img.RenderTransformOrigin = New Point(1, 0.5) 'transform align with right
                 anim_move = New Animation.DoubleAnimation(-startpoint, If(last_zoom = False, tgt_img.Width * 0.1, 0), New Duration(New TimeSpan(0, 0, 0, picmove_sec - 1, 500)))
             End If
-            If tgt_img.Width > w * 1.2 Then
-                anim_move.EasingFunction = ease_inout
-            End If
+            If tgt_img.Width > w * verticalLockR Then anim_move.EasingFunction = ease_inout
         Else
             'height is the longer edge comparing to the size of the monitor
             tgt_img.Width = w
@@ -1458,10 +1474,9 @@ Class MainWindow
             'End If
 
             'move up or down or up only when long
-            If verticalLock AndAlso tgt_img.Height > h * 1.2 Then
-                'only move down for pics with height larger than 1.5 * screen height after converted to same width as screen
+            If verticalLock Then 'only move down when verticalLock is on
                 tgt_img.RenderTransformOrigin = New Point(0.5, 1) 'transform align with bottom
-                anim_move = New Animation.DoubleAnimation(-startpoint, If(last_zoom = False, tgt_img.Height * 0.1, 0), New Duration(New TimeSpan(0, 0, 0, picmove_sec - 1, 500))) With {.EasingFunction = ease_inout}
+                anim_move = New Animation.DoubleAnimation(-startpoint, If(last_zoom = False, tgt_img.Height * 0.1, 0), New Duration(New TimeSpan(0, 0, 0, picmove_sec - 1, 500)))
             Else
                 If ran.Next(2) = 0 Then
                     tgt_img.RenderTransformOrigin = New Point(0.5, 0) 'transform align with top
@@ -1470,10 +1485,8 @@ Class MainWindow
                     tgt_img.RenderTransformOrigin = New Point(0.5, 1) 'transform align with bottom
                     anim_move = New Animation.DoubleAnimation(-startpoint, If(last_zoom = False, tgt_img.Height * 0.1, 0), New Duration(New TimeSpan(0, 0, 0, picmove_sec - 1, 500)))
                 End If
-                If tgt_img.Height > h * 1.2 Then
-                    anim_move.EasingFunction = ease_inout
-                End If
             End If
+            If tgt_img.Height > h * verticalLockR Then anim_move.EasingFunction = ease_inout
         End If
         tgt_img.Source = pic
         trans_scale = New ScaleTransform
@@ -1539,8 +1552,8 @@ Class MainWindow
             XorY = TranslateTransform.YProperty
 
             'move up or down or up only when long
-            If verticalLock AndAlso tgt_img.Height > h * 1.2 Then
-                'only move down for pics with height larger than 1.5 * screen height after converted to same width as screen
+            If verticalLock AndAlso tgt_img.Height > h * verticalLockR Then
+                'only move down for pics with height larger than verticalLockR * screen height after converted to same width as screen
                 'move down
                 tgt_img.RenderTransformOrigin = New Point(0.5, 1)
                 anim_move = New Animation.DoubleAnimationUsingKeyFrames
