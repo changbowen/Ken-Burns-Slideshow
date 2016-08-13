@@ -69,6 +69,7 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
 ## Updates
 - 2016-08-13
   - Added option to randomly show images.
+  - Added option to randomly play audio.
   - Changed some tip texts.
   - Fixed displayed text / date may disappear in the second loop.
 - 2016-03-11
