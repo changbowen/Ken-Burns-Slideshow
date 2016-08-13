@@ -67,6 +67,10 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
 - 文件名中包含URI转义符的音频文件（如：This%20is%20a%20song%28I%20am%20kidding%29.mp3）不会被识别。
 
 ## Updates
+- 2016-08-13
+  - Added option to randomly show images.
+  - Changed some tip texts.
+  - Fixed displayed text / date may disappear in the second loop.
 - 2016-03-11
   - Added custom text display.
   - Added version verification.
