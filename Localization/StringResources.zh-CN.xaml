@@ -80,6 +80,7 @@
     <system:String x:Key="register menu">注册文件夹关联</system:String>
     <system:String x:Key="unregister menu">解除文件夹关联</system:String>
     <system:String x:Key="tip_registermenu">在Windows资源管理器的文件夹右键菜单中添加播放选项。</system:String>
-    <system:String x:Key="randomize">随机顺序</system:String>
-    <system:String x:Key="tip_randomize">选择此项会忽视编辑幻灯片中的自定义顺序。下次启动生效。</system:String>
+    <system:String x:Key="randomizeV">随机图片顺序</system:String>
+    <system:String x:Key="randomizeA">随机音乐顺序</system:String>
+    <system:String x:Key="tip_randomizeV">选择此项会忽视编辑幻灯片中的自定义顺序。下次启动恢复默认顺序。</system:String>
 </ResourceDictionary>

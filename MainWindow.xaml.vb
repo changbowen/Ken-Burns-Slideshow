@@ -5,9 +5,9 @@ Class MainWindow
     Public Shared PicFormats() As String = {".jpg", ".jpeg", ".bmp", ".png", ".tif", ".tiff"}
     Private BGMFormats() As String = {".mp3", ".wma", ".m4a", ".aac", ".wav", "asf"}
     Public Shared config_path As String = "config.xml"
-    Private ListOfMusic As New List(Of String)
+    Private Shared ListOfMusic As New List(Of String)
     Private ran As New Random
-    Private player As New System.Windows.Media.MediaPlayer
+    Private Shared player As New System.Windows.Media.MediaPlayer
     Private currentaudio As Integer = 0
     Private playing As Boolean = False
     Private audiofading As Boolean = False
@@ -43,7 +43,8 @@ Class MainWindow
     Private Declare Function SetThreadExecutionState Lib "kernel32" (ByVal esFlags As EXECUTION_STATE) As EXECUTION_STATE
     Dim ExecState_Set As Boolean
     Public Shared reallyclose As Boolean = False
-    Public Shared randomize As Boolean = False
+    Public Shared randomizeV As Boolean = False
+    Public Shared randomizeA As Boolean = False
     Private Enum EXECUTION_STATE As Integer
         ''' <summary>
         ''' Informs the system that the state being set should remain in effect until the next call that uses ES_CONTINUOUS and one of the other state flags is cleared.
@@ -137,13 +138,6 @@ Class MainWindow
             Exit Sub
         End If
 
-        AddHandler player.MediaEnded, Sub()
-                                          currentaudio += 1
-                                          If currentaudio = ListOfMusic.Count Then currentaudio = 0
-                                          player.Open(New Uri(ListOfMusic(currentaudio)))
-                                          player.Play()
-                                      End Sub
-
         'loading settings
         Do
             If config.Elements("Framerate").Any Then framerate = config.Element("Framerate").Value
@@ -152,21 +146,11 @@ Class MainWindow
                 duration = tmp
                 If tmp >= 5 Then picmove_sec = tmp
             End If
-            If config.Elements("VerticalLock").Any AndAlso config.Element("VerticalLock").Value.ToLower = "false" Then
-                verticalLock = False
-            End If
-            If config.Elements("ResolutionLock").Any AndAlso config.Element("ResolutionLock").Value.ToLower = "false" Then
-                resolutionLock = False
-            End If
-            If config.Elements("VerticalOptimize").Any AndAlso config.Element("VerticalOptimize").Value.ToLower = "false" Then
-                verticalOptimize = False
-            End If
-            If config.Elements("HorizontalOptimize").Any AndAlso config.Element("HorizontalOptimize").Value.ToLower = "false" Then
-                horizontalOptimize = False
-            End If
-            If config.Elements("Fadeout").Any AndAlso config.Element("Fadeout").Value.ToLower = "false" Then
-                fadeout = False
-            End If
+            If config.Elements("VerticalLock").Any AndAlso config.Element("VerticalLock").Value.ToLower = "false" Then verticalLock = False
+            If config.Elements("ResolutionLock").Any AndAlso config.Element("ResolutionLock").Value.ToLower = "false" Then resolutionLock = False
+            If config.Elements("VerticalOptimize").Any AndAlso config.Element("VerticalOptimize").Value.ToLower = "false" Then verticalOptimize = False
+            If config.Elements("HorizontalOptimize").Any AndAlso config.Element("HorizontalOptimize").Value.ToLower = "false" Then horizontalOptimize = False
+            If config.Elements("Fadeout").Any AndAlso config.Element("Fadeout").Value.ToLower = "false" Then fadeout = False
             If config.Elements("VerticalOptimizeRatio").Any Then verticalOptimizeR = config.Element("VerticalOptimizeRatio").Value
             If config.Elements("HorizontalOptimizeRatio").Any Then horizontalOptimizeR = config.Element("HorizontalOptimizeRatio").Value
             If config.Elements("Transit").Any Then transit = config.Element("Transit").Value
@@ -177,9 +161,8 @@ Class MainWindow
                 loadmode_next = config.Elements("LoadMode").Value
                 loadmode = loadmode_next
             End If
-            If config.Elements("Randomize").Any AndAlso config.Element("Randomize").Value.ToLower = "true" Then
-                randomize = True
-            End If
+            If config.Elements("RandomizeV").Any AndAlso config.Element("RandomizeV").Value.ToLower = "true" Then randomizeV = True
+            If config.Elements("RandomizeA").Any AndAlso config.Element("RandomizeA").Value.ToLower = "true" Then randomizeA = True
 
             'loading music list
             folders_music.Clear()
@@ -243,17 +226,18 @@ Class MainWindow
             config.Save(config_path)
         End Using
 
-        If randomize Then
-            Using ListOfPic_Copy = ListOfPic.Clone
-                Dim ran As New Random
-                Do While ListOfPic.Rows.Count > 0
-                    Dim i = ran.Next(ListOfPic.Rows.Count) 'selecting a random row index
-                    ListOfPic_Copy.ImportRow(ListOfPic.Rows(i))
-                    ListOfPic.Rows.RemoveAt(i)
-                Loop
-                ListOfPic = ListOfPic_Copy.Copy
-            End Using
-        End If
+        If randomizeV Then Shuffle(ListOfPic)
+        If randomizeA Then Shuffle(ListOfMusic)
+
+        AddHandler player.MediaEnded, Sub()
+                                          currentaudio += 1
+                                          If currentaudio = ListOfMusic.Count Then
+                                              currentaudio = 0
+                                              If randomizeA Then Shuffle(ListOfMusic)
+                                          End If
+                                          player.Open(New Uri(ListOfMusic(currentaudio)))
+                                          player.Play()
+                                      End Sub
 
         tb_date0.FontSize = h / 12
         tb_date1.FontSize = h / 12
@@ -406,6 +390,29 @@ Class MainWindow
         'this seems to be unnecessary on the dev PC as the sleep timers are ignored anyway without the following two lines.
         SetThreadExecutionState(EXECUTION_STATE.ES_SYSTEM_REQUIRED Or EXECUTION_STATE.ES_DISPLAY_REQUIRED Or EXECUTION_STATE.ES_CONTINUOUS)
         ExecState_Set = True
+    End Sub
+
+    Private Sub Shuffle(ByRef dt As System.Data.DataTable)
+        Using tmpdt = dt.Clone
+            Dim r As New Random
+            Do While dt.Rows.Count > 0
+                Dim i = r.Next(dt.Rows.Count) 'selecting a random row index
+                tmpdt.ImportRow(dt.Rows(i))
+                dt.Rows.RemoveAt(i)
+            Loop
+            dt = tmpdt.Copy
+        End Using
+    End Sub
+
+    Private Sub Shuffle(ByRef lst As List(Of String))
+        Dim tmplst = New List(Of String)
+        Dim r As New Random
+        Do While lst.Count > 0
+            Dim i = r.Next(lst.Count)
+            tmplst.Add(lst(i))
+            lst.RemoveAt(i)
+        Loop
+        lst = New List(Of String)(tmplst)
     End Sub
 
     Private Sub FillPic(PicDir_ele As XElement)
@@ -646,53 +653,49 @@ Class MainWindow
 
         Dim ease_in, ease_out, ease_inout As Animation.CubicEase
         Dim anim_fadein, anim_fadeout As Animation.DoubleAnimation
-        Dispatcher.Invoke(
-            Sub()
-                If ListOfMusic.Count > 0 Then
-                    player.Open(New Uri(ListOfMusic(0)))
-                    player.Play()
-                    playing = True
-                End If
-                ease_in = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseIn}
-                ease_out = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseOut}
-                ease_inout = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseInOut}
-                anim_fadein = New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 1)))
-                anim_fadeout = New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1)))
-                Panel.SetZIndex(tb_date0, 2)
-                Panel.SetZIndex(tb_date1, 3)
-            End Sub)
+        Dispatcher.Invoke(Sub()
+                              If ListOfMusic.Count > 0 Then
+                                  player.Open(New Uri(ListOfMusic(0)))
+                                  player.Play()
+                                  playing = True
+                              End If
+                              ease_in = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseIn}
+                              ease_out = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseOut}
+                              ease_inout = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseInOut}
+                              anim_fadein = New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 1)))
+                              anim_fadeout = New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1)))
+                              Panel.SetZIndex(tb_date0, 2)
+                              Panel.SetZIndex(tb_date1, 3)
+                          End Sub)
         Dim tgt_img As Image
         Dim date_chkpoint As Integer = 1
         Dim text_chkpoint As Integer = 1
 
         Do
-            If position = date_chkpoint Then
-                Task.Run(Sub() dateThrd(position, date_chkpoint))
-            End If
-            If position = text_chkpoint Then
-                Task.Run(Sub() textThrd(position, text_chkpoint))
-            End If
+            If position = date_chkpoint Then Task.Run(Sub() dateThrd(position, date_chkpoint))
+            If position = text_chkpoint Then Task.Run(Sub() textThrd(position, text_chkpoint))
 
             If ListOfPic.Rows(position - 1)("CB_Title") Then
                 Anim_TitleSlide(tgt_img)
             Else
-                Dispatcher.Invoke(
-                Sub()
-                    SwitchTarget(tgt_img)
-                    Anim_KBE(tgt_img, ease_in, ease_out, ease_inout, anim_fadein)
-                End Sub)
+                Dispatcher.Invoke(Sub()
+                                      SwitchTarget(tgt_img)
+                                      Anim_KBE(tgt_img, ease_in, ease_out, ease_inout, anim_fadein)
+                                  End Sub)
                 Thread.Sleep(1000)
             End If
 
             Dim tmpposition = position
-            Dim loadtask = Task.Run(
-                    Sub()
-                        Thread.CurrentThread.Priority = ThreadPriority.Lowest
-                        If position = ListOfPic.Rows.Count Then
-                            position = 0
-                        End If
-                        LoadNextImg()
-                    End Sub)
+            Dim loadtask = Task.Run(Sub()
+                                        Thread.CurrentThread.Priority = ThreadPriority.Lowest
+                                        If position = ListOfPic.Rows.Count Then
+                                            position = 0
+                                            date_chkpoint = 1
+                                            text_chkpoint = 1
+                                            If randomizeV Then Shuffle(ListOfPic)
+                                        End If
+                                        LoadNextImg()
+                                    End Sub)
 
             If Not ListOfPic.Rows(tmpposition - 1)("CB_Title") Then
                 Thread.Sleep((picmove_sec - 2) * 1000)
@@ -720,54 +723,50 @@ Class MainWindow
         Loop
         Dim ease_in, ease_out, ease_inout As Animation.CubicEase
         Dim anim_fadein, anim_fadeout As Animation.DoubleAnimation
-        Dispatcher.Invoke(
-            Sub()
-                If ListOfMusic.Count > 0 Then
-                    player.Open(New Uri(ListOfMusic(0)))
-                    player.Play()
-                    playing = True
-                End If
-                ease_in = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseIn}
-                ease_out = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseOut}
-                ease_inout = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseInOut}
-                anim_fadein = New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 1)))
-                anim_fadeout = New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1)))
-                Panel.SetZIndex(tb_date0, 2)
-                Panel.SetZIndex(tb_date1, 3)
-            End Sub)
+        Dispatcher.Invoke(Sub()
+                              If ListOfMusic.Count > 0 Then
+                                  player.Open(New Uri(ListOfMusic(0)))
+                                  player.Play()
+                                  playing = True
+                              End If
+                              ease_in = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseIn}
+                              ease_out = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseOut}
+                              ease_inout = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseInOut}
+                              anim_fadein = New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 1)))
+                              anim_fadeout = New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1)))
+                              Panel.SetZIndex(tb_date0, 2)
+                              Panel.SetZIndex(tb_date1, 3)
+                          End Sub)
         Dim tgt_img As Image
         Dim date_chkpoint As Integer = 1
         Dim text_chkpoint As Integer = 1
         Dim last_zoom = False
 
         Do
-            If position = date_chkpoint Then
-                Task.Run(Sub() dateThrd(position, date_chkpoint))
-            End If
-            If position = text_chkpoint Then
-                Task.Run(Sub() textThrd(position, text_chkpoint))
-            End If
+            If position = date_chkpoint Then Task.Run(Sub() dateThrd(position, date_chkpoint))
+            If position = text_chkpoint Then Task.Run(Sub() textThrd(position, text_chkpoint))
 
             If ListOfPic.Rows(position - 1)("CB_Title") Then
                 Anim_TitleSlide(tgt_img)
             Else
-                Dispatcher.Invoke(
-                Sub()
-                    SwitchTarget(tgt_img)
-                    Anim_Breath(tgt_img, ease_in, ease_out, ease_inout, anim_fadein, last_zoom)
-                End Sub)
+                Dispatcher.Invoke(Sub()
+                                      SwitchTarget(tgt_img)
+                                      Anim_Breath(tgt_img, ease_in, ease_out, ease_inout, anim_fadein, last_zoom)
+                                  End Sub)
                 Thread.Sleep(1000)
             End If
 
             Dim tmpposition = position
-            Dim loadtask = Task.Run(
-                    Sub()
-                        Thread.CurrentThread.Priority = ThreadPriority.Lowest
-                        If position = ListOfPic.Rows.Count Then
-                            position = 0
-                        End If
-                        LoadNextImg()
-                    End Sub)
+            Dim loadtask = Task.Run(Sub()
+                                        Thread.CurrentThread.Priority = ThreadPriority.Lowest
+                                        If position = ListOfPic.Rows.Count Then
+                                            position = 0
+                                            date_chkpoint = 1
+                                            text_chkpoint = 1
+                                            If randomizeV Then Shuffle(ListOfPic)
+                                        End If
+                                        LoadNextImg()
+                                    End Sub)
 
             If Not ListOfPic.Rows(tmpposition - 1)("CB_Title") Then
                 Thread.Sleep((picmove_sec - 2.5) * 1000)
@@ -798,52 +797,48 @@ Class MainWindow
         Dim ease_in, ease_out, ease_inout As Animation.CubicEase
         Dim anim_fadein, anim_fadeout As Animation.DoubleAnimation
         Dim direction As Boolean = ran.Next(2)
-        Dispatcher.Invoke(
-            Sub()
-                If ListOfMusic.Count > 0 Then
-                    player.Open(New Uri(ListOfMusic(0)))
-                    player.Play()
-                    playing = True
-                End If
-                ease_in = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseIn}
-                ease_out = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseOut}
-                ease_inout = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseInOut}
-                anim_fadein = New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 2)))
-                anim_fadeout = New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1)))
-                Panel.SetZIndex(tb_date0, 2)
-                Panel.SetZIndex(tb_date1, 3)
-            End Sub)
+        Dispatcher.Invoke(Sub()
+                              If ListOfMusic.Count > 0 Then
+                                  player.Open(New Uri(ListOfMusic(0)))
+                                  player.Play()
+                                  playing = True
+                              End If
+                              ease_in = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseIn}
+                              ease_out = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseOut}
+                              ease_inout = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseInOut}
+                              anim_fadein = New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 2)))
+                              anim_fadeout = New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1)))
+                              Panel.SetZIndex(tb_date0, 2)
+                              Panel.SetZIndex(tb_date1, 3)
+                          End Sub)
         Dim tgt_img As Image
         Dim date_chkpoint As Integer = 1
         Dim text_chkpoint As Integer = 1
 
         Do
-            If position = date_chkpoint Then
-                Task.Run(Sub() dateThrd(position, date_chkpoint))
-            End If
-            If position = text_chkpoint Then
-                Task.Run(Sub() textThrd(position, text_chkpoint))
-            End If
+            If position = date_chkpoint Then Task.Run(Sub() dateThrd(position, date_chkpoint))
+            If position = text_chkpoint Then Task.Run(Sub() textThrd(position, text_chkpoint))
 
             If ListOfPic.Rows(position - 1)("CB_Title") Then
                 Anim_TitleSlide(tgt_img)
             Else
-                Dispatcher.Invoke(
-                Sub()
-                    SwitchTarget(tgt_img)
-                    Anim_Throw(tgt_img, ease_in, ease_out, ease_inout, anim_fadein, direction)
-                End Sub)
+                Dispatcher.Invoke(Sub()
+                                      SwitchTarget(tgt_img)
+                                      Anim_Throw(tgt_img, ease_in, ease_out, ease_inout, anim_fadein, direction)
+                                  End Sub)
             End If
 
             Dim tmpposition = position
-            Dim loadtask = Task.Run(
-                    Sub()
-                        Thread.CurrentThread.Priority = ThreadPriority.Lowest
-                        If position = ListOfPic.Rows.Count Then
-                            position = 0
-                        End If
-                        LoadNextImg()
-                    End Sub)
+            Dim loadtask = Task.Run(Sub()
+                                        Thread.CurrentThread.Priority = ThreadPriority.Lowest
+                                        If position = ListOfPic.Rows.Count Then
+                                            position = 0
+                                            date_chkpoint = 1
+                                            text_chkpoint = 1
+                                            If randomizeV Then Shuffle(ListOfPic)
+                                        End If
+                                        LoadNextImg()
+                                    End Sub)
 
             If Not ListOfPic.Rows(tmpposition - 1)("CB_Title") Then
                 Thread.Sleep((picmove_sec - 1) * 1000)
@@ -876,41 +871,35 @@ Class MainWindow
         Dim text_chkpoint As Integer = 1
         Dim last_zoom As Boolean = False
         Dim direction As Boolean = ran.Next(2)
-        Dispatcher.Invoke(
-            Sub()
-                If ListOfMusic.Count > 0 Then
-                    player.Open(New Uri(ListOfMusic(0)))
-                    player.Play()
-                    playing = True
-                End If
-                ease_in = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseIn}
-                ease_out = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseOut}
-                ease_inout = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseInOut}
-                anim_fadein1 = New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 1)))
-                anim_fadein2 = New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 2)))
-                anim_fadeout = New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1)))
-                Panel.SetZIndex(tb_date0, 2)
-                Panel.SetZIndex(tb_date1, 3)
-            End Sub)
+        Dispatcher.Invoke(Sub()
+                              If ListOfMusic.Count > 0 Then
+                                  player.Open(New Uri(ListOfMusic(0)))
+                                  player.Play()
+                                  playing = True
+                              End If
+                              ease_in = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseIn}
+                              ease_out = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseOut}
+                              ease_inout = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseInOut}
+                              anim_fadein1 = New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 1)))
+                              anim_fadein2 = New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 2)))
+                              anim_fadeout = New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1)))
+                              Panel.SetZIndex(tb_date0, 2)
+                              Panel.SetZIndex(tb_date1, 3)
+                          End Sub)
 
         Do
-            If position = date_chkpoint Then
-                Task.Run(Sub() dateThrd(position, date_chkpoint))
-            End If
-            If position = text_chkpoint Then
-                Task.Run(Sub() textThrd(position, text_chkpoint))
-            End If
+            If position = date_chkpoint Then Task.Run(Sub() dateThrd(position, date_chkpoint))
+            If position = text_chkpoint Then Task.Run(Sub() textThrd(position, text_chkpoint))
 
             If ListOfPic.Rows(position - 1)("CB_Title") Then
                 Anim_TitleSlide(tgt_img)
             Else
-                Dispatcher.Invoke(
-                Sub()
-                    tgt_img = New Image
-                    tgt_img.Name = "tgt"
-                    RenderOptions.SetBitmapScalingMode(tgt_img, scalemode)
-                    mainGrid.Children.Add(tgt_img)
-                End Sub)
+                Dispatcher.Invoke(Sub()
+                                      tgt_img = New Image
+                                      tgt_img.Name = "tgt"
+                                      RenderOptions.SetBitmapScalingMode(tgt_img, scalemode)
+                                      mainGrid.Children.Add(tgt_img)
+                                  End Sub)
                 Select Case ran.Next(3)
                     Case 0
                         Dispatcher.Invoke(Sub() Anim_Breath(tgt_img, ease_in, ease_out, ease_inout, anim_fadein1, last_zoom))
@@ -949,14 +938,16 @@ Class MainWindow
                 End Select
             End If
 
-            Dim loadtask = Task.Run(
-                    Sub()
-                        Thread.CurrentThread.Priority = ThreadPriority.Lowest
-                        If position = ListOfPic.Rows.Count Then
-                            position = 0
-                        End If
-                        LoadNextImg()
-                    End Sub)
+            Dim loadtask = Task.Run(Sub()
+                                        Thread.CurrentThread.Priority = ThreadPriority.Lowest
+                                        If position = ListOfPic.Rows.Count Then
+                                            position = 0
+                                            date_chkpoint = 1
+                                            text_chkpoint = 1
+                                            If randomizeV Then Shuffle(ListOfPic)
+                                        End If
+                                        LoadNextImg()
+                                    End Sub)
 
             loadtask.Wait()
 

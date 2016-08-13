@@ -90,7 +90,8 @@
             <ComboBoxItem Content="{StaticResource load_onebyone}"/>
             <ComboBoxItem Content="{StaticResource load_allatonce}"/>
         </ComboBox>
-        <CheckBox x:Name="CB_Randomize" Canvas.Left="345" Canvas.Top="280" ContentStringFormat="* {0}" Content="{StaticResource randomize}" ToolTip="{StaticResource tip_randomize}"/>
+        <CheckBox x:Name="CB_RandomizeV" Canvas.Left="345" Canvas.Top="280" ContentStringFormat="* {0}" Content="{StaticResource randomizeV}" ToolTip="{StaticResource tip_randomizeV}"/>
+        <CheckBox x:Name="CB_RandomizeA" Canvas.Left="345" Canvas.Top="300" ContentStringFormat="* {0}" Content="{StaticResource randomizeA}"/>
         <TextBlock Canvas.Left="10" TextWrapping="Wrap" Text="{StaticResource star}" Canvas.Top="437"/>
     </Canvas>
 </Window>
