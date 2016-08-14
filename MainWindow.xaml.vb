@@ -15,7 +15,7 @@ Class MainWindow
     Private position As Integer = 0
     Private m As Integer = 0, mm As Integer = 0
     Private pic As BitmapImage
-    Private pics() As BitmapImage
+    Private pics As New Dictionary(Of String, BitmapImage)
     Private picmove_sec As UInteger = 7
     Private moveon As Boolean = True
     Private aborting As Boolean = False
@@ -36,12 +36,12 @@ Class MainWindow
     Public Shared transit As Integer = 0
     Public Shared loadquality As Double = 1.2
     Public Shared loadmode_next As Integer = 0 'only serves as a store. program will read duration value from loadmode.
-    Dim loadmode As Integer = 0
+    Private loadmode As Integer = 0
     Public Shared ScaleMode_Dic As New Dictionary(Of Integer, String)
     Public Shared scalemode As Integer = 2
     Public Shared blurmode As Integer = 0
     Private Declare Function SetThreadExecutionState Lib "kernel32" (ByVal esFlags As EXECUTION_STATE) As EXECUTION_STATE
-    Dim ExecState_Set As Boolean
+    Private ExecState_Set As Boolean
     Public Shared reallyclose As Boolean = False
     Public Shared randomizeV As Boolean = False
     Public Shared randomizeA As Boolean = False
@@ -264,7 +264,6 @@ Class MainWindow
             Task.Run(
                 Sub()
                     Dim count = ListOfPic.Rows.Count
-                    ReDim pics(count - 1)
                     Dim tb As TextBlock
                     Dispatcher.Invoke(Sub()
                                           tb = New TextBlock With {.Text = "Loading images..."}
@@ -283,8 +282,8 @@ Class MainWindow
                         End If
 
                         Dim img As New BitmapImage
+                        Dim imgpath As String = ListOfPic.Rows(i)("Path")
                         Try
-                            Dim imgpath As String = ListOfPic.Rows(i)("Path")
                             Using ms = New IO.FileStream(imgpath, IO.FileMode.Open, IO.FileAccess.Read)
                                 Dim frame = BitmapFrame.Create(ms, BitmapCreateOptions.DelayCreation, BitmapCacheOption.None)
                                 Dim s As Size = New Size(frame.PixelWidth, frame.PixelHeight)
@@ -321,7 +320,7 @@ Class MainWindow
                         Finally
                             img.Freeze()
                         End Try
-                        pics(i) = img
+                        pics.Add(imgpath, img)
 
                         Dim imgctrl As Image
                         Dispatcher.Invoke(Sub()
@@ -494,21 +493,25 @@ Class MainWindow
         'determine future same texts
         Dim tmpstr As String = ListOfPic.Rows(pos - 1)("Text").ToString.Trim
         Dim tbmove_sec = picmove_sec
-        For n = 1 To ListOfPic.Rows.Count - pos 'not running if it is the last pic as ListOfPic.Count-pos=0
-            If ListOfPic.Rows(pos - 1 + n)("Text").ToString.Trim = tmpstr Then
-                output = pos + n
-                If output = ListOfPic.Rows.Count Then output = 1
-                tbmove_sec += (picmove_sec - 1)
-            Else
-                If ListOfPic.Rows(pos - 1 + n)("Text").ToString.Trim = "" Then
+        If output = ListOfPic.Rows.Count Then
+            output = 1
+        Else
+            For n = 1 To ListOfPic.Rows.Count - pos 'not running if it is the last pic as ListOfPic.Count-pos=0
+                If ListOfPic.Rows(pos - 1 + n)("Text").ToString.Trim = tmpstr Then
                     output = pos + n
-                    If output = ListOfPic.Rows.Count Then output = 1 'if next (also the last) is empty, skip to the beginning directly
+                    If output = ListOfPic.Rows.Count Then output = 1
+                    tbmove_sec += (picmove_sec - 1)
                 Else
-                    output = pos + n
-                    Exit For
+                    If ListOfPic.Rows(pos - 1 + n)("Text").ToString.Trim = "" Then
+                        output = pos + n
+                        If output = ListOfPic.Rows.Count Then output = 1 'if next (also the last) is empty, skip to the beginning directly
+                    Else
+                        output = pos + n
+                        Exit For
+                    End If
                 End If
-            End If
-        Next
+            Next
+        End If
 
         'displaying custom text
         If Not ListOfPic.Rows(pos - 1)("Text").ToString.Trim = "" Then
@@ -557,35 +560,43 @@ Class MainWindow
         'determining future pics with same year and month
         Dim crntdate = ListOfPic.Rows(pos - 1)("Date")
         If IsDBNull(crntdate) Then
-            For n = 1 To ListOfPic.Rows.Count - pos
-                If IsDBNull(ListOfPic.Rows(pos - 1 + n)("Date")) Then
-                    output = pos + n
-                    If output = ListOfPic.Rows.Count Then output = 1
-                Else
-                    output = pos + n
-                    Exit For
-                End If
-            Next
+            If output = ListOfPic.Rows.Count Then
+                output = 1 'without this line when the last date is non-null and of different month.
+            Else
+                For n = 1 To ListOfPic.Rows.Count - pos 'this is not run when pos=count
+                    If IsDBNull(ListOfPic.Rows(pos - 1 + n)("Date")) Then
+                        output = pos + n
+                        If output = ListOfPic.Rows.Count Then output = 1
+                    Else
+                        output = pos + n
+                        Exit For
+                    End If
+                Next
+            End If
         Else 'current date is date
             Dim tmpdate = Date.Parse(crntdate).ToString("yyyy.M")
             Dim tbmove_sec = picmove_sec
-            For n = 1 To ListOfPic.Rows.Count - pos
-                Dim nextdate = ListOfPic.Rows(pos - 1 + n)("Date")
-                If IsDBNull(nextdate) Then
-                    output = pos + n
-                    If output = ListOfPic.Rows.Count Then output = 1
-                    tmpdate = "" 'to set output to the next real date seperated by non-dates, even when it has same month & year with crntdate
-                Else
-                    If Date.Parse(nextdate).ToString("yyyy.M") = tmpdate Then
+            If output = ListOfPic.Rows.Count Then
+                output = 1
+            Else
+                For n = 1 To ListOfPic.Rows.Count - pos
+                    Dim nextdate = ListOfPic.Rows(pos - 1 + n)("Date")
+                    If IsDBNull(nextdate) Then 'next date is null
                         output = pos + n
-                        If output = ListOfPic.Rows.Count Then output = 1
-                        tbmove_sec += (picmove_sec - 1)
+                        If output = ListOfPic.Rows.Count Then output = 1 'output is changed. need to recheck. output=count equals n=count-pos, so no need to exit for.
+                        tmpdate = "" 'to set output to the next real date seperated by non-dates, even when it has same month & year with crntdate
                     Else
-                        output = pos + n 'no output=1. need to ensure the last different date is processed
-                        Exit For
+                        If Date.Parse(nextdate).ToString("yyyy.M") = tmpdate Then 'next date is not null and of same month with the current
+                            output = pos + n
+                            If output = ListOfPic.Rows.Count Then output = 1
+                            tbmove_sec += (picmove_sec - 1)
+                        Else 'next date is not null and of different month with the current
+                            output = pos + n 'no output=1. need to ensure the last different date is processed
+                            Exit For
+                        End If
                     End If
-                End If
-            Next
+                Next
+            End If
 
             tmpdate = Date.Parse(crntdate).ToString("yyyy.M")
             Dim tgt_tb As TextBlock
@@ -690,8 +701,6 @@ Class MainWindow
                                         Thread.CurrentThread.Priority = ThreadPriority.Lowest
                                         If position = ListOfPic.Rows.Count Then
                                             position = 0
-                                            date_chkpoint = 1
-                                            text_chkpoint = 1
                                             If randomizeV Then Shuffle(ListOfPic)
                                         End If
                                         LoadNextImg()
@@ -761,8 +770,6 @@ Class MainWindow
                                         Thread.CurrentThread.Priority = ThreadPriority.Lowest
                                         If position = ListOfPic.Rows.Count Then
                                             position = 0
-                                            date_chkpoint = 1
-                                            text_chkpoint = 1
                                             If randomizeV Then Shuffle(ListOfPic)
                                         End If
                                         LoadNextImg()
@@ -833,8 +840,6 @@ Class MainWindow
                                         Thread.CurrentThread.Priority = ThreadPriority.Lowest
                                         If position = ListOfPic.Rows.Count Then
                                             position = 0
-                                            date_chkpoint = 1
-                                            text_chkpoint = 1
                                             If randomizeV Then Shuffle(ListOfPic)
                                         End If
                                         LoadNextImg()
@@ -942,8 +947,6 @@ Class MainWindow
                                         Thread.CurrentThread.Priority = ThreadPriority.Lowest
                                         If position = ListOfPic.Rows.Count Then
                                             position = 0
-                                            date_chkpoint = 1
-                                            text_chkpoint = 1
                                             If randomizeV Then Shuffle(ListOfPic)
                                         End If
                                         LoadNextImg()
@@ -982,7 +985,7 @@ Class MainWindow
                                       RenderOptions.SetBitmapScalingMode(slide_img0, scalemode)
                                       RenderOptions.SetBitmapScalingMode(slide_img1, scalemode)
                                   End Sub)
-                pic = pics(position)
+                pic = pics(ListOfPic.Rows(position)("Path"))
                 position += 1
             Case 0
                 Dispatcher.Invoke(Sub()

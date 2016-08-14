@@ -14,7 +14,7 @@
                      Dispatcher.Invoke(Sub() Btn_SwitchImage.IsEnabled = True)
                      Dispatcher.Invoke(Sub() Btn_Restart.IsEnabled = True)
                  End Sub)
-        CType(Me.Owner, MainWindow).SwitchImage()
+        DirectCast(Me.Owner, MainWindow).SwitchImage()
     End Sub
 
     Friend Sub Btn_SwitchAudio_Click(sender As Object, e As RoutedEventArgs) Handles Btn_SwitchAudio.Click
@@ -25,7 +25,7 @@
                      Dispatcher.Invoke(Sub() Btn_SwitchAudio.IsEnabled = True)
                      Dispatcher.Invoke(Sub() Btn_Restart.IsEnabled = True)
                  End Sub)
-        CType(Me.Owner, MainWindow).SwitchAudio()
+        DirectCast(Me.Owner, MainWindow).SwitchAudio()
     End Sub
 
     Friend Sub Btn_Restart_Click(sender As Object, e As RoutedEventArgs) Handles Btn_Restart.Click
@@ -38,7 +38,7 @@
                      Dispatcher.Invoke(Sub() Btn_SwitchAudio.IsEnabled = True)
                      Dispatcher.Invoke(Sub() Btn_Restart.IsEnabled = True)
                  End Sub)
-        CType(Me.Owner, MainWindow).RestartAll()
+        DirectCast(Me.Owner, MainWindow).RestartAll()
     End Sub
 
     Private Sub Btn_Options_Click(sender As Object, e As RoutedEventArgs) Handles Btn_Options.Click
@@ -54,7 +54,7 @@
     End Sub
 
     Private Sub Btn_Exit_Click(sender As Object, e As RoutedEventArgs) Handles Btn_Exit.Click
-        CType(Me.Owner, MainWindow).Close()
+        DirectCast(Me.Owner, MainWindow).Close()
     End Sub
 
     Private Sub Window_PreviewKeyDown(sender As Object, e As KeyEventArgs)
@@ -80,7 +80,7 @@
             editwin.Close()
         ElseIf e.Key = Key.Q AndAlso Keyboard.Modifiers = ModifierKeys.Control Then 'immediately quit
             MainWindow.reallyclose = True
-            CType(Me.Owner, MainWindow).Close()
+            DirectCast(Me.Owner, MainWindow).Close()
         End If
     End Sub
 End Class
