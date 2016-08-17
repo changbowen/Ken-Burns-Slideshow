@@ -5,7 +5,7 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
 
 此程序可用Ken Burns等三种效果播放文件夹中的图像，Ken Burns效果可参照iPad照片图库。
 ## Preview
-- <img class="alignnone size-full wp-image-8" src="http://i.imgur.com/5O30vFL.jpg" alt="" width="650"/><img class="alignnone size-full wp-image-20" src="http://i.imgur.com/WsRugNR.png?1" alt=""/>
+- <img class="alignnone size-full wp-image-8" src="http://i.imgur.com/5O30vFL.jpg" alt="" width="650"/><img class="alignnone size-full wp-image-20" src="http://i.imgur.com/9vPbsR6.png" alt=""/>
 - Youtube video
   - https://youtu.be/ch2UjN9nwIc
 - Youku video (for China)
