@@ -24,6 +24,7 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
 - Options to load large images at lower resolution to improve performance.
 - Options for each slide (Edit Mode) is now available by pressing F11.
 - Support launching slideshow directly from a folder containing images and audio files.
+- Support EXIF rotation.
 - Simplified Chinese language support.
 
 ## 功能特性
@@ -33,6 +34,7 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
 - 提供降低分辨率载入图像的选项以改善性能。
 - 提供单张幻灯片设置（编辑模式），可添加自定义文本。
 - 可关联Windows资源管理器右键菜单，右键点击文件夹直接播放。
+- 支持EXIF旋转。
 - 支持简体中文语言。
 
 ## Note
