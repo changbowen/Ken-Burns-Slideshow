@@ -83,4 +83,6 @@
     <system:String x:Key="randomizeV">Random image order</system:String>
     <system:String x:Key="randomizeA">Random music order</system:String>
     <system:String x:Key="tip_randomizeV">This will ignore custom ordering in Edit Slides for next runs. Restart program to revert back to default order.</system:String>
+    <system:String x:Key="loading images">Loading images</system:String>
+    <system:String x:Key="press esc">Press ESC to return to desktop</system:String>
 </ResourceDictionary>

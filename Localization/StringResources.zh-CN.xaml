@@ -83,4 +83,6 @@
     <system:String x:Key="randomizeV">随机图片顺序</system:String>
     <system:String x:Key="randomizeA">随机音乐顺序</system:String>
     <system:String x:Key="tip_randomizeV">选择此项会忽视编辑幻灯片中的自定义顺序。下次启动恢复默认顺序。</system:String>
+    <system:String x:Key="loading images">载入图像</system:String>
+    <system:String x:Key="press esc">按ESC键退出至桌面</system:String>
 </ResourceDictionary>

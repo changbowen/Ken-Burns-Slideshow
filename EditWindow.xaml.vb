@@ -37,7 +37,23 @@
                              Try
                                  Dim imgpath As String = e.AddedItems(0)("Path")
                                  Using strm = New IO.FileStream(imgpath, IO.FileMode.Open, IO.FileAccess.Read)
+                                     Dim frame = BitmapFrame.Create(strm, BitmapCreateOptions.DelayCreation, BitmapCacheOption.None)
+                                     strm.Position = 0
                                      pic.BeginInit()
+                                     Try
+                                         'getting orientation value from exif and rotate image. Rotate before setting DecodePixelHeight/Width?
+                                         Dim ori As UShort = DirectCast(frame.Metadata, BitmapMetadata).GetQuery("/app1/ifd/{ushort=274}")
+                                         Select Case ori
+                                             Case 6
+                                                 pic.Rotation = Rotation.Rotate90
+                                             Case 3
+                                                 pic.Rotation = Rotation.Rotate180
+                                             Case 8
+                                                 pic.Rotation = Rotation.Rotate270
+                                         End Select
+                                         strm.Position = 0
+                                     Catch
+                                     End Try
                                      pic.DecodePixelWidth = 250
                                      pic.CacheOption = BitmapCacheOption.OnLoad
                                      pic.StreamSource = strm

@@ -265,8 +265,9 @@ Class MainWindow
                 Sub()
                     Dim count = ListOfPic.Rows.Count
                     Dim tb As TextBlock
+                    Dim tbtext As String = Application.Current.Resources("loading images")
                     Dispatcher.Invoke(Sub()
-                                          tb = New TextBlock With {.Text = "Loading images..."}
+                                          tb = New TextBlock With {.Text = tbtext & "..."}
                                           tb.FontFamily = New FontFamily("Segoe UI")
                                           tb.FontSize = 16
                                           tb.Foreground = Brushes.WhiteSmoke
@@ -278,7 +279,7 @@ Class MainWindow
                     For i = 0 To count - 1
                         If count > 1 Then
                             Dim ii = i
-                            Dispatcher.Invoke(Sub() tb.Text = "Loading images... " & ii * 100 \ (count - 1) & "%")
+                            Dispatcher.Invoke(Sub() tb.Text = tbtext & "... " & ii * 100 \ (count - 1) & "%")
                         End If
 
                         Dim img As New BitmapImage
@@ -289,6 +290,20 @@ Class MainWindow
                                 Dim s As Size = New Size(frame.PixelWidth, frame.PixelHeight)
                                 ms.Position = 0
                                 img.BeginInit()
+                                Try
+                                    'getting orientation value from exif and rotate image. Rotate before setting DecodePixelHeight/Width?
+                                    Dim ori As UShort = DirectCast(frame.Metadata, BitmapMetadata).GetQuery("/app1/ifd/{ushort=274}")
+                                    Select Case ori
+                                        Case 6
+                                            img.Rotation = Rotation.Rotate90
+                                        Case 3
+                                            img.Rotation = Rotation.Rotate180
+                                        Case 8
+                                            img.Rotation = Rotation.Rotate270
+                                    End Select
+                                    ms.Position = 0
+                                Catch
+                                End Try
                                 If resolutionLock Then
                                     If s.Width > s.Height Then
                                         If s.Height > h * loadquality Then
@@ -1002,6 +1017,21 @@ Class MainWindow
                         strm.Position = 0
                         pic = New BitmapImage
                         pic.BeginInit()
+                        Try
+                            'getting orientation value from exif and rotate image. Rotate before setting DecodePixelHeight/Width?
+                            Dim ori As UShort = DirectCast(frame.Metadata, BitmapMetadata).GetQuery("/app1/ifd/{ushort=274}")
+                            Select Case ori
+                                Case 6
+                                    pic.Rotation = Rotation.Rotate90
+                                Case 3
+                                    pic.Rotation = Rotation.Rotate180
+                                Case 8
+                                    pic.Rotation = Rotation.Rotate270
+                            End Select
+                            strm.Position = 0
+                        Catch
+                        End Try
+
                         If resolutionLock Then
                             If s.Width > s.Height Then
                                 If s.Height > h * loadquality Then
@@ -1013,6 +1043,7 @@ Class MainWindow
                                 End If
                             End If
                         End If
+
                         pic.CacheOption = BitmapCacheOption.OnLoad
                         pic.StreamSource = strm
                         pic.EndInit()
@@ -1232,8 +1263,17 @@ Class MainWindow
                 Dim exit_fadeout As New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 3)))
                 exit_fadeout.EasingFunction = New Animation.ExponentialEase With {.EasingMode = Animation.EasingMode.EaseIn}
                 AddHandler exit_fadeout.Completed, Sub()
+                                                       Dispatcher.Invoke(Sub()
+                                                                             Dim tbtext As String = Application.Current.Resources("press esc")
+                                                                             Dim tb = New TextBlock With {.Text = tbtext & "..."}
+                                                                             tb.FontFamily = New FontFamily("Segoe UI")
+                                                                             tb.FontSize = 12
+                                                                             tb.Foreground = Brushes.WhiteSmoke
+                                                                             tb.Margin = New Thickness(w / 2 - 60, h / 2 - 6, 0, 0)
+                                                                             mainGrid.Children.Add(tb)
+                                                                             Panel.SetZIndex(tb, 10)
+                                                                         End Sub)
                                                        reallyclose = True
-                                                       Me.Close()
                                                    End Sub
                 black.BeginAnimation(OpacityProperty, exit_fadeout)
             Else
@@ -1243,6 +1283,7 @@ Class MainWindow
                                        End Sub)
             End If
         Else
+            'really closing
             If ctrlwindow IsNot Nothing Then ctrlwindow.Close()
             If ExecState_Set Then SetThreadExecutionState(EXECUTION_STATE.ES_CONTINUOUS)
         End If
