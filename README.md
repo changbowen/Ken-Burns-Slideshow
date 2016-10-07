@@ -69,6 +69,8 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
 - 文件名中包含URI转义符的音频文件（如：This%20is%20a%20song%28I%20am%20kidding%29.mp3）不会被识别。
 
 ## Updates
+- 2016-10-07
+  - Added more text customizations.
 - 2016-08-17
   - Added support for reading orientation information from EXIF and rotate image accordingly. Only rotation support is added. EXIF-flipped images (orientation value 2, 4, 5, 7) are less common.
   - Hold returning to desktop during exit by requiring pressing ESC again. (Like in PowerPoint.)
