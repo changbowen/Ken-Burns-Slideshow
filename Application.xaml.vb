@@ -11,6 +11,7 @@
                 dict.Source = New Uri("Localization/StringResources.xaml", UriKind.Relative)
         End Select
         Me.Resources.MergedDictionaries.Add(dict)
+
         Dim win As New MainWindow
         win.Show()
     End Sub

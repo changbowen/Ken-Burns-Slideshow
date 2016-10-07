@@ -11,7 +11,7 @@ Class MainWindow
     Private currentaudio As Integer = 0
     Private playing As Boolean = False
     Private audiofading As Boolean = False
-    Private w, h As Double
+    Public Shared w, h As Double
     Private position As Integer = 0
     Private m As Integer = 0, mm As Integer = 0
     Private pic As BitmapImage
@@ -68,8 +68,13 @@ Class MainWindow
         'initialize datatable
         ListOfPic.Columns.Add("Path", GetType(String))
         ListOfPic.Columns.Add("Date", GetType(String))
-        ListOfPic.Columns.Add("CB_Title", GetType(Boolean)).DefaultValue = False
+        ListOfPic.Columns.Add("TitleSlide", GetType(Boolean)).DefaultValue = False
         ListOfPic.Columns.Add("Text", GetType(String)).DefaultValue = ""
+        ListOfPic.Columns.Add("FontFamily", GetType(String)).DefaultValue = "Georgia"
+        ListOfPic.Columns.Add("FontSize", GetType(Double)).DefaultValue = CDbl(12)
+        ListOfPic.Columns.Add("FontColor", GetType(String)).DefaultValue = "White"
+        ListOfPic.Columns.Add("FontOffsetH", GetType(Double)).DefaultValue = CDbl(0)
+        ListOfPic.Columns.Add("FontOffsetV", GetType(Double)).DefaultValue = CDbl(0)
         ListOfPic.PrimaryKey = {ListOfPic.Columns("Path")}
 
         'loading other settings
@@ -407,24 +412,27 @@ Class MainWindow
     End Sub
 
     Private Sub Shuffle(ByRef dt As System.Data.DataTable)
-        Using tmpdt = dt.Clone
-            Dim r As New Random
-            Do While dt.Rows.Count > 0
-                Dim i = r.Next(dt.Rows.Count) 'selecting a random row index
-                tmpdt.ImportRow(dt.Rows(i))
-                dt.Rows.RemoveAt(i)
-            Loop
-            dt = tmpdt.Copy
+        Using dtclone = dt.Clone
+            Using dtcopy = dt.Copy
+                Dim r As New Random
+                Do While dtcopy.Rows.Count > 0
+                    Dim i = r.Next(dtcopy.Rows.Count) 'selecting a random row index
+                    dtclone.ImportRow(dtcopy.Rows(i))
+                    dtcopy.Rows.RemoveAt(i)
+                Loop
+            End Using
+            dt = dtclone.Copy
         End Using
     End Sub
 
     Private Sub Shuffle(ByRef lst As List(Of String))
         Dim tmplst = New List(Of String)
+        Dim lstcopy As New List(Of String)(lst)
         Dim r As New Random
-        Do While lst.Count > 0
-            Dim i = r.Next(lst.Count)
-            tmplst.Add(lst(i))
-            lst.RemoveAt(i)
+        Do While lstcopy.Count > 0
+            Dim i = r.Next(lstcopy.Count)
+            tmplst.Add(lstcopy(i))
+            lstcopy.RemoveAt(i)
         Loop
         lst = New List(Of String)(tmplst)
     End Sub
@@ -529,25 +537,27 @@ Class MainWindow
         End If
 
         'displaying custom text
-        If Not ListOfPic.Rows(pos - 1)("Text").ToString.Trim = "" Then
+        If Not tmpstr = "" Then
             Dim txt_tb As TextBlock
             Dispatcher.Invoke(
                 Sub()
                     txt_tb = New TextBlock
                     With txt_tb
                         .Text = tmpstr
-                        .FontFamily = New FontFamily("Georgia")
-                        .FontSize = h / 12
-                        .Foreground = Brushes.White
+                        .FontFamily = New FontFamily(ListOfPic.Rows(pos - 1)("FontFamily"))
+                        .FontSize = h / DirectCast(ListOfPic.Rows(pos - 1)("FontSize"), Double)
+                        .Foreground = New BrushConverter().ConvertFromString(ListOfPic.Rows(pos - 1)("FontColor"))
                         .CacheMode = New BitmapCache
                         .Effect = New Effects.DropShadowEffect With {.ShadowDepth = 2, .Opacity = 0.8}
                     End With
                     mainGrid.Children.Add(txt_tb)
                     Panel.SetZIndex(txt_tb, 8)
 
+                    Dim startw = (w * 0.7) + (w * DirectCast(ListOfPic.Rows(pos - 1)("FontOffsetH"), Double) / 100)
+                    Dim starth = (h * 0.15) + (h * DirectCast(ListOfPic.Rows(pos - 1)("FontOffsetV"), Double) / 100)
                     Dim anim_tbfadein As New Animation.DoubleAnimation(0, 0.7, New Duration(New TimeSpan(0, 0, 2)))
-                    Dim anim_tbmovex As New Animation.DoubleAnimation(w * 0.7, w * 0.7 + RandomNum(h / 32, h / 25, True), New Duration(New TimeSpan(0, 0, tbmove_sec)))
-                    Dim anim_tbmovey As New Animation.DoubleAnimation(h * 0.15, h * 0.15 + RandomNum(h / 32, h / 25, True), New Duration(New TimeSpan(0, 0, tbmove_sec)))
+                    Dim anim_tbmovex As New Animation.DoubleAnimation(startw, startw + RandomNum(h / 32, h / 25, True), New Duration(New TimeSpan(0, 0, tbmove_sec)))
+                    Dim anim_tbmovey As New Animation.DoubleAnimation(starth, starth + RandomNum(h / 32, h / 25, True), New Duration(New TimeSpan(0, 0, tbmove_sec)))
                     Animation.Timeline.SetDesiredFrameRate(anim_tbfadein, framerate)
                     Animation.Timeline.SetDesiredFrameRate(anim_tbmovex, framerate)
                     Animation.Timeline.SetDesiredFrameRate(anim_tbmovey, framerate)
@@ -701,7 +711,7 @@ Class MainWindow
             If position = date_chkpoint Then Task.Run(Sub() dateThrd(position, date_chkpoint))
             If position = text_chkpoint Then Task.Run(Sub() textThrd(position, text_chkpoint))
 
-            If ListOfPic.Rows(position - 1)("CB_Title") Then
+            If ListOfPic.Rows(position - 1)("TitleSlide") Then
                 Anim_TitleSlide(tgt_img)
             Else
                 Dispatcher.Invoke(Sub()
@@ -721,7 +731,7 @@ Class MainWindow
                                         LoadNextImg()
                                     End Sub)
 
-            If Not ListOfPic.Rows(tmpposition - 1)("CB_Title") Then
+            If Not ListOfPic.Rows(tmpposition - 1)("TitleSlide") Then
                 Thread.Sleep((picmove_sec - 2) * 1000)
                 Dispatcher.Invoke(Sub()
                                       Animation.Timeline.SetDesiredFrameRate(anim_fadeout, framerate)
@@ -770,7 +780,7 @@ Class MainWindow
             If position = date_chkpoint Then Task.Run(Sub() dateThrd(position, date_chkpoint))
             If position = text_chkpoint Then Task.Run(Sub() textThrd(position, text_chkpoint))
 
-            If ListOfPic.Rows(position - 1)("CB_Title") Then
+            If ListOfPic.Rows(position - 1)("TitleSlide") Then
                 Anim_TitleSlide(tgt_img)
             Else
                 Dispatcher.Invoke(Sub()
@@ -790,7 +800,7 @@ Class MainWindow
                                         LoadNextImg()
                                     End Sub)
 
-            If Not ListOfPic.Rows(tmpposition - 1)("CB_Title") Then
+            If Not ListOfPic.Rows(tmpposition - 1)("TitleSlide") Then
                 Thread.Sleep((picmove_sec - 2.5) * 1000)
                 Dispatcher.Invoke(Sub()
                                       Animation.Timeline.SetDesiredFrameRate(anim_fadeout, framerate)
@@ -841,7 +851,7 @@ Class MainWindow
             If position = date_chkpoint Then Task.Run(Sub() dateThrd(position, date_chkpoint))
             If position = text_chkpoint Then Task.Run(Sub() textThrd(position, text_chkpoint))
 
-            If ListOfPic.Rows(position - 1)("CB_Title") Then
+            If ListOfPic.Rows(position - 1)("TitleSlide") Then
                 Anim_TitleSlide(tgt_img)
             Else
                 Dispatcher.Invoke(Sub()
@@ -860,7 +870,7 @@ Class MainWindow
                                         LoadNextImg()
                                     End Sub)
 
-            If Not ListOfPic.Rows(tmpposition - 1)("CB_Title") Then
+            If Not ListOfPic.Rows(tmpposition - 1)("TitleSlide") Then
                 Thread.Sleep((picmove_sec - 1) * 1000)
                 Dispatcher.Invoke(Sub()
                                       Animation.Timeline.SetDesiredFrameRate(anim_fadeout, framerate)
@@ -911,7 +921,7 @@ Class MainWindow
             If position = date_chkpoint Then Task.Run(Sub() dateThrd(position, date_chkpoint))
             If position = text_chkpoint Then Task.Run(Sub() textThrd(position, text_chkpoint))
 
-            If ListOfPic.Rows(position - 1)("CB_Title") Then
+            If ListOfPic.Rows(position - 1)("TitleSlide") Then
                 Anim_TitleSlide(tgt_img)
             Else
                 Dispatcher.Invoke(Sub()

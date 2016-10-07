@@ -1,6 +1,8 @@
-﻿Public Class EditWindow
+﻿Imports System.Data
+Public Class EditWindow
     Dim ListOfPic As New System.Data.DataTable("ImageList")
     Dim config As XElement
+    Dim changingselection As Boolean = False
 
 
     Private Sub Window_Loaded(sender As Object, e As RoutedEventArgs)
@@ -19,8 +21,99 @@
         'Next
     End Sub
 
+    Private Sub RefreshPreview(row As System.Data.DataRow)
+        Dim pic As New BitmapImage
+        Dim w As Double = 256, h As Double = w / MainWindow.w * MainWindow.h
+        Try
+            Dim imgpath As String = row("Path")
+            Using strm = New IO.FileStream(imgpath, IO.FileMode.Open, IO.FileAccess.Read)
+                Dim frame = BitmapFrame.Create(strm, BitmapCreateOptions.DelayCreation, BitmapCacheOption.None)
+                strm.Position = 0
+                pic.BeginInit()
+                Try
+                    'getting orientation value from exif and rotate image. Rotate before setting DecodePixelHeight/Width?
+                    Dim ori As UShort = DirectCast(frame.Metadata, BitmapMetadata).GetQuery("/app1/ifd/{ushort=274}")
+                    Select Case ori
+                        Case 6
+                            pic.Rotation = Rotation.Rotate90
+                        Case 3
+                            pic.Rotation = Rotation.Rotate180
+                        Case 8
+                            pic.Rotation = Rotation.Rotate270
+                    End Select
+                    strm.Position = 0
+                Catch
+                End Try
+                pic.DecodePixelWidth = 256
+                pic.CacheOption = BitmapCacheOption.OnLoad
+                pic.StreamSource = strm
+                pic.EndInit()
+            End Using
+        Catch
+            pic = New BitmapImage
+            Dim encoder As New BmpBitmapEncoder
+            Dim bmpsource = BitmapSource.Create(256, 192, 96, 96, PixelFormats.Indexed1, BitmapPalettes.BlackAndWhite, New Byte(192 * 32) {}, 32)
+            encoder.Frames.Add(BitmapFrame.Create(bmpsource))
+            Using ms As New IO.MemoryStream
+                encoder.Save(ms)
+                ms.Position = 0
+                pic.BeginInit()
+                pic.CacheOption = BitmapCacheOption.OnLoad
+                pic.StreamSource = ms
+                pic.EndInit()
+            End Using
+        Finally
+            pic.Freeze()
+        End Try
+        Dispatcher.Invoke(Sub()
+                              Dim tmpcan As New Grid
+                              tmpcan.Width = w
+                              tmpcan.Height = h
+                              Dim tmpimg As New Image
+                              With tmpimg
+                                  .Source = pic
+                                  .Stretch = Stretch.UniformToFill
+                              End With
+                              tmpcan.Children.Add(tmpimg)
+                              If Not IsDBNull(row("Date")) Then
+                                  Dim date_tb As New TextBlock
+                                  With date_tb
+                                      .Text = T_DateShown.Text
+                                      .FontFamily = New FontFamily("Georgia")
+                                      .FontSize = 12
+                                      .FontStyle = FontStyles.Italic
+                                      .Foreground = Brushes.White
+                                      .Effect = New Effects.DropShadowEffect With {.ShadowDepth = 2, .Opacity = 0.8}
+                                  End With
+                                  tmpcan.Children.Add(date_tb)
+                                  date_tb.Margin = New Thickness(w / 5, h * 0.75, 0, 0)
+                              End If
+                              If Not TB_Text.Text = "" Then
+                                  Dim text_tb As New TextBlock
+                                  With text_tb
+                                      .Text = TB_Text.Text
+                                      .FontFamily = New FontFamily(row("FontFamily"))
+                                      .FontSize = MainWindow.h / DirectCast(row("FontSize"), Double) / MainWindow.h * h
+                                      .Foreground = New SolidColorBrush(ColorConverter.ConvertFromString(row("FontColor")))
+                                      .Effect = New Effects.DropShadowEffect With {.ShadowDepth = 2, .Opacity = 0.8}
+                                  End With
+                                  tmpcan.Children.Add(text_tb)
+
+                                  Dim startw = (w * 0.7) + (w * DirectCast(row("FontOffsetH"), Double) / 100)
+                                  Dim starth = (h * 0.15) + (h * DirectCast(row("FontOffsetV"), Double) / 100)
+                                  text_tb.Margin = New Thickness(startw, starth, 0, 0)
+                              End If
+                              tmpcan.Arrange(New Rect(0, 0, w, h))
+                              Dim tmpbmp As New RenderTargetBitmap(w * 144 / 96, h * 144 / 96, 144, 144, PixelFormats.Default)
+                              tmpbmp.Render(tmpcan)
+                              IMG_Preview.Source = tmpbmp
+                              changingselection = False
+                          End Sub)
+    End Sub
+
     Private Sub LB_Pic_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles LB_Pic.SelectionChanged
         If e.AddedItems.Count = 1 Then
+            changingselection = True
             Dim row = ListOfPic.Rows.Find(e.AddedItems(0)("Path"))
             If row IsNot Nothing Then
                 If Not IsDBNull(row("Date")) Then
@@ -28,98 +121,15 @@
                 Else
                     T_DateShown.Text = Application.Current.Resources("none")
                 End If
-                CB_Title.IsChecked = row("CB_Title")
-                TB_TextShown.Text = row("Text")
-
+                CB_Title.IsChecked = row("TitleSlide")
+                TB_Text.Text = row("Text")
+                CbB_FontFamily.SelectedValue = row("FontFamily")
+                Sld_FontSize.Value = row("FontSize")
+                CbB_FontColor.SelectedValue = row("FontColor")
+                Sld_FontOffsetH.Value = row("FontOffsetH")
+                Sld_FontOffsetV.Value = row("FontOffsetV")
                 'showing preview
-                Task.Run(Sub()
-                             Dim pic As New BitmapImage
-                             Try
-                                 Dim imgpath As String = e.AddedItems(0)("Path")
-                                 Using strm = New IO.FileStream(imgpath, IO.FileMode.Open, IO.FileAccess.Read)
-                                     Dim frame = BitmapFrame.Create(strm, BitmapCreateOptions.DelayCreation, BitmapCacheOption.None)
-                                     strm.Position = 0
-                                     pic.BeginInit()
-                                     Try
-                                         'getting orientation value from exif and rotate image. Rotate before setting DecodePixelHeight/Width?
-                                         Dim ori As UShort = DirectCast(frame.Metadata, BitmapMetadata).GetQuery("/app1/ifd/{ushort=274}")
-                                         Select Case ori
-                                             Case 6
-                                                 pic.Rotation = Rotation.Rotate90
-                                             Case 3
-                                                 pic.Rotation = Rotation.Rotate180
-                                             Case 8
-                                                 pic.Rotation = Rotation.Rotate270
-                                         End Select
-                                         strm.Position = 0
-                                     Catch
-                                     End Try
-                                     pic.DecodePixelWidth = 250
-                                     pic.CacheOption = BitmapCacheOption.OnLoad
-                                     pic.StreamSource = strm
-                                     pic.EndInit()
-                                 End Using
-                             Catch
-                                 pic = New BitmapImage
-                                 Dim encoder As New BmpBitmapEncoder
-                                 Dim bmpsource = BitmapSource.Create(256, 192, 96, 96, PixelFormats.Indexed1, BitmapPalettes.BlackAndWhite, New Byte(192 * 32) {}, 32)
-                                 encoder.Frames.Add(BitmapFrame.Create(bmpsource))
-                                 Using ms As New IO.MemoryStream
-                                     encoder.Save(ms)
-                                     ms.Position = 0
-                                     pic.BeginInit()
-                                     pic.CacheOption = BitmapCacheOption.OnLoad
-                                     pic.StreamSource = ms
-                                     pic.EndInit()
-                                 End Using
-                             Finally
-                                 pic.Freeze()
-                             End Try
-                             Dispatcher.Invoke(Sub()
-                                                   Dim w = pic.PixelWidth
-                                                   Dim h = pic.PixelHeight
-                                                   Dim tmpcan As New Canvas
-                                                   tmpcan.Height = h
-                                                   tmpcan.Width = w
-                                                   Dim tmpimg As New Image
-                                                   With tmpimg
-                                                       .Source = pic
-                                                       .Height = h
-                                                       .Width = w
-                                                   End With
-                                                   tmpcan.Children.Add(tmpimg)
-                                                   If Not IsDBNull(e.AddedItems(0)("Date")) Then
-                                                       Dim date_tb As New TextBlock
-                                                       With date_tb
-                                                           .Text = T_DateShown.Text
-                                                           .FontFamily = New FontFamily("Georgia")
-                                                           .FontSize = 15
-                                                           .FontStyle = FontStyles.Italic
-                                                           .Foreground = Brushes.White
-                                                           .Effect = New Effects.DropShadowEffect With {.ShadowDepth = 2, .Opacity = 0.8}
-                                                       End With
-                                                       tmpcan.Children.Add(date_tb)
-                                                       date_tb.Margin = New Thickness(w / 5, h * 0.75, 0, 0)
-                                                   End If
-                                                   If Not TB_TextShown.Text = "" Then
-                                                       Dim text_tb As New TextBlock
-                                                       With text_tb
-                                                           .SnapsToDevicePixels = True
-                                                           .Text = TB_TextShown.Text
-                                                           .FontFamily = New FontFamily("Georgia")
-                                                           .FontSize = 15
-                                                           .Foreground = Brushes.White
-                                                           .Effect = New Effects.DropShadowEffect With {.ShadowDepth = 2, .Opacity = 0.8}
-                                                       End With
-                                                       tmpcan.Children.Add(text_tb)
-                                                       text_tb.Margin = New Thickness(w * 0.7, h * 0.15, 0, 0)
-                                                   End If
-                                                   tmpcan.Arrange(New Rect(0, 0, w, h))
-                                                   Dim tmpbmp As New RenderTargetBitmap(w * 144 / 96, h * 144 / 96, 144, 144, PixelFormats.Default)
-                                                   tmpbmp.Render(tmpcan)
-                                                   IMG_Preview.Source = tmpbmp
-                                               End Sub)
-                         End Sub)
+                Task.Run(Sub() RefreshPreview(e.AddedItems(0)))
             End If
         End If
     End Sub
@@ -132,7 +142,7 @@
             config.Add(lop)
             config.Save(MainWindow.config_path)
         End Using
-        
+
         'Using wt = Xml.XmlWriter.Create(config_path)
         '    wt.WriteStartElement("ConfigSlideRoot")
         '    wt.WriteStartElement("folders_image")
@@ -151,7 +161,7 @@
     Private Sub CB_Title_Checked(sender As Object, e As RoutedEventArgs) Handles CB_Title.Checked, CB_Title.Unchecked
         If Me.IsLoaded Then
             For Each i In LB_Pic.SelectedItems
-                ListOfPic.Rows.Find(i("Path"))("CB_Title") = CB_Title.IsChecked
+                ListOfPic.Rows.Find(i("Path"))("TitleSlide") = CB_Title.IsChecked
             Next
         End If
     End Sub
@@ -200,6 +210,8 @@
     End Sub
 
     Private Sub Btn_Reset_Click(sender As Object, e As RoutedEventArgs) Handles Btn_Reset.Click
+        Dim clearall As Boolean = False
+        If MsgBox(Application.Current.Resources("msg_resetlist"), MsgBoxStyle.YesNo + MsgBoxStyle.Question) = MsgBoxResult.Yes Then clearall = True
         LB_Pic.ItemsSource = Nothing
         Using tmpListOfPic = ListOfPic.Copy
             ListOfPic.Clear()
@@ -216,11 +228,13 @@
                             If DateTime.TryParse(filename, tmpdate) Then
                                 tmprow("Date") = DateTime.Parse(filename).ToString
                             End If
-                            Dim match = tmpListOfPic.Rows.Find(f)
-                            If match IsNot Nothing Then
-                                For i = 2 To ListOfPic.Columns.Count - 1
-                                    tmprow(i) = match(i)
-                                Next
+                            If Not clearall Then
+                                Dim match = tmpListOfPic.Rows.Find(f)
+                                If match IsNot Nothing Then
+                                    For i = 2 To ListOfPic.Columns.Count - 1
+                                        tmprow(i) = match(i)
+                                    Next
+                                End If
                             End If
                             ListOfPic.Rows.Add(tmprow)
                         End If
@@ -231,11 +245,25 @@
         LB_Pic.ItemsSource = ListOfPic.Rows
     End Sub
 
-    Private Sub TB_TextShown_LostFocus(sender As Object, e As RoutedEventArgs) Handles TB_TextShown.LostFocus
-        If Me.IsLoaded Then
-            For Each i In LB_Pic.SelectedItems
-                ListOfPic.Rows.Find(i("Path"))("Text") = TB_TextShown.Text
-            Next
+    Private Sub LostFocuses(sender As Object, e As RoutedEventArgs) Handles TB_Text.LostFocus, CbB_FontFamily.LostFocus, Sld_FontSize.ValueChanged, CbB_FontColor.LostFocus, Sld_FontOffsetH.ValueChanged, Sld_FontOffsetV.ValueChanged
+        If Me.IsLoaded AndAlso Not changingselection AndAlso LB_Pic.SelectedItem IsNot Nothing Then
+            Dim selected = DirectCast(LB_Pic.SelectedItem, DataRow)
+            Dim col = sender.Name.ToString.Split("_"c)(1)
+            Select Case sender.GetType
+                Case GetType(TextBox)
+                    selected(col) = sender.Text
+                Case GetType(ComboBox)
+                    If sender.IsEditable Then
+                        selected(col) = sender.Text
+                    Else
+                        selected(col) = sender.SelectedValue
+                    End If
+                Case GetType(Slider)
+                    selected(col) = sender.Value
+                Case Else
+                    Exit Sub
+            End Select
+            RefreshPreview(selected)
         End If
     End Sub
 End Class

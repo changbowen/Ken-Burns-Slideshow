@@ -1,7 +1,7 @@
 ﻿<Window x:Class="ControlWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="{Binding Mode=OneTime, Source={StaticResource control}, StringFormat='\{0} (F1)'}" Height="140" Width="355.786" ResizeMode="CanMinimize" Closing="Window_Closing" Icon="KenBurns.ico" PreviewKeyDown="Window_PreviewKeyDown">
+    Title="{Binding Mode=OneTime, Source={StaticResource control}, StringFormat='\{0} (F1)'}" Height="140" Width="355.786" ResizeMode="CanMinimize" Closing="Window_Closing" Icon="KenBurns.ico" PreviewKeyDown="Window_PreviewKeyDown" UseLayoutRounding="True">
     <Canvas>
         <Button x:Name="Btn_SwitchImage" Canvas.Left="10" Canvas.Top="10" Width="196" Height="24">
             <Button.Content>

@@ -85,4 +85,10 @@
     <system:String x:Key="tip_randomizeV">This will ignore custom ordering in Edit Slides for next runs. Restart program to revert back to default order.</system:String>
     <system:String x:Key="loading images">Loading images</system:String>
     <system:String x:Key="press esc">Press ESC to return to desktop</system:String>
+    <system:String x:Key="font family">Font family</system:String>
+    <system:String x:Key="font size ratio">Font size ratio</system:String>
+    <system:String x:Key="font color">Font color</system:String>
+    <system:String x:Key="font offset hor">Horizontal Offset</system:String>
+    <system:String x:Key="font offset ver">Vertical Offset</system:String>
+    <system:String x:Key="msg_resetlist">This will clear customized ordering. Do you want to also reset all other customizations (font, text etc.)?</system:String>
 </ResourceDictionary>

@@ -85,4 +85,10 @@
     <system:String x:Key="tip_randomizeV">选择此项会忽视编辑幻灯片中的自定义顺序。下次启动恢复默认顺序。</system:String>
     <system:String x:Key="loading images">载入图像</system:String>
     <system:String x:Key="press esc">按ESC键退出至桌面</system:String>
+    <system:String x:Key="font family">字体</system:String>
+    <system:String x:Key="font size ratio">字号比例</system:String>
+    <system:String x:Key="font color">字体颜色</system:String>
+    <system:String x:Key="font offset hor">水平偏移</system:String>
+    <system:String x:Key="font offset ver">垂直偏移</system:String>
+    <system:String x:Key="msg_resetlist">重置列表会清除自定义排序。是否需要同时清楚其它自定义设置（字体、文本等）？</system:String>
 </ResourceDictionary>
