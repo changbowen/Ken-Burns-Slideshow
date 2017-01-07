@@ -3,95 +3,133 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:Ken_Burns_Slideshow" x:Class="OptWindow"
     Title="{StaticResource options}" Height="499.55" Width="479.213" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded" Icon="KenBurns.ico" UseLayoutRounding="True">
-    <Canvas>
-        <GroupBox Header="{StaticResource details}" Height="271" Width="330" Canvas.Left="10" Canvas.Top="161">
-            <Grid Margin="5,0">
-                <Grid.RowDefinitions>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="97*"/>
-                    <ColumnDefinition Width="57*"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Text="{StaticResource framerate}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,8" Height="15"/>
-                <TextBlock Text="{StaticResource multiplier}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,8,0,7" Grid.Row="3" Grid.Column="1" Height="16"/>
-                <TextBox x:Name="TB_Framerate" VerticalAlignment="Center" HorizontalAlignment="Right" Padding="1,0" Height="20" Width="42" ToolTip="{StaticResource tip_framerate}"/>
-                <TextBox x:Name="TB_LoadQuality" VerticalAlignment="Center" Width="42" HorizontalAlignment="Right" Padding="1,0"  ToolTip="{StaticResource tip_loadquality}" Grid.Row="3" Grid.Column="1" Height="20"/>
-                <TextBlock Text="{Binding Mode=OneTime, Source={StaticResource duration}, StringFormat='* {0} (&gt;4s)'}" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="1" Margin="0,7,0,8" Height="16"/>
-                <TextBox x:Name="TB_Duration" VerticalAlignment="Center" Padding="1,0" Grid.Row="1" ToolTip="{StaticResource tip_duration}" Height="20" HorizontalAlignment="Right" Width="42"/>
-                <CheckBox x:Name="CB_ResLk" Content="{StaticResource resolution lock}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="{StaticResource tip_loadquality}" IsChecked="True" Grid.Row="3" Height="16" Margin="1,7,0,8"/>
-                <CheckBox x:Name="CB_Fadeout" Content="{StaticResource fadeout}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="{StaticResource tip_fadeout}" IsChecked="True" Grid.Row="4" Height="16" Margin="0,8,0,7" IsEnabled="False"/>
-                <CheckBox x:Name="CB_VerOptm" Content="{StaticResource vertical optimize}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="{StaticResource tip_veroptm}" IsChecked="True" Grid.Row="5" Height="16" Margin="0,7,0,8"/>
-                <CheckBox x:Name="CB_HorOptm" Content="{StaticResource horizontal optimize}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="{StaticResource tip_horoptm}" IsChecked="True" Grid.Row="6" Height="16" Margin="0,8"/>
-                <CheckBox x:Name="CB_VerLk" Content="{StaticResource vertical lock}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="{StaticResource tip_verlock}" IsChecked="True" Grid.Row="7" Height="16" Margin="0,8,0,7"/>
-                <TextBox x:Name="TB_VORatio" HorizontalAlignment="Right" VerticalAlignment="Center" Width="42" ToolTip="{StaticResource tip_veroptmR}" Padding="1,0" Grid.Column="1" Grid.Row="5" Height="20"/>
-                <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="{Binding Mode=OneTime, Source={StaticResource ratio}, StringFormat='\{0} (0 - 1)'}" VerticalAlignment="Center" Grid.Column="1" Grid.Row="5" Height="16" Margin="0,7,0,8"/>
-                <TextBox x:Name="TB_HORatio" HorizontalAlignment="Right" VerticalAlignment="Center" Width="42" ToolTip="{StaticResource tip_horoptmR}" Padding="1,0" Grid.Column="1" Grid.Row="6" Height="20"/>
-                <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="{Binding Mode=OneTime, Source={StaticResource ratio}, StringFormat='\{0} (0 - 1)'}" VerticalAlignment="Center" Grid.Column="1" Grid.Row="6" Height="16" Margin="0,8"/>
-                <TextBlock Text="{StaticResource scaling quality}" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="2" Margin="0,7,0,8" Height="16"/>
-                <ComboBox x:Name="CbB_ScaleMode" Grid.Row="2" Margin="0,3" HorizontalAlignment="Right" Width="103" ToolTip="{StaticResource tip_scalemode}">
-                    <ComboBox.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding Path=Value}"/>
-                        </DataTemplate>
-                    </ComboBox.ItemTemplate>
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="2*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <GroupBox Grid.Column="0">
+                <GroupBox.Header>
+                    <Run Text="{Binding Mode=OneTime, Source={StaticResource image folders}, StringFormat='* {0}'}"/>
+                </GroupBox.Header>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <ListBox Grid.Row="0" x:Name="LB_ImgFolder" ToolTip="{StaticResource tip_imagefolder}" Margin="2"/>
+                    <CheckBox Grid.Row="1" x:Name="CB_Img_Recur" Margin="2,0" Content="{StaticResource include subfolders}"/>
+                    <UniformGrid Grid.Row="2" Columns="3" Margin="2">
+                        <Button x:Name="Btn_Img_Add" Content="{StaticResource add}" Margin="2,0"/>
+                        <Button x:Name="Btn_Img_Rmv" Content="{StaticResource remove}" Margin="2,0"/>
+                        <Button x:Name="Btn_Img_Edit" Content="{StaticResource edit}" Margin="2,0"/>
+                    </UniformGrid>
+                </Grid>
+            </GroupBox>
+            <GroupBox Grid.Column="1">
+                <GroupBox.Header>
+                    <Run Text="{Binding Mode=OneTime, Source={StaticResource music folders}, StringFormat='* {0}'}"/>
+                </GroupBox.Header>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <ListBox Grid.Row="0" x:Name="LB_BGMFolder" ToolTip="{StaticResource tip_musicfolder}" Margin="2"/>
+                    <CheckBox Grid.Row="1" x:Name="CB_BGM_Recur" Margin="2,0" Content="{StaticResource include subfolders}"/>
+                    <UniformGrid Grid.Row="2" Columns="3" Margin="2">
+                        <Button x:Name="Btn_BGM_Add" Content="{StaticResource add}" Margin="2,0"/>
+                        <Button x:Name="Btn_BGM_Rmv" Content="{StaticResource remove}" Margin="2,0"/>
+                        <Button x:Name="Btn_BGM_Edit" Content="{StaticResource edit}" Margin="2,0"/>
+                    </UniformGrid>
+                </Grid>
+            </GroupBox>
+        </Grid>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <GroupBox Grid.Column="0" Header="{StaticResource details}">
+                <Grid Margin="5,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="97*"/>
+                        <ColumnDefinition Width="57*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Center" Text="{StaticResource framerate}"/>
+                    <TextBox Grid.Row="0" x:Name="TB_Framerate" VerticalAlignment="Center" HorizontalAlignment="Right" Width="40" Padding="1,0" ToolTip="{StaticResource tip_framerate}"/>
+                    <TextBlock Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Center" Text="{Binding Mode=OneTime, Source={StaticResource duration}, StringFormat='* {0} (&gt;4s)'}"/>
+                    <TextBox Grid.Row="1" x:Name="TB_Duration" VerticalAlignment="Center" HorizontalAlignment="Right" Width="40" Padding="1,0" ToolTip="{StaticResource tip_duration}"/>
+                    <TextBlock Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Center" Text="{StaticResource scaling quality}"/>
+                    <ComboBox Grid.Row="2" x:Name="CbB_ScaleMode" VerticalAlignment="Center" HorizontalAlignment="Right" Width="103" ToolTip="{StaticResource tip_scalemode}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Path=Value}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <TextBlock Grid.Row="3" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" Text="{StaticResource multiplier}"/>
+                    <TextBox Grid.Row="3" Grid.Column="1" x:Name="TB_LoadQuality" VerticalAlignment="Center" Width="30" HorizontalAlignment="Right" Padding="1,0" ToolTip="{StaticResource tip_loadquality}"/>
+                    <CheckBox Grid.Row="3" x:Name="CB_ResLk" Content="{StaticResource resolution lock}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="{StaticResource tip_loadquality}" IsChecked="True"/>
+                    <CheckBox Grid.Row="4" x:Name="CB_Fadeout" Content="{StaticResource fadeout}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="{StaticResource tip_fadeout}" IsChecked="True" IsEnabled="False"/>
+                    <CheckBox Grid.Row="5" x:Name="CB_VerOptm" Content="{StaticResource vertical optimize}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="{StaticResource tip_veroptm}" IsChecked="True"/>
+                    <CheckBox Grid.Row="6" x:Name="CB_HorOptm" Content="{StaticResource horizontal optimize}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="{StaticResource tip_horoptm}" IsChecked="True"/>
+                    <TextBox Grid.Row="5" Grid.Column="1" x:Name="TB_VORatio" HorizontalAlignment="Right" VerticalAlignment="Center" Width="30" ToolTip="{StaticResource tip_veroptmR}" Padding="1,0"/>
+                    <TextBlock Grid.Row="5" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" TextWrapping="Wrap" Text="{Binding Mode=OneTime, Source={StaticResource ratio}, StringFormat='\{0} (0 - 1)'}"/>
+                    <TextBox Grid.Row="6" Grid.Column="1" x:Name="TB_HORatio" HorizontalAlignment="Right" VerticalAlignment="Center" Width="30" ToolTip="{StaticResource tip_horoptmR}" Padding="1,0"/>
+                    <TextBlock Grid.Row="6" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" TextWrapping="Wrap" Text="{Binding Mode=OneTime, Source={StaticResource ratio}, StringFormat='\{0} (0 - 1)'}"/>
+                    <CheckBox Grid.Row="7" x:Name="CB_VerLk" Content="{StaticResource vertical lock}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="{StaticResource tip_verlock}" IsChecked="True"/>
+                    <TextBlock Grid.Row="8" Text="{StaticResource blur mode}" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                    <ComboBox Grid.Row="8" x:Name="CbB_BlurMode" HorizontalAlignment="Right" VerticalAlignment="Center" Width="103" ToolTip="{StaticResource tip_blurmode}">
+                        <ComboBoxItem Content="{StaticResource blur_none}"/>
+                        <ComboBoxItem Content="{StaticResource blur_fadein}"/>
+                        <ComboBoxItem Content="{StaticResource blur_fadeout}"/>
+                        <ComboBoxItem Content="{StaticResource blur_fadeinout}"/>
+                    </ComboBox>
+                </Grid>
+            </GroupBox>
+            <StackPanel Grid.Column="1" Margin="5,0">
+                <TextBlock TextWrapping="Wrap" Text="{Binding Mode=OneTime, Source={StaticResource active transition},StringFormat='* {0}'}"/>
+                <ComboBox x:Name="CbB_Transit" SelectedIndex="0" Margin="0,2,0,10">
+                    <ComboBoxItem Content="{StaticResource trans_kenburns}"/>
+                    <ComboBoxItem Content="{StaticResource trans_breath}"/>
+                    <ComboBoxItem Content="{StaticResource trans_throw}"/>
+                    <ComboBoxItem Content="{StaticResource trans_random}"/>
                 </ComboBox>
-                <TextBlock Text="{StaticResource blur mode}" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="8" Height="16" Margin="0,8,0,7"/>
-                <ComboBox x:Name="CbB_BlurMode" Grid.Row="8" Margin="0,3" HorizontalAlignment="Right" Width="103" ToolTip="{StaticResource tip_blurmode}">
-                    <ComboBoxItem Content="{StaticResource blur_none}"/>
-                    <ComboBoxItem Content="{StaticResource blur_fadein}"/>
-                    <ComboBoxItem Content="{StaticResource blur_fadeout}"/>
-                    <ComboBoxItem Content="{StaticResource blur_fadeinout}"/>
+                <TextBlock TextWrapping="Wrap" Text="{Binding Mode=Onetime, Source={StaticResource loading mode}, StringFormat='* {0}'}"/>
+                <ComboBox x:Name="CbB_LoadMode" SelectedIndex="0" Margin="0,2,0,10" ToolTip="{StaticResource tip_loadmode}">
+                    <ComboBoxItem Content="{StaticResource load_onebyone}"/>
+                    <ComboBoxItem Content="{StaticResource load_allatonce}"/>
                 </ComboBox>
-            </Grid>
-        </GroupBox>
-        <Button x:Name="Btn_FolderAsso" Content="{StaticResource register menu}" Canvas.Left="345" Canvas.Top="341" Width="108" Height="24" ToolTip="{StaticResource tip_registermenu}"/>
-        <Button x:Name="Btn_OK" Content="{StaticResource ok}" Width="108" Height="28" IsDefault="True" Canvas.Left="345" Canvas.Top="370"/>
-        <Button x:Name="Btn_Cancel" Content="{StaticResource cancel}" Width="108" Height="28" IsCancel="True" Canvas.Left="345" Canvas.Top="403"/>
-        <GroupBox HorizontalAlignment="Left" VerticalAlignment="Top" Height="146" Width="219" Canvas.Left="10" Canvas.Top="10">
-            <GroupBox.Header>
-                <Run Text="{Binding Mode=OneTime, Source={StaticResource image folders}, StringFormat='* {0}'}"/>
-            </GroupBox.Header>
-            <Canvas>
-                <ListBox x:Name="LB_ImgFolder" Height="97" Width="207" ToolTip="{StaticResource tip_imagefolder}"/>
-                <Button x:Name="Btn_Img_Add" Content="{StaticResource add}" Canvas.Top="102" Width="67"/>
-                <Button x:Name="Btn_Img_Rmv" Content="{StaticResource remove}" Canvas.Top="102" Width="65" Canvas.Left="142"/>
-                <Button x:Name="Btn_Img_Edit" Content="{StaticResource edit}" Canvas.Top="102" Width="65" Canvas.Left="72"/>
-            </Canvas>
-        </GroupBox>
-        <GroupBox HorizontalAlignment="Left" VerticalAlignment="Top" Height="146" Width="219" Canvas.Left="234" Canvas.Top="10">
-            <GroupBox.Header>
-                <Run Text="{Binding Mode=OneTime, Source={StaticResource music folders}, StringFormat='* {0}'}"/>
-            </GroupBox.Header>
-            <Canvas>
-                <ListBox x:Name="LB_BGMFolder" Height="97" Width="207" ToolTip="{StaticResource tip_musicfolder}"/>
-                <Button x:Name="Btn_BGM_Add" Content="{StaticResource add}" Canvas.Top="102" Width="67"/>
-                <Button x:Name="Btn_BGM_Rmv" Content="{StaticResource remove}" Canvas.Top="102" Width="65" Canvas.Left="142"/>
-                <Button x:Name="Btn_BGM_Edit" Content="{StaticResource edit}" Canvas.Top="102" Width="65" Canvas.Left="72"/>
-            </Canvas>
-        </GroupBox>
-        <ComboBox x:Name="CbB_Transit" Canvas.Left="345" Canvas.Top="183" Width="108" SelectedIndex="0">
-            <ComboBoxItem Content="{StaticResource trans_kenburns}"/>
-            <ComboBoxItem Content="{StaticResource trans_breath}"/>
-            <ComboBoxItem Content="{StaticResource trans_throw}"/>
-            <ComboBoxItem Content="{StaticResource trans_random}"/>
-        </ComboBox>
-        <TextBlock Canvas.Left="345" TextWrapping="Wrap" Text="{Binding Mode=OneTime, Source={StaticResource active transition},StringFormat='* {0}'}" Canvas.Top="163"/>
-        <TextBlock Canvas.Left="345" TextWrapping="Wrap" Text="{Binding Mode=Onetime, Source={StaticResource loading mode}, StringFormat='* {0}'}" Canvas.Top="221"/>
-        <ComboBox x:Name="CbB_LoadMode" Canvas.Left="345" Canvas.Top="242" Width="108" SelectedIndex="0" ToolTip="{StaticResource tip_loadmode}">
-            <ComboBoxItem Content="{StaticResource load_onebyone}"/>
-            <ComboBoxItem Content="{StaticResource load_allatonce}"/>
-        </ComboBox>
-        <CheckBox x:Name="CB_RandomizeV" Canvas.Left="345" Canvas.Top="280" ContentStringFormat="* {0}" Content="{StaticResource randomizeV}" ToolTip="{StaticResource tip_randomizeV}"/>
-        <CheckBox x:Name="CB_RandomizeA" Canvas.Left="345" Canvas.Top="300" ContentStringFormat="* {0}" Content="{StaticResource randomizeA}"/>
-        <TextBlock Canvas.Left="10" TextWrapping="Wrap" Text="{StaticResource star}" Canvas.Top="437"/>
-    </Canvas>
+                <CheckBox x:Name="CB_RandomizeV" Margin="0,5,0,0" ContentStringFormat="* {0}" Content="{StaticResource randomizeV}" ToolTip="{StaticResource tip_randomizeV}"/>
+                <CheckBox x:Name="CB_RandomizeA" Margin="0,5,0,0" ContentStringFormat="* {0}" Content="{StaticResource randomizeA}"/>
+            </StackPanel>
+            <StackPanel Grid.Column="1" VerticalAlignment="Bottom" Margin="5">
+                <Button x:Name="Btn_FolderAsso" Content="{StaticResource register menu}" ToolTip="{StaticResource tip_registermenu}"/>
+                <Button x:Name="Btn_OK" Margin="0,5" Content="{StaticResource ok}" IsDefault="True"/>
+                <Button x:Name="Btn_Cancel" Content="{StaticResource cancel}" IsCancel="True"/>
+            </StackPanel>
+        </Grid>
+        <TextBlock Grid.Row="2" TextWrapping="Wrap" Text="{StaticResource star}" Margin="0,2"/>
+    </Grid>
+    
 </Window>

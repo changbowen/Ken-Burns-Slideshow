@@ -1,6 +1,7 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:system="clr-namespace:System;assembly=mscorlib">
+    <system:String x:Key="ken burns slideshow">Ken Burns Slideshow</system:String>
     <system:String x:Key="options">Options</system:String>
     <system:String x:Key="ok">OK</system:String>
     <system:String x:Key="cancel">Cancel</system:String>
@@ -91,4 +92,5 @@
     <system:String x:Key="font offset hor">Horizontal Offset</system:String>
     <system:String x:Key="font offset ver">Vertical Offset</system:String>
     <system:String x:Key="msg_resetlist">This will clear customized ordering. Do you want to also reset all other customizations (font, text etc.)?</system:String>
+    <system:String x:Key="include subfolders">Include sub-folders</system:String>
 </ResourceDictionary>

@@ -5,9 +5,10 @@ Class MainWindow
     Public Shared PicFormats() As String = {".jpg", ".jpeg", ".bmp", ".png", ".tif", ".tiff"}
     Private BGMFormats() As String = {".mp3", ".wma", ".m4a", ".aac", ".wav", "asf"}
     Public Shared config_path As String = "config.xml"
+    Public Shared config_instant_path As String = "config_instant.xml"
     Private Shared ListOfMusic As New List(Of String)
     Private ran As New Random
-    Private Shared player As New System.Windows.Media.MediaPlayer
+    Private Shared player As New MediaPlayer
     Private currentaudio As Integer = 0
     Private playing As Boolean = False
     Private audiofading As Boolean = False
@@ -45,6 +46,8 @@ Class MainWindow
     Public Shared reallyclose As Boolean = False
     Public Shared randomizeV As Boolean = False
     Public Shared randomizeA As Boolean = False
+    Public Shared recursive_folder As Boolean = True
+    Public Shared recursive_music As Boolean = True
     Private Enum EXECUTION_STATE As Integer
         ''' <summary>
         ''' Informs the system that the state being set should remain in effect until the next call that uses ES_CONTINUOUS and one of the other state flags is cleared.
@@ -90,16 +93,16 @@ Class MainWindow
         'Dim cmdargs() As String = {"asdasd", "F:\Pictures\Giant"}
         Dim config As XElement
         If cmdargs.Length > 1 Then 'parametered start
-            If My.Computer.FileSystem.FileExists("config_instant.xml") Then
-                config = XElement.Load("config_instant.xml")
+            If My.Computer.FileSystem.FileExists(config_instant_path) Then
+                config = XElement.Load(config_instant_path)
                 config.Element("PicDir").RemoveAll()
                 config.Element("Music").RemoveAll()
-                config_path = "config_instant.xml"
+                config_path = config_instant_path
             ElseIf My.Computer.FileSystem.FileExists(config_path) Then
                 config = XElement.Load(config_path)
                 config.Element("PicDir").RemoveAll()
                 config.Element("Music").RemoveAll()
-                config_path = "config_instant.xml"
+                config_path = config_instant_path
             Else 'generate necessary settings
                 config = New XElement("CfgRoot")
                 config.Add(New XElement("Version", FileVersionInfo.GetVersionInfo(Reflection.Assembly.GetExecutingAssembly().Location).FileVersion))
@@ -168,6 +171,8 @@ Class MainWindow
             End If
             If config.Elements("RandomizeV").Any AndAlso config.Element("RandomizeV").Value.ToLower = "true" Then randomizeV = True
             If config.Elements("RandomizeA").Any AndAlso config.Element("RandomizeA").Value.ToLower = "true" Then randomizeA = True
+            If config.Elements("RecursiveFolder").Any AndAlso config.Element("RecursiveFolder").Value.ToLower = "false" Then recursive_folder = False
+            If config.Elements("RecursiveMusic").Any AndAlso config.Element("RecursiveMusic").Value.ToLower = "false" Then recursive_music = False
 
             'loading music list
             folders_music.Clear()
@@ -182,18 +187,28 @@ Class MainWindow
             folders_image.Clear()
             FillPic(config.Element("PicDir"))
 
-            'remove old paths
+            'remove old paths from ListOfPic
             If folders_image.Count > 0 Then
-                Dim tmplst As New List(Of System.Data.DataRow)
-                For Each row As System.Data.DataRow In ListOfPic.Rows
+                Dim tmplst As New List(Of Data.DataRow)
+                For Each row As Data.DataRow In ListOfPic.Rows
                     If Not My.Computer.FileSystem.FileExists(row("Path")) Then
+                        'remove when file doesnt exist
                         tmplst.Add(row)
                     Else
                         Dim score As Integer = 0
                         For i = 0 To folders_image.Count - 1
-                            If IO.Path.GetDirectoryName(row("Path")).Contains(folders_image(i)) Then
-                                score += 1
-                                Exit For
+                            If recursive_folder Then
+                                'dont remove when recursive is true and image is inside folder
+                                If IO.Path.GetDirectoryName(row("Path")).Contains(folders_image(i)) Then
+                                    score += 1
+                                    Exit For
+                                End If
+                            Else
+                                'dont remove when recursive is false and image is directly inside folder
+                                If IO.Path.GetDirectoryName(row("Path")) = folders_image(i) Then
+                                    score += 1
+                                    Exit For
+                                End If
                             End If
                         Next
                         If score = 0 Then tmplst.Add(row)
@@ -438,10 +453,11 @@ Class MainWindow
     End Sub
 
     Private Sub FillPic(PicDir_ele As XElement)
+        Dim searchopt = If(recursive_folder, FileIO.SearchOption.SearchAllSubDirectories, FileIO.SearchOption.SearchTopLevelOnly)
         For Each ele In PicDir_ele.Elements
             If My.Computer.FileSystem.DirectoryExists(ele.Value) Then
                 folders_image.Add(ele.Value)
-                For Each f In My.Computer.FileSystem.GetFiles(ele.Value, FileIO.SearchOption.SearchAllSubDirectories)
+                For Each f In My.Computer.FileSystem.GetFiles(ele.Value, searchopt)
                     Dim filefullname = My.Computer.FileSystem.GetName(f)
                     Dim filename = IO.Path.GetFileNameWithoutExtension(filefullname)
                     Dim ext = IO.Path.GetExtension(filefullname)
@@ -449,15 +465,15 @@ Class MainWindow
                         Dim row = ListOfPic.Rows.Find(f)
                         If row IsNot Nothing Then
                             Dim tmpdate As Date
-                            If DateTime.TryParse(filename, tmpdate) Then
-                                row("Date") = DateTime.Parse(filename).ToString
+                            If Date.TryParse(filename, tmpdate) Then
+                                row("Date") = Date.Parse(filename).ToString
                             End If
                         Else
                             Dim tmprow = ListOfPic.NewRow
                             tmprow("Path") = f
                             Dim tmpdate As Date
-                            If DateTime.TryParse(filename, tmpdate) Then
-                                tmprow("Date") = DateTime.Parse(filename).ToString
+                            If Date.TryParse(filename, tmpdate) Then
+                                tmprow("Date") = Date.Parse(filename).ToString
                             End If
                             ListOfPic.Rows.Add(tmprow)
                         End If
@@ -468,10 +484,11 @@ Class MainWindow
     End Sub
 
     Private Sub FillMusic(Music_ele As XElement)
+        Dim searchopt = If(recursive_music, FileIO.SearchOption.SearchAllSubDirectories, FileIO.SearchOption.SearchTopLevelOnly)
         For Each ele In Music_ele.Elements
             If My.Computer.FileSystem.DirectoryExists(ele.Value) Then
                 folders_music.Add(ele.Value)
-                For Each f In My.Computer.FileSystem.GetFiles(ele.Value, FileIO.SearchOption.SearchAllSubDirectories)
+                For Each f In My.Computer.FileSystem.GetFiles(ele.Value, searchopt)
                     Dim ext = IO.Path.GetExtension(f)
                     If BGMFormats.Contains(ext.ToLower) Then
                         ListOfMusic.Add(f)

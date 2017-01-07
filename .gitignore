@@ -47,7 +47,9 @@ local.properties
 [Rr]elease/
 x64/
 build/
-[Bb]in/
+[Bb]in/*
+[Bb]in/[Rr]elease/*
+!bin/Release/DesktopNote.exe
 [Oo]bj/
 
 # MSTest test Results

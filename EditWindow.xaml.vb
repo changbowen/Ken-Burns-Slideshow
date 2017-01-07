@@ -1,6 +1,6 @@
 ﻿Imports System.Data
 Public Class EditWindow
-    Dim ListOfPic As New System.Data.DataTable("ImageList")
+    Dim ListOfPic As New DataTable("ImageList")
     Dim config As XElement
     Dim changingselection As Boolean = False
 
@@ -211,13 +211,14 @@ Public Class EditWindow
 
     Private Sub Btn_Reset_Click(sender As Object, e As RoutedEventArgs) Handles Btn_Reset.Click
         Dim clearall As Boolean = False
+        Dim searchopt = If(MainWindow.recursive_folder, FileIO.SearchOption.SearchAllSubDirectories, FileIO.SearchOption.SearchTopLevelOnly)
         If MsgBox(Application.Current.Resources("msg_resetlist"), MsgBoxStyle.YesNo + MsgBoxStyle.Question) = MsgBoxResult.Yes Then clearall = True
         LB_Pic.ItemsSource = Nothing
         Using tmpListOfPic = ListOfPic.Copy
             ListOfPic.Clear()
             For Each fd In MainWindow.folders_image
                 If My.Computer.FileSystem.DirectoryExists(fd) Then
-                    For Each f In My.Computer.FileSystem.GetFiles(fd, FileIO.SearchOption.SearchAllSubDirectories)
+                    For Each f In My.Computer.FileSystem.GetFiles(fd, searchopt)
                         Dim filefullname = My.Computer.FileSystem.GetName(f)
                         Dim filename = IO.Path.GetFileNameWithoutExtension(filefullname)
                         Dim ext = IO.Path.GetExtension(filefullname)
@@ -225,8 +226,8 @@ Public Class EditWindow
                             Dim tmprow = ListOfPic.NewRow
                             tmprow("Path") = f
                             Dim tmpdate As Date
-                            If DateTime.TryParse(filename, tmpdate) Then
-                                tmprow("Date") = DateTime.Parse(filename).ToString
+                            If Date.TryParse(filename, tmpdate) Then
+                                tmprow("Date") = Date.Parse(filename).ToString
                             End If
                             If Not clearall Then
                                 Dim match = tmpListOfPic.Rows.Find(f)

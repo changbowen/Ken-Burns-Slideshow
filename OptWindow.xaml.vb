@@ -25,6 +25,8 @@
         CbB_BlurMode.SelectedIndex = MainWindow.blurmode
         CB_RandomizeV.IsChecked = MainWindow.randomizeV
         CB_RandomizeA.IsChecked = MainWindow.randomizeA
+        CB_Img_Recur.IsChecked = MainWindow.recursive_folder
+        CB_BGM_Recur.IsChecked = MainWindow.recursive_music
 
         If Microsoft.Win32.Registry.CurrentUser.OpenSubKey("Software\Classes\Directory\shell\OpenWithKenBurns\command") Is Nothing Then
             Btn_FolderAsso.Content = Application.Current.Resources("register menu")
@@ -124,6 +126,8 @@
         MainWindow.blurmode = CbB_BlurMode.SelectedIndex
         MainWindow.randomizeV = CB_RandomizeV.IsChecked
         MainWindow.randomizeA = CB_RandomizeA.IsChecked
+        MainWindow.recursive_folder = CB_Img_Recur.IsChecked
+        MainWindow.recursive_music = CB_BGM_Recur.IsChecked
 
         'saving to file
         Dim config As New XElement("CfgRoot")
@@ -152,6 +156,8 @@
         config.Add(New XElement("LoadMode", CbB_LoadMode.SelectedIndex))
         config.Add(New XElement("RandomizeV", CB_RandomizeV.IsChecked.Value))
         config.Add(New XElement("RandomizeA", CB_RandomizeA.IsChecked.Value))
+        config.Add(New XElement("RecursiveFolder", CB_Img_Recur.IsChecked.Value))
+        config.Add(New XElement("RecursiveMusic", CB_BGM_Recur.IsChecked.Value))
 
         'copy slides data if exists
         If My.Computer.FileSystem.FileExists(MainWindow.config_path) Then
@@ -165,29 +171,37 @@
         Me.Close()
     End Sub
 
+    Private Function GetTargetLB(sender As Object) As ListBox
+        Dim lb As ListBox = Nothing
+        Select Case sender.Name
+            Case NameOf(Btn_Img_Add), NameOf(Btn_Img_Edit), NameOf(Btn_Img_Rmv), NameOf(LB_ImgFolder)
+                lb = LB_ImgFolder
+            Case NameOf(Btn_BGM_Add), NameOf(Btn_BGM_Edit), NameOf(Btn_BGM_Rmv), NameOf(LB_BGMFolder)
+                lb = LB_BGMFolder
+        End Select
+        Return lb
+    End Function
+
     Private Sub Btn_Img_Add_Click(sender As Object, e As RoutedEventArgs) Handles Btn_Img_Add.Click, Btn_BGM_Add.Click
         Using dialog As New Forms.FolderBrowserDialog
             dialog.Description = "Select a folder."
             dialog.SelectedPath = lastPath
             If dialog.ShowDialog = Forms.DialogResult.OK Then
-                Dim c As Object = VisualTreeHelper.GetParent(sender)
-                c.Children(0).Items.Add(dialog.SelectedPath)
+                GetTargetLB(sender).Items.Add(dialog.SelectedPath)
                 lastPath = dialog.SelectedPath
             End If
         End Using
     End Sub
 
     Private Sub Btn_Img_Rmv_Click(sender As Object, e As RoutedEventArgs) Handles Btn_Img_Rmv.Click, Btn_BGM_Rmv.Click
-        Dim c As Object = VisualTreeHelper.GetParent(sender)
-        Dim lb As ListBox = c.Children(0)
+        Dim lb As ListBox = GetTargetLB(sender)
         If lb.SelectedIndex <> -1 Then
             lb.Items.RemoveAt(lb.SelectedIndex)
         End If
     End Sub
 
     Private Sub Btn_Img_Edit_Click(sender As Object, e As RoutedEventArgs) Handles Btn_Img_Edit.Click, Btn_BGM_Edit.Click, LB_ImgFolder.MouseDoubleClick, LB_BGMFolder.MouseDoubleClick
-        Dim c As Object = VisualTreeHelper.GetParent(sender)
-        Dim lb As ListBox = c.Children(0)
+        Dim lb As ListBox = GetTargetLB(sender)
         If lb.SelectedIndex <> -1 Then
             Using dialog As New Forms.FolderBrowserDialog
                 dialog.Description = "Select a folder."
