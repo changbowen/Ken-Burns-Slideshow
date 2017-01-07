@@ -69,6 +69,9 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
 - 文件名中包含URI转义符的音频文件（如：This%20is%20a%20song%28I%20am%20kidding%29.mp3）不会被识别。
 
 ## Updates
+- 2017-01-07
+  - Added option to exclude sub-folders.
+  - Minor changes to Options window to fit localizations.
 - 2016-10-07
   - Added more text customizations.
 - 2016-08-17
