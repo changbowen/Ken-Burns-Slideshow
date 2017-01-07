@@ -93,4 +93,5 @@
     <system:String x:Key="font offset ver">垂直偏移</system:String>
     <system:String x:Key="msg_resetlist">重置列表会清除自定义排序。是否需要同时清楚其它自定义设置（字体、文本等）？</system:String>
     <system:String x:Key="include subfolders">包含子文件夹</system:String>
+    <system:String x:Key="select folder">选择文件夹</system:String>
 </ResourceDictionary>

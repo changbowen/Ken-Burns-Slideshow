@@ -77,9 +77,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="System.Data" />
-    <Reference Include="System.Windows.Forms">
-      <Private>False</Private>
-    </Reference>
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq">
       <Private>False</Private>
     </Reference>

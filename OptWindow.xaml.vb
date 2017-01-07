@@ -1,4 +1,6 @@
-﻿Public Class OptWindow
+﻿Imports Ken_Burns_Slideshow.Application
+
+Public Class OptWindow
     Dim lastPath As String
 
     Private Sub Window_Loaded(sender As Object, e As RoutedEventArgs)
@@ -29,9 +31,9 @@
         CB_BGM_Recur.IsChecked = MainWindow.recursive_music
 
         If Microsoft.Win32.Registry.CurrentUser.OpenSubKey("Software\Classes\Directory\shell\OpenWithKenBurns\command") Is Nothing Then
-            Btn_FolderAsso.Content = Application.Current.Resources("register menu")
+            Btn_FolderAsso.Content = Current.Resources("register menu")
         Else
-            Btn_FolderAsso.Content = Application.Current.Resources("unregister menu")
+            Btn_FolderAsso.Content = Current.Resources("unregister menu")
         End If
     End Sub
 
@@ -100,12 +102,11 @@
     End Function
 
     Private Sub Btn_OK_Click(sender As Object, e As RoutedEventArgs) Handles Btn_OK.Click
-        Dim dict = Application.Current.Resources
-        If Not CheckConsist(TB_VORatio.Text, MainWindow.verticalOptimizeR, 0, 1, False, True, dict("msg_invVOR").ToString) Then Exit Sub
-        If Not CheckConsist(TB_HORatio.Text, MainWindow.horizontalOptimizeR, 0, 1, False, True, dict("msg_invHOR").ToString) Then Exit Sub
-        If Not CheckConsist(TB_Framerate.Text, MainWindow.framerate, 0, False, dict("msg_invfps").ToString) Then Exit Sub
-        If Not CheckConsist(TB_Duration.Text, MainWindow.duration, 4, False, dict("msg_invdur").ToString) Then Exit Sub
-        If Not CheckConsist(TB_LoadQuality.Text, MainWindow.loadquality, 0, 2, False, True, dict("msg_invmul").ToString) Then Exit Sub
+        If Not CheckConsist(TB_VORatio.Text, MainWindow.verticalOptimizeR, 0, 1, False, True, Current.Resources("msg_invVOR").ToString) Then Exit Sub
+        If Not CheckConsist(TB_HORatio.Text, MainWindow.horizontalOptimizeR, 0, 1, False, True, Current.Resources("msg_invHOR").ToString) Then Exit Sub
+        If Not CheckConsist(TB_Framerate.Text, MainWindow.framerate, 0, False, Current.Resources("msg_invfps").ToString) Then Exit Sub
+        If Not CheckConsist(TB_Duration.Text, MainWindow.duration, 4, False, Current.Resources("msg_invdur").ToString) Then Exit Sub
+        If Not CheckConsist(TB_LoadQuality.Text, MainWindow.loadquality, 0, 2, False, True, Current.Resources("msg_invmul").ToString) Then Exit Sub
 
         MainWindow.folders_image.Clear()
         For Each i As String In LB_ImgFolder.Items
@@ -184,7 +185,7 @@
 
     Private Sub Btn_Img_Add_Click(sender As Object, e As RoutedEventArgs) Handles Btn_Img_Add.Click, Btn_BGM_Add.Click
         Using dialog As New Forms.FolderBrowserDialog
-            dialog.Description = "Select a folder."
+            dialog.Description = Current.Resources("select folder")
             dialog.SelectedPath = lastPath
             If dialog.ShowDialog = Forms.DialogResult.OK Then
                 GetTargetLB(sender).Items.Add(dialog.SelectedPath)
@@ -204,7 +205,7 @@
         Dim lb As ListBox = GetTargetLB(sender)
         If lb.SelectedIndex <> -1 Then
             Using dialog As New Forms.FolderBrowserDialog
-                dialog.Description = "Select a folder."
+                dialog.Description = Current.Resources("select folder")
                 dialog.SelectedPath = lb.SelectedItem.ToString
                 If dialog.ShowDialog = Forms.DialogResult.OK Then
                     lb.Items(lb.SelectedIndex) = dialog.SelectedPath
@@ -235,7 +236,7 @@
             If CB_ResLk.IsChecked Then
                 TB_LoadQuality.IsEnabled = True
             Else
-                If CbB_LoadMode.SelectedIndex = 1 AndAlso MsgBox(Application.Current.Resources("msg_reslockwarning"), MsgBoxStyle.Exclamation + MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
+                If CbB_LoadMode.SelectedIndex = 1 AndAlso MsgBox(Current.Resources("msg_reslockwarning"), MsgBoxStyle.Exclamation + MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
                     e.Handled = True
                     CB_ResLk.IsChecked = True
                 Else
@@ -248,7 +249,7 @@
     Private Sub CbB_LoadMode_SelectionChanged(sender As Object, e As SelectionChangedEventArgs) Handles CbB_LoadMode.SelectionChanged
         If Me.IsLoaded Then
             If CbB_LoadMode.SelectedIndex = 1 AndAlso Not CB_ResLk.IsChecked Then
-                If MsgBox(Application.Current.Resources("msg_reslockwarning"), MsgBoxStyle.Exclamation + MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
+                If MsgBox(Current.Resources("msg_reslockwarning"), MsgBoxStyle.Exclamation + MsgBoxStyle.OkCancel) = MsgBoxResult.Ok Then
                     CB_ResLk.IsChecked = True
                 End If
             End If
@@ -258,9 +259,9 @@
     Private Sub Btn_FolderAsso_Click(sender As Object, e As RoutedEventArgs) Handles Btn_FolderAsso.Click
         If Microsoft.Win32.Registry.CurrentUser.OpenSubKey("Software\Classes\Directory\shell\OpenWithKenBurns\command") Is Nothing Then
             Dim shellkey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey("Software\Classes\Directory\shell\OpenWithKenBurns")
-            shellkey.SetValue("", Application.Current.Resources("ken burns me"), Microsoft.Win32.RegistryValueKind.String)
+            shellkey.SetValue("", Current.Resources("ken burns me"), Microsoft.Win32.RegistryValueKind.String)
             shellkey.CreateSubKey("command").SetValue("", """" & Reflection.Assembly.GetExecutingAssembly.Location & """ ""%1")
-            Btn_FolderAsso.Content = Application.Current.Resources("unregister menu")
+            Btn_FolderAsso.Content = Current.Resources("unregister menu")
         Else
             Dim dirkey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey("Software\Classes\Directory", True)
             dirkey.DeleteSubKeyTree("shell\OpenWithKenBurns")
@@ -268,7 +269,7 @@
             If shellkey.SubKeyCount = 0 AndAlso shellkey.ValueCount = 0 Then
                 dirkey.DeleteSubKeyTree("shell")
             End If
-            Btn_FolderAsso.Content = Application.Current.Resources("register menu")
+            Btn_FolderAsso.Content = Current.Resources("register menu")
         End If
     End Sub
 End Class

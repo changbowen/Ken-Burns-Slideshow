@@ -93,4 +93,5 @@
     <system:String x:Key="font offset ver">Vertical Offset</system:String>
     <system:String x:Key="msg_resetlist">This will clear customized ordering. Do you want to also reset all other customizations (font, text etc.)?</system:String>
     <system:String x:Key="include subfolders">Include sub-folders</system:String>
+    <system:String x:Key="select folder">Select a folder</system:String>
 </ResourceDictionary>
