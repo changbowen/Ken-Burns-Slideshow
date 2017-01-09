@@ -2,24 +2,31 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
-    xmlns:System="clr-namespace:System;assembly=mscorlib" x:Class="EditWindow"
-    Title="{StaticResource edit slides}" Height="520" Width="620" Icon="KenBurns.ico" Loaded="Window_Loaded" UseLayoutRounding="True">
+    xmlns:System="clr-namespace:System;assembly=mscorlib" x:Class="EditWindow" 
+    Title="{StaticResource edit slides}" Icon="KenBurns.ico" Loaded="Window_Loaded" UseLayoutRounding="True" Height="467" Width="609">
     <Grid>
-        <TextBlock HorizontalAlignment="Right" Margin="0,0,10,10" TextWrapping="Wrap" Text="{StaticResource star}" VerticalAlignment="Bottom" Width="283" Height="49"/>
-        <GroupBox Canvas.Left="10" Canvas.Top="10" Margin="10,10,298,10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <GroupBox Grid.Column="0" Margin="10">
             <GroupBox.Header>
                 <Run Text="{Binding Mode=OneTime, Source={StaticResource image list}, StringFormat=* \{0\}}"/>
             </GroupBox.Header>
             <Grid>
-                <ListBox x:Name="LB_Pic" Margin="0,0,0,24" SelectionMode="Extended" DisplayMemberPath="[0]"/>
-                <Button x:Name="Btn_Up" Content="↑" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="22"/>
-                <Button x:Name="Btn_Down" Content="↓" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="22" Margin="26,0,0,0"/>
-                <Button x:Name="Btn_Reset" Content="{StaticResource reset list}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="88" Height="22" ToolTip="{StaticResource tip_resetlist}"/>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <ListBox x:Name="LB_Pic" SelectionMode="Extended" DisplayMemberPath="[0]" MinHeight="300" MinWidth="200" Margin="0,0,0,4"/>
+                <DockPanel Grid.Row="1">
+                    <Button x:Name="Btn_Up" Content="↑" Width="22" Height="22"/>
+                    <Button x:Name="Btn_Down" Content="↓" Width="22" Height="22" Margin="5,0"/>
+                    <Button x:Name="Btn_Reset" Content="{StaticResource reset list}" HorizontalAlignment="Right" Width="88" Height="22" ToolTip="{StaticResource tip_resetlist}"/>
+                </DockPanel>
             </Grid>
         </GroupBox>
-        <Button x:Name="Btn_Save" Content="{StaticResource save}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="64" Margin="0,0,79,10" Height="28" IsDefault="True"/>
-        <Button x:Name="Btn_Cancel" Content="{StaticResource cancel}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="64" Margin="0,0,10,10" Height="28" IsCancel="True"/>
-        <Grid Margin="0,10,12,59" HorizontalAlignment="Right" Width="281">
+        <Grid Grid.Column="1" Margin="10">
             <Grid.Resources>
                 <Style TargetType="TextBox">
                     <Setter Property="Margin" Value="2"/>
@@ -59,7 +66,9 @@
                 <RowDefinition Height="32*"/>
                 <RowDefinition Height="32*"/>
                 <RowDefinition Height="32*"/>
-                <RowDefinition Height="250*"/>
+                <RowDefinition Height="200*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <TextBlock Text="{Binding Mode=OneTime, Source={StaticResource onscreen date}, StringFormat=\{0\}}"/>
             <CheckBox x:Name="CB_Title" Grid.Row="1" VerticalAlignment="Center" ToolTip="{StaticResource tip_titleslide}">
@@ -95,8 +104,13 @@
             </ComboBox>
             <Slider x:Name="Sld_FontOffsetH" Grid.Column="1" Grid.Row="6" Maximum="100" Minimum="-100" SmallChange="1" LargeChange="10"/>
             <Slider x:Name="Sld_FontOffsetV" Grid.Column="1" Grid.Row="7" Maximum="100" Minimum="-100" SmallChange="1" LargeChange="10"/>
-            <Image x:Name="IMG_Preview" Grid.Row="100" Grid.ColumnSpan="2" Margin="8"/>
-        </Grid>
+            <Image x:Name="IMG_Preview" Grid.Row="8" Grid.ColumnSpan="2" Margin="8"/>
+            <TextBlock Grid.ColumnSpan="2" Grid.Row="9" TextWrapping="Wrap" Text="{StaticResource star}" MaxWidth="300"/>
+            <StackPanel Orientation="Horizontal" Grid.Column="1" Grid.Row="10" HorizontalAlignment="Right" Margin="0,5,0,0">
+                <Button x:Name="Btn_Save" Content="{StaticResource save}" HorizontalAlignment="Right" VerticalAlignment="Bottom" MinWidth="64" MinHeight="28" IsDefault="True"/>
+                <Button x:Name="Btn_Cancel" Content="{StaticResource cancel}" HorizontalAlignment="Right" VerticalAlignment="Bottom" MinWidth="64" MinHeight="28" IsCancel="True" Margin="5,0,0,0"/>
+            </StackPanel>
+            </Grid>
 
     </Grid>
 </Window>
