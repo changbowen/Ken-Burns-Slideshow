@@ -4,12 +4,15 @@ Instant, portable, full-screen slideshow application with the Ken Burns effect (
 This idea came to me while watching a slideshow on iPad. How nice would it be if we can create instant slideshows on a Windows machine with only a single executable and a folder of images.
 
 此程序可用Ken Burns等三种效果播放文件夹中的图像，Ken Burns效果可参照iPad照片图库。
+
+Always get the latest development build from [here](https://github.com/changbowen/Ken-Burns-Slideshow/raw/master/bin/Release/Ken%20Burns%20Slideshow.exe).
+
+最新开发版[传送门](https://github.com/changbowen/Ken-Burns-Slideshow/raw/master/bin/Release/Ken%20Burns%20Slideshow.exe)。
+
 ## Preview
 - <img class="alignnone size-full wp-image-8" src="http://i.imgur.com/5O30vFL.jpg" alt="" width="650"/><img class="alignnone size-full wp-image-20" src="http://i.imgur.com/dNIf5mC.jpg" alt=""/>
-- Youtube video
-  - https://youtu.be/ch2UjN9nwIc
-- Youku video (for China)
-  - http://v.youku.com/v_show/id_XMTQ5NTM0NTAxMg==.html
+- [Youtube video](https://youtu.be/ch2UjN9nwIc)
+- [Youku video](http://v.youku.com/v_show/id_XMTQ5NTM0NTAxMg==.html) 
 
 ## Language &amp; Requirement
 - WPF application written in VB.net
