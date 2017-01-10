@@ -48,6 +48,7 @@ Class MainWindow
     Public Shared randomizeA As Boolean = False
     Public Shared recursive_folder As Boolean = True
     Public Shared recursive_music As Boolean = True
+    Public Shared showcontrol As Boolean = True
     Private Enum EXECUTION_STATE As Integer
         ''' <summary>
         ''' Informs the system that the state being set should remain in effect until the next call that uses ES_CONTINUOUS and one of the other state flags is cleared.
@@ -133,8 +134,8 @@ Class MainWindow
 
         'config.xml version check
         If config.Elements("Version").Any Then
-            Dim xmlver As New System.Version(config.Element("Version").Value)
-            Dim appver As New System.Version(FileVersionInfo.GetVersionInfo(Reflection.Assembly.GetExecutingAssembly().Location).FileVersion)
+            Dim xmlver As New Version(config.Element("Version").Value)
+            Dim appver As New Version(FileVersionInfo.GetVersionInfo(Reflection.Assembly.GetExecutingAssembly().Location).FileVersion)
             If xmlver < appver Then
                 MsgBox(Application.Current.Resources("msg_versionerr"), MsgBoxStyle.Exclamation)
                 Me.Close()
@@ -173,6 +174,7 @@ Class MainWindow
             If config.Elements("RandomizeA").Any AndAlso config.Element("RandomizeA").Value.ToLower = "true" Then randomizeA = True
             If config.Elements("RecursiveFolder").Any AndAlso config.Element("RecursiveFolder").Value.ToLower = "false" Then recursive_folder = False
             If config.Elements("RecursiveMusic").Any AndAlso config.Element("RecursiveMusic").Value.ToLower = "false" Then recursive_music = False
+            If config.Elements("ShowControl").Any AndAlso config.Element("ShowControl").Value.ToLower = "false" Then showcontrol = False
 
             'loading music list
             folders_music.Clear()
@@ -284,7 +286,7 @@ Class MainWindow
             Task.Run(
                 Sub()
                     Dim count = ListOfPic.Rows.Count
-                    Dim tb As TextBlock
+                    Dim tb As TextBlock = Nothing
                     Dim tbtext As String = Application.Current.Resources("loading images")
                     Dispatcher.Invoke(Sub()
                                           tb = New TextBlock With {.Text = tbtext & "..."}
@@ -357,7 +359,7 @@ Class MainWindow
                         End Try
                         pics.Add(imgpath, img)
 
-                        Dim imgctrl As Image
+                        Dim imgctrl As Image = Nothing
                         Dispatcher.Invoke(Sub()
                                               imgctrl = New Image
                                               imgctrl.Source = img
@@ -400,21 +402,25 @@ Class MainWindow
                                           LoadNextImg()
                                           worker_pic.Start()
                                           Dispatcher.Invoke(Sub()
-                                                                If ctrlwindow Is Nothing Then
-                                                                    ctrlwindow = New ControlWindow
-                                                                    ctrlwindow.Owner = Me
+                                                                If showcontrol Then
+                                                                    If ctrlwindow Is Nothing Then
+                                                                        ctrlwindow = New ControlWindow
+                                                                        ctrlwindow.Owner = Me
+                                                                    End If
+                                                                    ctrlwindow.Show()
                                                                 End If
-                                                                ctrlwindow.Show()
                                                             End Sub)
                                       End Sub)
         ElseIf loadmode = 0 Then
             LoadNextImg()
             worker_pic.Start()
-            If ctrlwindow Is Nothing Then
-                ctrlwindow = New ControlWindow
-                ctrlwindow.Owner = Me
+            If showcontrol Then
+                If ctrlwindow Is Nothing Then
+                    ctrlwindow = New ControlWindow
+                    ctrlwindow.Owner = Me
+                End If
+                ctrlwindow.Show()
             End If
-            ctrlwindow.Show()
         Else
             Me.Close()
         End If
@@ -555,7 +561,7 @@ Class MainWindow
 
         'displaying custom text
         If Not tmpstr = "" Then
-            Dim txt_tb As TextBlock
+            Dim txt_tb As TextBlock = Nothing
             Dispatcher.Invoke(
                 Sub()
                     txt_tb = New TextBlock
@@ -641,7 +647,7 @@ Class MainWindow
             End If
 
             tmpdate = Date.Parse(crntdate).ToString("yyyy.M")
-            Dim tgt_tb As TextBlock
+            Dim tgt_tb As TextBlock = Nothing
             If mm = 0 Then
                 mm = 1
             Else
@@ -1189,12 +1195,12 @@ Class MainWindow
             Task.Run(AddressOf FadeoutAudio)
             Task.Run(Sub()
                          moveon = True
-                         Dim black As Rectangle
+                         Dim black As Rectangle = Nothing
                          Dispatcher.Invoke(Sub()
                                                black = New Rectangle
                                                mainGrid.Children.Add(black)
                                                Panel.SetZIndex(black, 9)
-                                               black.Fill = Windows.Media.Brushes.Black
+                                               black.Fill = Brushes.Black
                                                black.Width = w
                                                black.Height = h
                                                black.BeginAnimation(OpacityProperty, New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 1))))
@@ -1284,7 +1290,7 @@ Class MainWindow
                 Dim black As New Rectangle
                 mainGrid.Children.Add(black)
                 Panel.SetZIndex(black, 9)
-                black.Fill = Windows.Media.Brushes.Black
+                black.Fill = Brushes.Black
                 black.Width = w
                 black.Height = h
                 Dim exit_fadeout As New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 3)))
@@ -1292,13 +1298,17 @@ Class MainWindow
                 AddHandler exit_fadeout.Completed, Sub()
                                                        Dispatcher.Invoke(Sub()
                                                                              Dim tbtext As String = Application.Current.Resources("press esc")
-                                                                             Dim tb = New TextBlock With {.Text = tbtext & "..."}
-                                                                             tb.FontFamily = New FontFamily("Segoe UI")
-                                                                             tb.FontSize = 12
-                                                                             tb.Foreground = Brushes.WhiteSmoke
-                                                                             tb.Margin = New Thickness(w / 2 - 60, h / 2 - 6, 0, 0)
+                                                                             Dim tb = New TextBlock With
+                                                                             {.Text = tbtext & "...",
+                                                                             .Opacity = 0,
+                                                                             .FontFamily = New FontFamily("Segoe UI"),
+                                                                             .FontSize = 12,
+                                                                             .Foreground = Brushes.WhiteSmoke,
+                                                                             .Margin = New Thickness(w / 2 - 60, h / 2 - 6, 0, 0)}
                                                                              mainGrid.Children.Add(tb)
                                                                              Panel.SetZIndex(tb, 10)
+                                                                             tb.BeginAnimation(OpacityProperty,
+                                                                                               New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 0, 0, 500))))
                                                                          End Sub)
                                                        reallyclose = True
                                                    End Sub

@@ -129,6 +129,7 @@
                     </ComboBox>
                     <CheckBox x:Name="CB_RandomizeV" Margin="0,5,0,0" ContentStringFormat="* {0}" Content="{StaticResource randomizeV}" ToolTip="{StaticResource tip_randomizeV}"/>
                     <CheckBox x:Name="CB_RandomizeA" Margin="0,5,0,0" ContentStringFormat="* {0}" Content="{StaticResource randomizeA}"/>
+                    <CheckBox x:Name="CB_ShowControl" Margin="0,5,0,0" ContentStringFormat="* {0}" Content="{StaticResource showcontrol}" ToolTip="{StaticResource tip_showcontrol}"/>
                 </StackPanel>
                 <StackPanel DockPanel.Dock="Bottom" VerticalAlignment="Bottom">
                     <Button x:Name="Btn_FolderAsso" Content="{StaticResource register menu}" ToolTip="{StaticResource tip_registermenu}" MinHeight="25"/>
