@@ -72,6 +72,9 @@ Always get the latest development build from [here](https://github.com/changbowe
 - 文件名中包含URI转义符的音频文件（如：This%20is%20a%20song%28I%20am%20kidding%29.mp3）不会被识别。
 
 ## Updates
+- 2017-01-10
+  - Added option to avoid showing control window each time the slideshow starts.
+  - Added fade-in to the exit prompt.
 - 2017-01-07
   - Added option to exclude sub-folders.
   - Minor changes to Options window to fit localizations.
