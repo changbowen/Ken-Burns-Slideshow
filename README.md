@@ -49,6 +49,7 @@ Always get the latest development build from [here](https://github.com/changbowe
 - Press **Shift+P** at runtime to fade out and pause music.
 - Press **Ctrl+R** at runtime to restart slideshow.
 - Press **Ctrl+Q** to quit immediately without animations.
+- Press **Ctrl+N** to jump to the next music item.
 - ~~The config.xml file serves as a configuration that is loaded at program start. Paths and other settings can be changed to local / relative path according to the location of the folders on your system.~~
 - ~~Please enclose the folder path with `<![CDATA[     ]]>` when the path contains markup chars in XML like &.~~
   - ~~Example: `<![CDATA[F:\Folder with & in name\images]]>`~~
@@ -67,6 +68,7 @@ Always get the latest development build from [here](https://github.com/changbowe
 - 按 **Shift+P** 可淡出并暂停音乐，再按即恢复播放。
 - 按 **Ctrl+R** 重新开始幻灯片。
 - 按 **Ctrl+Q** 直接跳过动画退出。
+- 按 **Ctrl+N** 下一首音乐。
 - 在Windows 7系统里，如果Aero特效未开启，动画效果可能受影响。
 - 使用独立显卡和Windows 7（或以上）动画效果会更流畅。任何降低Aero性能的配置都会影响动画效果。如果你连接了多个显示器，设置为双显示复制或者只使用一个显示器会改善动画效果。
 - 部分应用程序同样会影响帧率。比如Potplayer和Foobar 2000。
@@ -74,6 +76,9 @@ Always get the latest development build from [here](https://github.com/changbowe
 - 文件名中包含URI转义符的音频文件（如：This%20is%20a%20song%28I%20am%20kidding%29.mp3）不会被识别。
 
 ## Updates
+- 2017-01-14
+  - Added option to jump to the next music item.
+  - Other minor code changes.
 - 2017-01-10
   - Added option to avoid showing control window each time the slideshow starts.
   - Added fade-in to the exit prompt.
