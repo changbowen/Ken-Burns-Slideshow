@@ -77,6 +77,7 @@ Always get the latest development build from [here](https://github.com/changbowe
 
 ## Updates
 - 2017-01-14
+  - Added fading to desktop animation.
   - Added option to jump to the next music item.
   - Other minor code changes.
 - 2017-01-10
