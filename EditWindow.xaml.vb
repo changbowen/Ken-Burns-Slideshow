@@ -4,6 +4,12 @@ Public Class EditWindow
     Dim config As XElement
     Dim changingselection As Boolean = False
 
+    Sub New()
+        ' This call is required by the designer.
+        InitializeComponent()
+
+        Owner = Application.Current.MainWindow
+    End Sub
 
     Private Sub Window_Loaded(sender As Object, e As RoutedEventArgs)
         config = XElement.Load(MainWindow.config_path)

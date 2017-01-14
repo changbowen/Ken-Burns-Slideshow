@@ -9,7 +9,7 @@ Class MainWindow
     Public Shared config_instant_path As String = "config_instant.xml"
     Private Shared ListOfMusic As New List(Of String)
     Private ran As New Random
-    Private Shared player As New MediaPlayer
+    Private Shared player As New MediaPlayer With {.Volume = 0.5}
     Private currentaudio As Integer = 0
     Private playing As Boolean = False
     Private audiofading As Boolean = False
@@ -259,13 +259,8 @@ Class MainWindow
         If randomizeA Then Shuffle(ListOfMusic)
 
         AddHandler player.MediaEnded, Sub()
-                                          currentaudio += 1
-                                          If currentaudio = ListOfMusic.Count Then
-                                              currentaudio = 0
-                                              If randomizeA Then Shuffle(ListOfMusic)
-                                          End If
-                                          player.Open(New Uri(ListOfMusic(currentaudio)))
-                                          player.Play()
+                                          playing = False
+                                          NextSong()
                                       End Sub
 
         tb_date0.FontSize = h / 12
@@ -410,10 +405,7 @@ Class MainWindow
                                           worker_pic.Start()
                                           Dispatcher.Invoke(Sub()
                                                                 If showcontrol Then
-                                                                    If ctrlwindow Is Nothing Then
-                                                                        ctrlwindow = New ControlWindow
-                                                                        ctrlwindow.Owner = Me
-                                                                    End If
+                                                                    If ctrlwindow Is Nothing Then ctrlwindow = New ControlWindow
                                                                     ctrlwindow.Show()
                                                                 End If
                                                             End Sub)
@@ -422,14 +414,11 @@ Class MainWindow
             LoadNextImg()
             worker_pic.Start()
             If showcontrol Then
-                If ctrlwindow Is Nothing Then
-                    ctrlwindow = New ControlWindow
-                    ctrlwindow.Owner = Me
-                End If
+                If ctrlwindow Is Nothing Then ctrlwindow = New ControlWindow
                 ctrlwindow.Show()
             End If
         Else
-            Me.Close()
+            Close()
         End If
 
 
@@ -1137,10 +1126,7 @@ Class MainWindow
             editwin.ShowDialog()
             editwin.Close()
         ElseIf e.Key = Key.F1 Then
-            If ctrlwindow Is Nothing Then
-                ctrlwindow = New ControlWindow
-                ctrlwindow.Owner = Me
-            End If
+            If ctrlwindow Is Nothing Then ctrlwindow = New ControlWindow
             ctrlwindow.Show()
             ctrlwindow.Focus()
         ElseIf e.Key = Key.Escape Then
@@ -1168,9 +1154,14 @@ Class MainWindow
             Else
                 RestartAll()
             End If
-            ' recording not implemented
-            'ElseIf e.Key = Key.S AndAlso Keyboard.Modifiers = ModifierKeys.Control AndAlso aborting = False Then
-            '    RestartAll()
+        ElseIf e.Key = Key.N AndAlso Keyboard.Modifiers = ModifierKeys.Control Then
+            If Not audiofading Then
+                If ctrlwindow IsNot Nothing AndAlso ctrlwindow.IsVisible Then
+                    ctrlwindow.Btn_NextSong_Click(Nothing, Nothing)
+                Else
+                    NextSong()
+                End If
+            End If
         End If
     End Sub
 
@@ -1178,8 +1169,10 @@ Class MainWindow
         If worker_pic IsNot Nothing AndAlso worker_pic.IsAlive Then
             If moveon = True Then
                 moveon = False
+                Topmost = False
             Else
                 moveon = True
+                Topmost = True
             End If
         End If
     End Sub
@@ -1253,6 +1246,7 @@ Class MainWindow
 
     Private Sub FadeoutAudio()
         audiofading = True
+        playing = False
         Dim vol As Double
         Do
             Dispatcher.Invoke(Sub()
@@ -1265,7 +1259,6 @@ Class MainWindow
                               player.Pause()
                               player.Volume = 0.5
                           End Sub)
-        playing = False
         audiofading = False
     End Sub
 
@@ -1286,6 +1279,18 @@ Class MainWindow
         'Dispatcher.Invoke(Sub() player.Volume = 0.5)
         playing = True
         audiofading = False
+    End Sub
+
+    Friend Async Sub NextSong()
+        If playing AndAlso Not audiofading Then Await Task.Run(AddressOf FadeoutAudio)
+        currentaudio += 1
+        If currentaudio = ListOfMusic.Count Then
+            currentaudio = 0
+            If randomizeA Then Shuffle(ListOfMusic)
+        End If
+        player.Open(New Uri(ListOfMusic(currentaudio)))
+        player.Play()
+        playing = True
     End Sub
 
     Private Sub Window_Closing(sender As Object, e As CancelEventArgs)

@@ -1,4 +1,10 @@
 ﻿Public Class ControlWindow
+
+    Sub New()
+        ' This call is required by the designer.
+        InitializeComponent()
+        Owner = Application.Current.MainWindow
+    End Sub
     Private Sub Window_Closing(sender As Object, e As ComponentModel.CancelEventArgs)
         If Not MainWindow.nextcloseaction = MainWindow.CloseAction.DirectQuit Then
             e.Cancel = True
@@ -8,37 +14,70 @@
 
     Friend Sub Btn_SwitchImage_Click(sender As Object, e As RoutedEventArgs) Handles Btn_SwitchImage.Click
         Task.Run(Sub()
-                     Dispatcher.Invoke(Sub() Btn_SwitchImage.IsEnabled = False)
-                     Dispatcher.Invoke(Sub() Btn_Restart.IsEnabled = False)
+                     Dispatcher.Invoke(Sub()
+                                           Btn_SwitchImage.IsEnabled = False
+                                           Btn_Restart.IsEnabled = False
+                                       End Sub)
                      Threading.Thread.Sleep(3000)
-                     Dispatcher.Invoke(Sub() Btn_SwitchImage.IsEnabled = True)
-                     Dispatcher.Invoke(Sub() Btn_Restart.IsEnabled = True)
+                     Dispatcher.Invoke(Sub()
+                                           Btn_SwitchImage.IsEnabled = True
+                                           Btn_Restart.IsEnabled = True
+                                       End Sub)
                  End Sub)
-        DirectCast(Me.Owner, MainWindow).SwitchImage()
+        DirectCast(Owner, MainWindow).SwitchImage()
     End Sub
 
     Friend Sub Btn_SwitchAudio_Click(sender As Object, e As RoutedEventArgs) Handles Btn_SwitchAudio.Click
         Task.Run(Sub()
-                     Dispatcher.Invoke(Sub() Btn_SwitchAudio.IsEnabled = False)
-                     Dispatcher.Invoke(Sub() Btn_Restart.IsEnabled = False)
-                     System.Threading.Thread.Sleep(3000)
-                     Dispatcher.Invoke(Sub() Btn_SwitchAudio.IsEnabled = True)
-                     Dispatcher.Invoke(Sub() Btn_Restart.IsEnabled = True)
+                     Dispatcher.Invoke(Sub()
+                                           Btn_SwitchAudio.IsEnabled = False
+                                           Btn_Restart.IsEnabled = False
+                                           Btn_NextSong.IsEnabled = False
+                                       End Sub)
+                     Threading.Thread.Sleep(3000)
+                     Dispatcher.Invoke(Sub()
+                                           Btn_SwitchAudio.IsEnabled = True
+                                           Btn_Restart.IsEnabled = True
+                                           Btn_NextSong.IsEnabled = True
+                                       End Sub)
                  End Sub)
-        DirectCast(Me.Owner, MainWindow).SwitchAudio()
+        DirectCast(Owner, MainWindow).SwitchAudio()
     End Sub
 
     Friend Sub Btn_Restart_Click(sender As Object, e As RoutedEventArgs) Handles Btn_Restart.Click
         Task.Run(Sub()
-                     Dispatcher.Invoke(Sub() Btn_SwitchImage.IsEnabled = False)
-                     Dispatcher.Invoke(Sub() Btn_SwitchAudio.IsEnabled = False)
-                     Dispatcher.Invoke(Sub() Btn_Restart.IsEnabled = False)
-                     System.Threading.Thread.Sleep(3000)
-                     Dispatcher.Invoke(Sub() Btn_SwitchImage.IsEnabled = True)
-                     Dispatcher.Invoke(Sub() Btn_SwitchAudio.IsEnabled = True)
-                     Dispatcher.Invoke(Sub() Btn_Restart.IsEnabled = True)
+                     Dispatcher.Invoke(Sub()
+                                           Btn_SwitchImage.IsEnabled = False
+                                           Btn_SwitchAudio.IsEnabled = False
+                                           Btn_Restart.IsEnabled = False
+                                           Btn_NextSong.IsEnabled = False
+                                       End Sub)
+                     Threading.Thread.Sleep(3000)
+                     Dispatcher.Invoke(Sub()
+                                           Btn_SwitchImage.IsEnabled = True
+                                           Btn_SwitchAudio.IsEnabled = True
+                                           Btn_Restart.IsEnabled = True
+                                           Btn_NextSong.IsEnabled = True
+                                       End Sub)
                  End Sub)
-        DirectCast(Me.Owner, MainWindow).RestartAll()
+        DirectCast(Owner, MainWindow).RestartAll()
+    End Sub
+
+    Friend Sub Btn_NextSong_Click(sender As Object, e As RoutedEventArgs) Handles Btn_NextSong.Click
+        Task.Run(Sub()
+                     Dispatcher.Invoke(Sub()
+                                           Btn_SwitchAudio.IsEnabled = False
+                                           Btn_Restart.IsEnabled = False
+                                           Btn_NextSong.IsEnabled = False
+                                       End Sub)
+                     Threading.Thread.Sleep(3000)
+                     Dispatcher.Invoke(Sub()
+                                           Btn_SwitchAudio.IsEnabled = True
+                                           Btn_Restart.IsEnabled = True
+                                           Btn_NextSong.IsEnabled = True
+                                       End Sub)
+                 End Sub)
+        DirectCast(Owner, MainWindow).NextSong()
     End Sub
 
     Private Sub Btn_Options_Click(sender As Object, e As RoutedEventArgs) Handles Btn_Options.Click
@@ -54,14 +93,12 @@
     End Sub
 
     Private Sub Btn_Exit_Click(sender As Object, e As RoutedEventArgs) Handles Btn_Exit.Click
-        DirectCast(Me.Owner, MainWindow).Close()
+        DirectCast(Owner, MainWindow).Close()
     End Sub
 
     Private Sub Window_PreviewKeyDown(sender As Object, e As KeyEventArgs)
         If e.Key = Key.Escape Then
-            Me.Hide()
-        ElseIf e.Key = Key.F1 Then
-            'nothing
+            Hide()
         ElseIf e.Key = Key.P Then
             If Keyboard.Modifiers = ModifierKeys.Control AndAlso Btn_SwitchImage.IsEnabled Then 'pause image
                 Btn_SwitchImage_Click(Nothing, Nothing)
@@ -80,7 +117,9 @@
             editwin.Close()
         ElseIf e.Key = Key.Q AndAlso Keyboard.Modifiers = ModifierKeys.Control Then 'immediately quit
             MainWindow.nextcloseaction = MainWindow.CloseAction.FadeToDesktop
-            DirectCast(Me.Owner, MainWindow).Close()
+            DirectCast(Owner, MainWindow).Close()
+        ElseIf e.Key = Key.N AndAlso Keyboard.Modifiers = ModifierKeys.Control Then
+            Btn_NextSong_Click(Nothing, Nothing)
         End If
     End Sub
 End Class

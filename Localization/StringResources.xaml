@@ -96,4 +96,5 @@
     <system:String x:Key="select folder">Select a folder</system:String>
     <system:String x:Key="showcontrol">Show control window</system:String>
     <system:String x:Key="tip_showcontrol">Disable this option to avoid showing the control window each time the slideshow starts.</system:String>
+    <system:String x:Key="next song">Next music item</system:String>
 </ResourceDictionary>

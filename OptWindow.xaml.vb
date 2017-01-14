@@ -3,6 +3,12 @@
 Public Class OptWindow
     Dim lastPath As String
 
+    Sub New()
+        ' This call is required by the designer.
+        InitializeComponent()
+        Owner = Application.Current.MainWindow
+    End Sub
+
     Private Sub Window_Loaded(sender As Object, e As RoutedEventArgs)
         CbB_ScaleMode.ItemsSource = MainWindow.ScaleMode_Dic
         For Each i In MainWindow.folders_image

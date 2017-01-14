@@ -4,7 +4,7 @@
     ' 可以在此文件中进行处理。
     Private Sub Application_Startup()
         Dim dict As New ResourceDictionary
-        Select Case System.Threading.Thread.CurrentThread.CurrentCulture.Name.Substring(0, 2)
+        Select Case Threading.Thread.CurrentThread.CurrentCulture.Name.Substring(0, 2)
             Case "zh"
                 dict.Source = New Uri("Localization/StringResources.zh-CN.xaml", UriKind.Relative)
             Case Else
@@ -13,6 +13,7 @@
         Me.Resources.MergedDictionaries.Add(dict)
 
         Dim win As New MainWindow
+        Application.Current.MainWindow = win
         win.Show()
     End Sub
 End Class
