@@ -48,6 +48,7 @@ Always get the latest development build from [here](https://github.com/changbowe
 - Press **Ctrl+P** at runtime to hold off transition to the next image (i.e. pause).
 - Press **Shift+P** at runtime to fade out and pause music.
 - Press **Ctrl+R** at runtime to restart slideshow.
+- Press **Ctrl+Q** to quit immediately without animations.
 - ~~The config.xml file serves as a configuration that is loaded at program start. Paths and other settings can be changed to local / relative path according to the location of the folders on your system.~~
 - ~~Please enclose the folder path with `<![CDATA[     ]]>` when the path contains markup chars in XML like &.~~
   - ~~Example: `<![CDATA[F:\Folder with & in name\images]]>`~~
@@ -65,6 +66,7 @@ Always get the latest development build from [here](https://github.com/changbowe
 - 按 **Ctrl+P** 可暂停/播放动画。
 - 按 **Shift+P** 可淡出并暂停音乐，再按即恢复播放。
 - 按 **Ctrl+R** 重新开始幻灯片。
+- 按 **Ctrl+Q** 直接跳过动画退出。
 - 在Windows 7系统里，如果Aero特效未开启，动画效果可能受影响。
 - 使用独立显卡和Windows 7（或以上）动画效果会更流畅。任何降低Aero性能的配置都会影响动画效果。如果你连接了多个显示器，设置为双显示复制或者只使用一个显示器会改善动画效果。
 - 部分应用程序同样会影响帧率。比如Potplayer和Foobar 2000。

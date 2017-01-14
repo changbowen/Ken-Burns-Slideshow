@@ -1,8 +1,8 @@
 ﻿Public Class ControlWindow
     Private Sub Window_Closing(sender As Object, e As ComponentModel.CancelEventArgs)
-        If Not MainWindow.reallyclose Then
+        If Not MainWindow.nextcloseaction = MainWindow.CloseAction.DirectQuit Then
             e.Cancel = True
-            Me.Hide() 'if close, next F1 will throw exception
+            Hide() 'if close, next F1 will throw exception
         End If
     End Sub
 
@@ -10,7 +10,7 @@
         Task.Run(Sub()
                      Dispatcher.Invoke(Sub() Btn_SwitchImage.IsEnabled = False)
                      Dispatcher.Invoke(Sub() Btn_Restart.IsEnabled = False)
-                     System.Threading.Thread.Sleep(3000)
+                     Threading.Thread.Sleep(3000)
                      Dispatcher.Invoke(Sub() Btn_SwitchImage.IsEnabled = True)
                      Dispatcher.Invoke(Sub() Btn_Restart.IsEnabled = True)
                  End Sub)
@@ -79,7 +79,7 @@
             editwin.ShowDialog()
             editwin.Close()
         ElseIf e.Key = Key.Q AndAlso Keyboard.Modifiers = ModifierKeys.Control Then 'immediately quit
-            MainWindow.reallyclose = True
+            MainWindow.nextcloseaction = MainWindow.CloseAction.FadeToDesktop
             DirectCast(Me.Owner, MainWindow).Close()
         End If
     End Sub

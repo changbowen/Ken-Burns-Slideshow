@@ -1,4 +1,5 @@
-﻿Imports System.Threading
+﻿Imports System.ComponentModel
+Imports System.Threading
 
 Class MainWindow
     Public Shared ListOfPic As New System.Data.DataTable("ImageList")
@@ -43,7 +44,7 @@ Class MainWindow
     Public Shared blurmode As Integer = 0
     Private Declare Function SetThreadExecutionState Lib "kernel32" (ByVal esFlags As EXECUTION_STATE) As EXECUTION_STATE
     Private ExecState_Set As Boolean
-    Public Shared reallyclose As Boolean = False
+    Public Shared nextcloseaction As CloseAction = CloseAction.FadeToBlack
     Public Shared randomizeV As Boolean = False
     Public Shared randomizeA As Boolean = False
     Public Shared recursive_folder As Boolean = True
@@ -62,6 +63,12 @@ Class MainWindow
         ''' Forces the system to be in the working state by resetting the system idle timer.
         ''' </summary>
         ES_SYSTEM_REQUIRED = &H1
+    End Enum
+
+    Public Enum CloseAction
+        DirectQuit
+        FadeToBlack
+        FadeToDesktop
     End Enum
 
     Private Sub Window_Loaded(sender As Object, e As RoutedEventArgs)
@@ -677,7 +684,7 @@ Class MainWindow
                               End Sub)
         End If
 
-        
+
         ''Dim tmpdate = Date.Parse(ListOfPic.Rows(pos - 1)("Date")).ToString("yyyy.M")
         ''Dim tbmove_sec = picmove_sec
         'For n = 1 To ListOfPic.Rows.Count - pos 'not running if it is the last pic as ListOfPic.Count-pos=0
@@ -1137,10 +1144,10 @@ Class MainWindow
             ctrlwindow.Show()
             ctrlwindow.Focus()
         ElseIf e.Key = Key.Escape Then
-            Me.Close()
+            Close()
         ElseIf e.Key = Key.Q AndAlso Keyboard.Modifiers = ModifierKeys.Control Then 'immediately quit
-            reallyclose = True
-            Me.Close()
+            nextcloseaction = CloseAction.FadeToDesktop
+            Close()
         ElseIf e.Key = Key.P Then
             If Keyboard.Modifiers = ModifierKeys.Control Then 'pause image
                 If ctrlwindow IsNot Nothing AndAlso ctrlwindow.IsVisible Then
@@ -1281,49 +1288,61 @@ Class MainWindow
         audiofading = False
     End Sub
 
-    Private Sub Window_Closing(sender As Object, e As ComponentModel.CancelEventArgs)
-        If Not reallyclose Then
-            e.Cancel = True
-            If worker_pic IsNot Nothing AndAlso worker_pic.IsAlive Then
-                'closing animation
-                Task.Run(AddressOf FadeoutAudio)
-                Dim black As New Rectangle
-                mainGrid.Children.Add(black)
-                Panel.SetZIndex(black, 9)
-                black.Fill = Brushes.Black
-                black.Width = w
-                black.Height = h
-                Dim exit_fadeout As New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 3)))
-                exit_fadeout.EasingFunction = New Animation.ExponentialEase With {.EasingMode = Animation.EasingMode.EaseIn}
-                AddHandler exit_fadeout.Completed, Sub()
-                                                       Dispatcher.Invoke(Sub()
-                                                                             Dim tbtext As String = Application.Current.Resources("press esc")
-                                                                             Dim tb = New TextBlock With
-                                                                             {.Text = tbtext & "...",
-                                                                             .Opacity = 0,
-                                                                             .FontFamily = New FontFamily("Segoe UI"),
-                                                                             .FontSize = 12,
-                                                                             .Foreground = Brushes.WhiteSmoke,
-                                                                             .Margin = New Thickness(w / 2 - 60, h / 2 - 6, 0, 0)}
-                                                                             mainGrid.Children.Add(tb)
-                                                                             Panel.SetZIndex(tb, 10)
-                                                                             tb.BeginAnimation(OpacityProperty,
-                                                                                               New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 0, 0, 500))))
-                                                                         End Sub)
-                                                       reallyclose = True
-                                                   End Sub
-                black.BeginAnimation(OpacityProperty, exit_fadeout)
-            Else
-                Dispatcher.BeginInvoke(Sub()
-                                           reallyclose = True
-                                           Me.Close()
-                                       End Sub)
-            End If
-        Else
-            'really closing
-            If ctrlwindow IsNot Nothing Then ctrlwindow.Close()
-            If ExecState_Set Then SetThreadExecutionState(EXECUTION_STATE.ES_CONTINUOUS)
-        End If
+    Private Sub Window_Closing(sender As Object, e As CancelEventArgs)
+        Select Case nextcloseaction
+            Case CloseAction.FadeToBlack
+                e.Cancel = True
+                If worker_pic IsNot Nothing AndAlso worker_pic.IsAlive Then
+                    'closing animation
+                    Task.Run(AddressOf FadeoutAudio)
+                    Dim black As New Rectangle
+                    mainGrid.Children.Add(black)
+                    Panel.SetZIndex(black, 9)
+                    black.Fill = Brushes.Black
+                    black.Width = w
+                    black.Height = h
+                    Dim blk_fadein As New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 3)))
+                    blk_fadein.EasingFunction = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseInOut}
+                    AddHandler blk_fadein.Completed, Sub()
+                                                         Dispatcher.Invoke(Sub()
+                                                                               'exit prompt animation
+                                                                               Dim tbtext As String = Application.Current.Resources("press esc")
+                                                                               Dim tb = New TextBlock With
+                                                                                 {.Text = tbtext & "...",
+                                                                                 .Opacity = 0,
+                                                                                 .FontFamily = New FontFamily("Segoe UI"),
+                                                                                 .FontSize = 12,
+                                                                                 .Foreground = Brushes.WhiteSmoke,
+                                                                                 .Margin = New Thickness(w / 2 - 60, h / 2 - 6, 0, 0)}
+                                                                               mainGrid.Children.Add(tb)
+                                                                               Panel.SetZIndex(tb, 10)
+                                                                               tb.BeginAnimation(OpacityProperty,
+                                                                                                   New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 0, 0, 500))))
+                                                                           End Sub)
+                                                         nextcloseaction = CloseAction.FadeToDesktop
+                                                     End Sub
+                    black.BeginAnimation(OpacityProperty, blk_fadein)
+                Else
+                    Dispatcher.BeginInvoke(Sub()
+                                               nextcloseaction = CloseAction.FadeToDesktop
+                                               Close()
+                                           End Sub)
+                End If
+            Case CloseAction.FadeToDesktop
+                e.Cancel = True
+                If ctrlwindow IsNot Nothing Then ctrlwindow.Close()
+                Dim dsk_fade As New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 0, 0, 500)))
+                dsk_fade.EasingFunction = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseInOut}
+                AddHandler dsk_fade.Completed, Sub()
+                                                   nextcloseaction = CloseAction.DirectQuit
+                                                   Close()
+                                               End Sub
+                BeginAnimation(OpacityProperty, dsk_fade)
+            Case Else
+                'really closing
+                If ctrlwindow IsNot Nothing Then ctrlwindow.Close()
+                If ExecState_Set Then SetThreadExecutionState(EXECUTION_STATE.ES_CONTINUOUS)
+        End Select
     End Sub
 
     Private Sub ApplyBlur(tgt As Image, easeout As Animation.IEasingFunction, easein As Animation.IEasingFunction,
