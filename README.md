@@ -76,6 +76,10 @@ Always get the latest development build from [here](https://github.com/changbowe
 - 文件名中包含URI转义符的音频文件（如：This%20is%20a%20song%28I%20am%20kidding%29.mp3）不会被识别。
 
 ## Updates
+- 2017-04-23
+  - Add bulk details edit in Edit Mode by (selecting multiple images first).
+  - Fix initialization logic error.
+  - Update author info to compiled executable.
 - 2017-01-14
   - Added fading to desktop animation.
   - Added option to jump to the next music item.
