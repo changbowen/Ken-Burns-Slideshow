@@ -1,4 +1,5 @@
 ﻿Imports System.Data
+
 Public Class EditWindow
     Dim ListOfPic As New DataTable("ImageList")
     Dim config As XElement
@@ -20,14 +21,17 @@ Public Class EditWindow
             ListOfPic = MainWindow.ListOfPic.Copy
         End Try
         LB_Pic.ItemsSource = ListOfPic.Rows
-
-        'LB_Pic.ItemTemplate = New DataTemplate(GetType(String)) With {.}
-        'For Each i As System.Data.DataRow In ListOfPic.Rows
-        '    LB_Pic.Items.Add(i("Path"))
-        'Next
     End Sub
 
-    Private Sub RefreshPreview(row As System.Data.DataRow)
+    Private Sub RefreshPreview(row As DataRow)
+        If row Is Nothing Then
+            Dispatcher.Invoke(Sub()
+                                  IMG_Preview.Source = Nothing
+                                  changingselection = False
+                              End Sub)
+            Exit Sub
+        End If
+
         Dim pic As New BitmapImage
         Dim w As Double = 256, h As Double = w / MainWindow.w * MainWindow.h
         Try
@@ -137,6 +141,17 @@ Public Class EditWindow
                 'showing preview
                 Task.Run(Sub() RefreshPreview(e.AddedItems(0)))
             End If
+        ElseIf e.AddedItems.Count > 1 Then
+            changingselection = True
+            RefreshPreview(Nothing) 'clear preview
+            T_DateShown.Text = ""
+            CB_Title.IsChecked = Nothing
+            TB_Text.Text = ""
+            CbB_FontFamily.SelectedValue = Nothing
+            Sld_FontSize.Value = 12
+            CbB_FontColor.SelectedValue = Nothing
+            Sld_FontOffsetH.Value = 0
+            Sld_FontOffsetV.Value = 0
         End If
     End Sub
 
@@ -161,20 +176,12 @@ Public Class EditWindow
         '    ListOfPic.WriteXml(wt)
         '    wt.WriteEndElement()
         'End Using
-        Me.Close()
-    End Sub
-
-    Private Sub CB_Title_Checked(sender As Object, e As RoutedEventArgs) Handles CB_Title.Checked, CB_Title.Unchecked
-        If Me.IsLoaded Then
-            For Each i In LB_Pic.SelectedItems
-                ListOfPic.Rows.Find(i("Path"))("TitleSlide") = CB_Title.IsChecked
-            Next
-        End If
+        If Interop.ComponentDispatcher.IsThreadModal Then DialogResult = True Else Close()
     End Sub
 
     Private Sub Btn_Up_Click(sender As Object, e As RoutedEventArgs) Handles Btn_Up.Click
-        Dim allselected As New List(Of System.Data.DataRow)
-        For Each row As System.Data.DataRow In LB_Pic.SelectedItems
+        Dim allselected As New List(Of DataRow)
+        For Each row As DataRow In LB_Pic.SelectedItems
             Dim i = ListOfPic.Rows.IndexOf(row)
             If i > 0 Then
                 Dim newrow = ListOfPic.NewRow
@@ -202,7 +209,7 @@ Public Class EditWindow
             End If
         Next
         If maxi + 1 <= ListOfPic.Rows.Count - 1 Then
-            Dim row As System.Data.DataRow = ListOfPic.Rows(maxi + 1)
+            Dim row As DataRow = ListOfPic.Rows(maxi + 1)
             Dim newrow = ListOfPic.NewRow
             newrow.ItemArray = row.ItemArray
             ListOfPic.Rows.Remove(row)
@@ -254,23 +261,37 @@ Public Class EditWindow
 
     Private Sub LostFocuses(sender As Object, e As RoutedEventArgs) Handles TB_Text.LostFocus, CbB_FontFamily.LostFocus, Sld_FontSize.ValueChanged, CbB_FontColor.LostFocus, Sld_FontOffsetH.ValueChanged, Sld_FontOffsetV.ValueChanged
         If Me.IsLoaded AndAlso Not changingselection AndAlso LB_Pic.SelectedItem IsNot Nothing Then
-            Dim selected = DirectCast(LB_Pic.SelectedItem, DataRow)
-            Dim col = sender.Name.ToString.Split("_"c)(1)
-            Select Case sender.GetType
-                Case GetType(TextBox)
-                    selected(col) = sender.Text
-                Case GetType(ComboBox)
-                    If sender.IsEditable Then
+            For Each selected As DataRow In LB_Pic.SelectedItems
+                Dim col = sender.Name.ToString.Split("_"c)(1)
+                Select Case sender.GetType
+                    Case GetType(TextBox)
                         selected(col) = sender.Text
-                    Else
-                        selected(col) = sender.SelectedValue
-                    End If
-                Case GetType(Slider)
-                    selected(col) = sender.Value
-                Case Else
-                    Exit Sub
-            End Select
-            RefreshPreview(selected)
+                    Case GetType(ComboBox)
+                        If sender.IsEditable Then
+                            selected(col) = sender.Text
+                        Else
+                            selected(col) = sender.SelectedValue
+                        End If
+                    Case GetType(Slider)
+                        selected(col) = sender.Value
+                    Case Else
+                        Exit For
+                End Select
+            Next
+            If LB_Pic.SelectedItems.Count = 1 Then Task.Run(Sub() RefreshPreview(LB_Pic.SelectedItem))
         End If
+    End Sub
+
+    Private Sub CB_Title_Checked(sender As Object, e As RoutedEventArgs) Handles CB_Title.Checked, CB_Title.Unchecked
+        If Me.IsLoaded Then
+            For Each i In LB_Pic.SelectedItems
+                ListOfPic.Rows.Find(i("Path"))("TitleSlide") = CB_Title.IsChecked
+            Next
+        End If
+    End Sub
+
+    Private Sub Window_Closing(sender As Object, e As ComponentModel.CancelEventArgs)
+        ListOfPic.Dispose()
+        ListOfPic = Nothing
     End Sub
 End Class

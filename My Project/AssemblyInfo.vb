@@ -12,8 +12,8 @@ Imports System.Windows
 ' 查看程序集特性的值
 
 <Assembly: AssemblyTitle("Ken_Burns_Slideshow")> 
-<Assembly: AssemblyDescription("")> 
-<Assembly: AssemblyCompany("")> 
+<Assembly: AssemblyDescription("")>
+<Assembly: AssemblyCompany("Carl Chang")>
 <Assembly: AssemblyProduct("Ken_Burns_Slideshow")> 
 <Assembly: AssemblyCopyright("")> 
 <Assembly: AssemblyTrademark("")> 
@@ -55,5 +55,5 @@ Imports System.Windows
 ' 方法是按如下所示使用“*”: 
 ' <Assembly: AssemblyVersion("1.0.*")> 
 
-<Assembly: AssemblyVersion("1.5.7.0")>
-<Assembly: AssemblyFileVersion("1.5.7.0")>
+<Assembly: AssemblyVersion("1.5.8")>
+<Assembly: AssemblyFileVersion("1.5.8")>

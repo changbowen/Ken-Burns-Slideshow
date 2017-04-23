@@ -3,7 +3,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
     xmlns:System="clr-namespace:System;assembly=mscorlib" x:Class="EditWindow" 
-    Title="{StaticResource edit slides}" Icon="KenBurns.ico" Loaded="Window_Loaded" UseLayoutRounding="True" Height="467" Width="609">
+    Title="{StaticResource edit slides}" Icon="KenBurns.ico" Loaded="Window_Loaded" Closing="Window_Closing"
+    UseLayoutRounding="True" Height="467" Width="609">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>

@@ -178,7 +178,7 @@ Public Class OptWindow
         End If
 
         config.Save(MainWindow.config_path)
-        Me.Close()
+        If Interop.ComponentDispatcher.IsThreadModal Then DialogResult = True Else Close()
     End Sub
 
     Private Function GetTargetLB(sender As Object) As ListBox

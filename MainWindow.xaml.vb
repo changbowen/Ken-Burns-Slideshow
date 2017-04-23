@@ -72,6 +72,9 @@ Class MainWindow
     End Enum
 
     Private Sub Window_Loaded(sender As Object, e As RoutedEventArgs)
+#If DEBUG Then
+        Topmost = False
+#End If
         w = Me.Width
         h = Me.Height
         Process.GetCurrentProcess.PriorityClass = ProcessPriorityClass.High
@@ -128,11 +131,12 @@ Class MainWindow
                     Exit Do
                 Catch
                     If MsgBox(Application.Current.Resources("msg_loadcfgerr"), MsgBoxStyle.Question + MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
-                        Dim optwin As New OptWindow
-                        optwin.ShowDialog()
-                        optwin.Close()
+                        If New OptWindow().ShowDialog = False Then
+                            Close()
+                            Exit Sub
+                        End If
                     Else
-                        Me.Close()
+                        Close()
                         Exit Sub
                     End If
                 End Try
@@ -233,12 +237,9 @@ Class MainWindow
             'check if no image
             If ListOfPic.Rows.Count = 0 Then
                 If MsgBox(Application.Current.Resources("msg_noimgerr"), MsgBoxStyle.Question + MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
-                    Dim optwin As New OptWindow
-                    optwin.ShowDialog()
-                    optwin.Close()
-                    config = XElement.Load(config_path)
+                    If New OptWindow().ShowDialog() = True Then config = XElement.Load(config_path)
                 Else
-                    Me.Close()
+                    Close()
                     Exit Sub
                 End If
             Else
