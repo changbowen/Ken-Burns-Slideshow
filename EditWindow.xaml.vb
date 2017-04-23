@@ -278,7 +278,13 @@ Public Class EditWindow
                         Exit For
                 End Select
             Next
-            If LB_Pic.SelectedItems.Count = 1 Then Task.Run(Sub() RefreshPreview(LB_Pic.SelectedItem))
+            If LB_Pic.SelectedItems.Count = 1 Then
+                Task.Run(Sub()
+                             Dim selected As DataRow
+                             Dispatcher.Invoke(Sub() selected = LB_Pic.SelectedItem)
+                             RefreshPreview(selected)
+                         End Sub)
+            End If
         End If
     End Sub
 
