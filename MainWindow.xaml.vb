@@ -50,6 +50,7 @@ Class MainWindow
     Public Shared recursive_folder As Boolean = True
     Public Shared recursive_music As Boolean = True
     Public Shared showcontrol As Boolean = True
+    Private minCfgVer As Version = New Version(1, 5, 7, 0)
     Private Enum EXECUTION_STATE As Integer
         ''' <summary>
         ''' Informs the system that the state being set should remain in effect until the next call that uses ES_CONTINUOUS and one of the other state flags is cleared.
@@ -146,8 +147,7 @@ Class MainWindow
         'config.xml version check
         If config.Elements("Version").Any Then
             Dim xmlver As New Version(config.Element("Version").Value)
-            Dim appver As New Version(FileVersionInfo.GetVersionInfo(Reflection.Assembly.GetExecutingAssembly().Location).FileVersion)
-            If xmlver < appver Then
+            If xmlver < minCfgVer Then
                 MsgBox(Application.Current.Resources("msg_versionerr"), MsgBoxStyle.Exclamation)
                 Me.Close()
                 Exit Sub
