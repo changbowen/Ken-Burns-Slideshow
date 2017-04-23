@@ -80,6 +80,7 @@ Always get the latest development build from [here](https://github.com/changbowe
   - Add bulk details edit in Edit Mode by (selecting multiple images first).
   - Fix initialization logic error.
   - Update author info to compiled executable.
+  - Add minimum configuration file version verification.
 - 2017-01-14
   - Added fading to desktop animation.
   - Added option to jump to the next music item.
