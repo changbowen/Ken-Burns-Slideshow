@@ -10,7 +10,11 @@ Always get the latest development build from [here](https://github.com/changbowe
 最新开发版[传送门](https://github.com/changbowen/Ken-Burns-Slideshow/raw/master/bin/Release/Ken%20Burns%20Slideshow.exe)。
 
 ## Preview
-- <img class="alignnone size-full wp-image-8" src="http://i.imgur.com/5O30vFL.jpg" alt="" width="650"/><img class="alignnone size-full wp-image-20" src="http://i.imgur.com/dNIf5mC.jpg" alt=""/>
+- <img src="http://i.imgur.com/nbznvOh.gif" title="Ken Burns effect preview"/>
+- <img src="http://i.imgur.com/A97UmCm.gif" title="Breath effect preview"/>
+- <img src="http://i.imgur.com/d7Ap7t5.gif" title="Throw effect preview"/>
+- <img src="http://i.imgur.com/5O30vFL.jpg" width="600" title="Supports date & custom text display"/>
+- <img src="http://i.imgur.com/dNIf5mC.jpg" width="600" title="Detailed customizations"/>
 - [Youtube video](https://youtu.be/ch2UjN9nwIc)
 - [Youku video](http://v.youku.com/v_show/id_XMTQ5NTM0NTAxMg==.html) 
 
