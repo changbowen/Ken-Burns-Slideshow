@@ -9,7 +9,7 @@ Always get the latest development build from [here](https://github.com/changbowe
 
 最新开发版[传送门](https://github.com/changbowen/Ken-Burns-Slideshow/raw/master/bin/Release/Ken%20Burns%20Slideshow.exe)。
 
-If you really like it [![PayPal](https://img.shields.io/badge/%24-PayPal-blue.svg)](https://www.paypal.me/BowenChang)
+If you really like it [![PayPal](https://img.shields.io/badge/%24-PayPal-blue.svg)](https://www.paypal.me/BowenChang) or [支付宝](https://user-images.githubusercontent.com/15975872/29361889-175fef58-82bc-11e7-9e3b-ed3c748456b8.png)
 
 ## Preview
 - <img src="http://i.imgur.com/nbznvOh.gif" title="Ken Burns effect preview"/>
