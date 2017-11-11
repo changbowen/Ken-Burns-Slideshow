@@ -7,7 +7,7 @@ Class MainWindow
     Private BGMFormats() As String = {".mp3", ".wma", ".m4a", ".aac", ".wav", "asf"}
     Public Shared config_path As String = "config.xml"
     Public Shared config_instant_path As String = "config_instant.xml"
-    Private Shared ListOfMusic As New List(Of String)
+    Public Shared ListOfMusic As New List(Of String)
     Private ran As New Random
     Private Shared player As New MediaPlayer With {.Volume = 0.5}
     Private currentaudio As Integer = 0
@@ -1283,6 +1283,7 @@ Class MainWindow
     End Sub
 
     Friend Async Sub NextSong()
+        If ListOfMusic.Count = 0 Then Return
         If playing AndAlso Not audiofading Then Await Task.Run(AddressOf FadeoutAudio)
         currentaudio += 1
         If currentaudio = ListOfMusic.Count Then

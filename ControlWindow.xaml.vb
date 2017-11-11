@@ -64,6 +64,7 @@
     End Sub
 
     Friend Sub Btn_NextSong_Click(sender As Object, e As RoutedEventArgs) Handles Btn_NextSong.Click
+        If MainWindow.ListOfMusic?.Count = 0 Then Return
         Task.Run(Sub()
                      Dispatcher.Invoke(Sub()
                                            Btn_SwitchAudio.IsEnabled = False

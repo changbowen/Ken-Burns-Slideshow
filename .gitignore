@@ -51,6 +51,7 @@ build/
 [Bb]in/[Rr]elease/*
 !bin/Release/DesktopNote.exe
 [Oo]bj/
+.vs/
 
 # MSTest test Results
 [Tt]est[Rr]esult*/
