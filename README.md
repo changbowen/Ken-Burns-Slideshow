@@ -59,7 +59,7 @@ If you really like it [![PayPal](https://img.shields.io/badge/%24-PayPal-blue.sv
 - Press **Ctrl+P** at runtime to hold off transition to the next image (i.e. pause).
 - Press **Shift+P** at runtime to fade out and pause music.
 - Press **Ctrl+R** at runtime to restart slideshow.
-- Press **Ctrl+Q** to quit immediately without animations.
+- Press **Ctrl+Q** to quit immediately without animations (otherwise fade to a black screen).
 - Press **Ctrl+N** to jump to the next music item.
 - ~~The config.xml file serves as a configuration that is loaded at program start. Paths and other settings can be changed to local / relative path according to the location of the folders on your system.~~
 - ~~Please enclose the folder path with `<![CDATA[     ]]>` when the path contains markup chars in XML like &.~~
@@ -78,7 +78,7 @@ If you really like it [![PayPal](https://img.shields.io/badge/%24-PayPal-blue.sv
 - 按 **Ctrl+P** 可暂停/播放动画。
 - 按 **Shift+P** 可淡出并暂停音乐，再按即恢复播放。
 - 按 **Ctrl+R** 重新开始幻灯片。
-- 按 **Ctrl+Q** 直接跳过动画退出。
+- 按 **Ctrl+Q** 直接跳过动画淡出到桌面（否则则淡出到黑屏）。
 - 按 **Ctrl+N** 下一首音乐。
 - 在Windows 7系统里，如果Aero特效未开启，动画效果可能受影响。
 - 使用独立显卡和Windows 7（或以上）动画效果会更流畅。任何降低Aero性能的配置都会影响动画效果。如果你连接了多个显示器，设置为双显示复制或者只使用一个显示器会改善动画效果。
