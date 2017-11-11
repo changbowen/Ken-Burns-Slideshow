@@ -50,6 +50,7 @@ Class MainWindow
     Public Shared recursive_folder As Boolean = True
     Public Shared recursive_music As Boolean = True
     Public Shared showcontrol As Boolean = True
+    Public Shared noloop As Boolean = False
     Private minCfgVer As Version = New Version(1, 5, 7, 0)
     Private Enum EXECUTION_STATE As Integer
         ''' <summary>
@@ -71,6 +72,8 @@ Class MainWindow
         FadeToBlack
         FadeToDesktop
     End Enum
+
+    Public Event ImageAnimationEnd()
 
     Private Sub Window_Loaded(sender As Object, e As RoutedEventArgs)
 #If DEBUG Then
@@ -186,6 +189,7 @@ Class MainWindow
             If config.Elements("RecursiveFolder").Any AndAlso config.Element("RecursiveFolder").Value.ToLower = "false" Then recursive_folder = False
             If config.Elements("RecursiveMusic").Any AndAlso config.Element("RecursiveMusic").Value.ToLower = "false" Then recursive_music = False
             If config.Elements("ShowControl").Any AndAlso config.Element("ShowControl").Value.ToLower = "false" Then showcontrol = False
+            If config.Elements("NoLoop").Any AndAlso config.Element("NoLoop").Value.ToLower = "true" Then noloop = True
 
             'loading music list
             folders_music.Clear()
@@ -527,9 +531,15 @@ Class MainWindow
                 tgt.BeginAnimation(Image.OpacityProperty, New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 2))))
             End Sub)
         Thread.Sleep(picmove_sec * 2000)
-        Dispatcher.Invoke(Sub() tgt.BeginAnimation(Image.OpacityProperty, New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1)))))
-        Thread.Sleep(1500)
-        Dispatcher.Invoke(Sub() mainGrid.Children.Remove(tgt))
+        Dispatcher.Invoke(
+            Sub()
+                Dim fadeanim = New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1)))
+                AddHandler fadeanim.Completed, Sub()
+                                                   RaiseEvent ImageAnimationEnd()
+                                                   mainGrid.Children.Remove(tgt)
+                                               End Sub
+                tgt.BeginAnimation(Image.OpacityProperty, fadeanim)
+            End Sub)
     End Sub
 
     Private Sub textThrd(pos As Integer, ByRef output As Integer)
@@ -702,6 +712,27 @@ Class MainWindow
 
     End Sub
 
+    Private Sub LoadNextImgTask()
+        Thread.CurrentThread.Priority = ThreadPriority.Lowest
+        If position = ListOfPic.Rows.Count Then
+            If noloop Then
+                aborting = True
+                'Thread.Sleep(picmove_sec)
+                AddHandler ImageAnimationEnd, AddressOf OnImageAnimationEnd
+                Exit Sub
+            Else
+                position = 0
+                If randomizeV Then Shuffle(ListOfPic)
+            End If
+        End If
+        LoadNextImg()
+    End Sub
+
+    Private Sub OnImageAnimationEnd()
+        RemoveHandler ImageAnimationEnd, AddressOf OnImageAnimationEnd
+        Close()
+    End Sub
+
     Private Sub mainThrd_KBE()
         Do While audiofading
             Thread.Sleep(500)
@@ -720,6 +751,7 @@ Class MainWindow
                               ease_inout = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseInOut}
                               anim_fadein = New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 1)))
                               anim_fadeout = New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1)))
+                              AddHandler anim_fadeout.Completed, Sub() RaiseEvent ImageAnimationEnd()
                               Panel.SetZIndex(tb_date0, 2)
                               Panel.SetZIndex(tb_date1, 3)
                           End Sub)
@@ -742,14 +774,7 @@ Class MainWindow
             End If
 
             Dim tmpposition = position
-            Dim loadtask = Task.Run(Sub()
-                                        Thread.CurrentThread.Priority = ThreadPriority.Lowest
-                                        If position = ListOfPic.Rows.Count Then
-                                            position = 0
-                                            If randomizeV Then Shuffle(ListOfPic)
-                                        End If
-                                        LoadNextImg()
-                                    End Sub)
+            Dim loadtask = Task.Run(Sub() LoadNextImgTask())
 
             If Not ListOfPic.Rows(tmpposition - 1)("TitleSlide") Then
                 Thread.Sleep((picmove_sec - 2) * 1000)
@@ -788,6 +813,7 @@ Class MainWindow
                               ease_inout = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseInOut}
                               anim_fadein = New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 1)))
                               anim_fadeout = New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1)))
+                              AddHandler anim_fadeout.Completed, Sub() RaiseEvent ImageAnimationEnd()
                               Panel.SetZIndex(tb_date0, 2)
                               Panel.SetZIndex(tb_date1, 3)
                           End Sub)
@@ -811,14 +837,7 @@ Class MainWindow
             End If
 
             Dim tmpposition = position
-            Dim loadtask = Task.Run(Sub()
-                                        Thread.CurrentThread.Priority = ThreadPriority.Lowest
-                                        If position = ListOfPic.Rows.Count Then
-                                            position = 0
-                                            If randomizeV Then Shuffle(ListOfPic)
-                                        End If
-                                        LoadNextImg()
-                                    End Sub)
+            Dim loadtask = Task.Run(Sub() LoadNextImgTask())
 
             If Not ListOfPic.Rows(tmpposition - 1)("TitleSlide") Then
                 Thread.Sleep((picmove_sec - 2.5) * 1000)
@@ -860,6 +879,7 @@ Class MainWindow
                               ease_inout = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseInOut}
                               anim_fadein = New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 2)))
                               anim_fadeout = New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1)))
+                              AddHandler anim_fadeout.Completed, Sub() RaiseEvent ImageAnimationEnd()
                               Panel.SetZIndex(tb_date0, 2)
                               Panel.SetZIndex(tb_date1, 3)
                           End Sub)
@@ -881,14 +901,7 @@ Class MainWindow
             End If
 
             Dim tmpposition = position
-            Dim loadtask = Task.Run(Sub()
-                                        Thread.CurrentThread.Priority = ThreadPriority.Lowest
-                                        If position = ListOfPic.Rows.Count Then
-                                            position = 0
-                                            If randomizeV Then Shuffle(ListOfPic)
-                                        End If
-                                        LoadNextImg()
-                                    End Sub)
+            Dim loadtask = Task.Run(Sub() LoadNextImgTask())
 
             If Not ListOfPic.Rows(tmpposition - 1)("TitleSlide") Then
                 Thread.Sleep((picmove_sec - 1) * 1000)
@@ -932,7 +945,7 @@ Class MainWindow
                               ease_inout = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseInOut}
                               anim_fadein1 = New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 1)))
                               anim_fadein2 = New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 2)))
-                              anim_fadeout = New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1)))
+                              'anim_fadeout = New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1)))
                               Panel.SetZIndex(tb_date0, 2)
                               Panel.SetZIndex(tb_date1, 3)
                           End Sub)
@@ -958,6 +971,7 @@ Class MainWindow
                                               Dim fadeout As New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1)))
                                               AddHandler fadeout.Completed, Sub(s As Animation.AnimationClock, e As EventArgs)
                                                                                 mainGrid.Children.Remove(Animation.Storyboard.GetTarget(s.Timeline))
+                                                                                RaiseEvent ImageAnimationEnd()
                                                                             End Sub
                                               Animation.Storyboard.SetTarget(fadeout, tgt_img)
                                               tgt_img.BeginAnimation(Image.OpacityProperty, fadeout)
@@ -970,6 +984,7 @@ Class MainWindow
                                               Dim fadeout As New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1)))
                                               AddHandler fadeout.Completed, Sub(s As Animation.AnimationClock, e As EventArgs)
                                                                                 mainGrid.Children.Remove(Animation.Storyboard.GetTarget(s.Timeline))
+                                                                                RaiseEvent ImageAnimationEnd()
                                                                             End Sub
                                               Animation.Storyboard.SetTarget(fadeout, tgt_img)
                                               tgt_img.BeginAnimation(Image.OpacityProperty, fadeout)
@@ -981,6 +996,7 @@ Class MainWindow
                                               Dim fadeout As New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 1)))
                                               AddHandler fadeout.Completed, Sub(s As Animation.AnimationClock, e As EventArgs)
                                                                                 mainGrid.Children.Remove(Animation.Storyboard.GetTarget(s.Timeline))
+                                                                                RaiseEvent ImageAnimationEnd()
                                                                             End Sub
                                               Animation.Storyboard.SetTarget(fadeout, tgt_img)
                                               tgt_img.BeginAnimation(Image.OpacityProperty, fadeout)
@@ -988,15 +1004,7 @@ Class MainWindow
                 End Select
             End If
 
-            Dim loadtask = Task.Run(Sub()
-                                        Thread.CurrentThread.Priority = ThreadPriority.Lowest
-                                        If position = ListOfPic.Rows.Count Then
-                                            position = 0
-                                            If randomizeV Then Shuffle(ListOfPic)
-                                        End If
-                                        LoadNextImg()
-                                    End Sub)
-
+            Dim loadtask = Task.Run(Sub() LoadNextImgTask())
             loadtask.Wait()
 
             If aborting Then
@@ -1191,6 +1199,7 @@ Class MainWindow
     End Sub
 
     Friend Sub RestartAll()
+        If aborting = True Then Exit Sub
         If worker_pic IsNot Nothing AndAlso worker_pic.IsAlive Then
             aborting = True
             Task.Run(AddressOf FadeoutAudio)
@@ -1219,7 +1228,25 @@ Class MainWindow
                                                black = Nothing
                                            End Sub)
                          worker_pic.Join()
-
+                         aborting = False
+                     End Sub).ContinueWith(Sub() RestartAll())
+        Else
+            Task.Run(Sub()
+                         'remove unnecessary elements
+                         Dispatcher.Invoke(
+                         Sub()
+                             Dim children = New List(Of FrameworkElement)
+                             For Each child As FrameworkElement In mainGrid.Children
+                                 If Not (child.Name.StartsWith("slide_img") OrElse child.Name.StartsWith("tb_date")) Then
+                                     child.BeginAnimation(OpacityProperty, Nothing)
+                                     children.Add(child)
+                                 End If
+                             Next
+                             For Each child In children
+                                 mainGrid.Children.Remove(child)
+                             Next
+                             children = Nothing
+                         End Sub)
                          'restart thread
                          position = 0
                          LoadNextImg()
@@ -1239,7 +1266,7 @@ Class MainWindow
                          End Select
                          worker_pic.IsBackground = True
                          worker_pic.Priority = ThreadPriority.Lowest
-                         aborting = False
+                         nextcloseaction = CloseAction.FadeToBlack
                          worker_pic.Start()
                      End Sub)
         End If
@@ -1299,44 +1326,52 @@ Class MainWindow
         Select Case nextcloseaction
             Case CloseAction.FadeToBlack
                 e.Cancel = True
+                aborting = True 'tell the main thread to stop
+
+                Dim blk_fadein_sec As Double = 0.5
                 If worker_pic IsNot Nothing AndAlso worker_pic.IsAlive Then
-                    'closing animation
+                    blk_fadein_sec = 3
                     Task.Run(AddressOf FadeoutAudio)
-                    Dim black As New Rectangle
-                    mainGrid.Children.Add(black)
-                    Panel.SetZIndex(black, 9)
-                    black.Fill = Brushes.Black
-                    black.Width = w
-                    black.Height = h
-                    Dim blk_fadein As New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 3)))
-                    blk_fadein.EasingFunction = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseInOut}
-                    AddHandler blk_fadein.Completed, Sub()
-                                                         Dispatcher.Invoke(Sub()
-                                                                               'exit prompt animation
-                                                                               Dim tbtext As String = Application.Current.Resources("press esc")
-                                                                               Dim tb = New TextBlock With
-                                                                                 {.Text = tbtext & "...",
-                                                                                 .Opacity = 0,
-                                                                                 .FontFamily = New FontFamily("Segoe UI"),
-                                                                                 .FontSize = 12,
-                                                                                 .Foreground = Brushes.WhiteSmoke,
-                                                                                 .Margin = New Thickness(w / 2 - 60, h / 2 - 6, 0, 0)}
-                                                                               mainGrid.Children.Add(tb)
-                                                                               Panel.SetZIndex(tb, 10)
-                                                                               tb.BeginAnimation(OpacityProperty,
-                                                                                                   New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 0, 0, 500))))
-                                                                           End Sub)
-                                                         nextcloseaction = CloseAction.FadeToDesktop
-                                                     End Sub
-                    black.BeginAnimation(OpacityProperty, blk_fadein)
-                Else
-                    Dispatcher.BeginInvoke(Sub()
-                                               nextcloseaction = CloseAction.FadeToDesktop
-                                               Close()
-                                           End Sub)
+                    'Else
+                    '    Dispatcher.BeginInvoke(Sub()
+                    '                               nextcloseaction = CloseAction.FadeToDesktop
+                    '                               Close()
+                    '                           End Sub)
                 End If
+
+                'closing animation
+                Dim black As New Rectangle
+                mainGrid.Children.Add(black)
+                Panel.SetZIndex(black, 9)
+                black.Fill = Brushes.Black
+                black.Width = w
+                black.Height = h
+                Dim blk_fadein As New Animation.DoubleAnimation(0, 1, New Duration(TimeSpan.FromSeconds(blk_fadein_sec)))
+                blk_fadein.EasingFunction = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseInOut}
+                AddHandler blk_fadein.Completed,
+                    Sub()
+                        Dispatcher.Invoke(
+                        Sub()
+                                'exit prompt animation
+                                Dim tbtext As String = Application.Current.Resources("press esc")
+                            Dim tb = New TextBlock With
+                                {.Text = tbtext & "...",
+                                .Opacity = 0,
+                                .FontFamily = New FontFamily("Segoe UI"),
+                                .FontSize = 12,
+                                .Foreground = Brushes.WhiteSmoke,
+                                .Margin = New Thickness(w / 2 - 60, h / 2 - 6, 0, 0)}
+                            mainGrid.Children.Add(tb)
+                            Panel.SetZIndex(tb, 10)
+                            tb.BeginAnimation(OpacityProperty, New Animation.DoubleAnimation(0, 1, New Duration(New TimeSpan(0, 0, 0, 0, 500))))
+                        End Sub)
+                        nextcloseaction = CloseAction.FadeToDesktop
+                        aborting = False
+                    End Sub
+                black.BeginAnimation(OpacityProperty, blk_fadein)
             Case CloseAction.FadeToDesktop
                 e.Cancel = True
+                aborting = True
                 If ctrlwindow IsNot Nothing Then ctrlwindow.Close()
                 Dim dsk_fade As New Animation.DoubleAnimation(0, New Duration(New TimeSpan(0, 0, 0, 0, 500)))
                 dsk_fade.EasingFunction = New Animation.CubicEase With {.EasingMode = Animation.EasingMode.EaseInOut}

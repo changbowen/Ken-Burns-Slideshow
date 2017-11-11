@@ -97,4 +97,6 @@
     <system:String x:Key="showcontrol">显示控制窗口</system:String>
     <system:String x:Key="tip_showcontrol">禁用此选项可在幻灯片每次开始时不显示控制窗口。</system:String>
     <system:String x:Key="next song">下一个音乐</system:String>
+    <system:String x:Key="noloop">不循环</system:String>
+    <system:String x:Key="tip_noloop">播放幻灯片至结尾后不重新开始。</system:String>
 </ResourceDictionary>

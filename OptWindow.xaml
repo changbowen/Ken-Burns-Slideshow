@@ -25,7 +25,8 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    <ListBox Grid.Row="0" x:Name="LB_ImgFolder" ToolTip="{StaticResource tip_imagefolder}" Margin="2" MinHeight="80" MinWidth="150"/>
+                    <ListBox Grid.Row="0" x:Name="LB_ImgFolder" ToolTip="{StaticResource tip_imagefolder}" Margin="2"
+                             MinHeight="80" MinWidth="150" MaxHeight="200" MaxWidth="300"/>
                     <CheckBox Grid.Row="1" x:Name="CB_Img_Recur" Margin="2,0" Content="{StaticResource include subfolders}"/>
                     <UniformGrid Grid.Row="2" Columns="3" Margin="2">
                         <Button x:Name="Btn_Img_Add" Content="{StaticResource add}" Margin="2,0"/>
@@ -44,7 +45,8 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    <ListBox Grid.Row="0" x:Name="LB_BGMFolder" ToolTip="{StaticResource tip_musicfolder}" Margin="2" MinHeight="80" MinWidth="150"/>
+                    <ListBox Grid.Row="0" x:Name="LB_BGMFolder" ToolTip="{StaticResource tip_musicfolder}" Margin="2"
+                             MinHeight="80" MinWidth="150" MaxHeight="200" MaxWidth="300"/>
                     <CheckBox Grid.Row="1" x:Name="CB_BGM_Recur" Margin="2,0" Content="{StaticResource include subfolders}"/>
                     <UniformGrid Grid.Row="2" Columns="3" Margin="2">
                         <Button x:Name="Btn_BGM_Add" Content="{StaticResource add}" Margin="2,0"/>
@@ -116,7 +118,7 @@
             </GroupBox>
             <DockPanel Grid.Column="1" Margin="5,0">
                 <StackPanel DockPanel.Dock="Top">
-                    <TextBlock TextWrapping="Wrap" Text="{Binding Mode=OneTime, Source={StaticResource active transition},StringFormat='* {0}'}"/>
+                    <TextBlock TextWrapping="Wrap" Text="{Binding Mode=OneTime, Source={StaticResource active transition}, StringFormat='* {0}'}"/>
                     <ComboBox x:Name="CbB_Transit" SelectedIndex="0" Margin="0,5,0,10">
                         <ComboBoxItem Content="{StaticResource trans_kenburns}"/>
                         <ComboBoxItem Content="{StaticResource trans_breath}"/>
@@ -131,6 +133,7 @@
                     <CheckBox x:Name="CB_RandomizeV" Margin="0,5,0,0" ContentStringFormat="* {0}" Content="{StaticResource randomizeV}" ToolTip="{StaticResource tip_randomizeV}"/>
                     <CheckBox x:Name="CB_RandomizeA" Margin="0,5,0,0" ContentStringFormat="* {0}" Content="{StaticResource randomizeA}"/>
                     <CheckBox x:Name="CB_ShowControl" Margin="0,5,0,0" ContentStringFormat="* {0}" Content="{StaticResource showcontrol}" ToolTip="{StaticResource tip_showcontrol}"/>
+                    <CheckBox x:Name="CB_NoLoop" Margin="0,5,0,0" Content="{StaticResource noloop}" ToolTip="{StaticResource tip_noloop}"/>
                 </StackPanel>
                 <StackPanel DockPanel.Dock="Bottom" VerticalAlignment="Bottom">
                     <Button x:Name="Btn_FolderAsso" Content="{StaticResource register menu}" ToolTip="{StaticResource tip_registermenu}" MinHeight="25"/>

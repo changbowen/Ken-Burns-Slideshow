@@ -36,6 +36,7 @@ Public Class OptWindow
         CB_Img_Recur.IsChecked = MainWindow.recursive_folder
         CB_BGM_Recur.IsChecked = MainWindow.recursive_music
         CB_ShowControl.IsChecked = MainWindow.showcontrol
+        CB_NoLoop.IsChecked = MainWindow.noloop
 
         If Microsoft.Win32.Registry.CurrentUser.OpenSubKey("Software\Classes\Directory\shell\OpenWithKenBurns\command") Is Nothing Then
             Btn_FolderAsso.Content = Current.Resources("register menu")
@@ -137,6 +138,7 @@ Public Class OptWindow
         MainWindow.recursive_folder = CB_Img_Recur.IsChecked
         MainWindow.recursive_music = CB_BGM_Recur.IsChecked
         MainWindow.showcontrol = CB_ShowControl.IsChecked
+        MainWindow.noloop = CB_NoLoop.IsChecked
 
         'saving to file
         Dim config As New XElement("CfgRoot")
@@ -168,6 +170,7 @@ Public Class OptWindow
         config.Add(New XElement("RecursiveFolder", CB_Img_Recur.IsChecked.Value))
         config.Add(New XElement("RecursiveMusic", CB_BGM_Recur.IsChecked.Value))
         config.Add(New XElement("ShowControl", CB_ShowControl.IsChecked.Value))
+        config.Add(New XElement("NoLoop", CB_NoLoop.IsChecked.Value))
 
         'copy slides data if exists
         If My.Computer.FileSystem.FileExists(MainWindow.config_path) Then

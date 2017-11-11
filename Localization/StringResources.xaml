@@ -97,4 +97,6 @@
     <system:String x:Key="showcontrol">Show control window</system:String>
     <system:String x:Key="tip_showcontrol">Disable this option to avoid showing the control window each time the slideshow starts.</system:String>
     <system:String x:Key="next song">Next music item</system:String>
+    <system:String x:Key="noloop">Do not loop</system:String>
+    <system:String x:Key="tip_noloop">Play the slideshow to the end without starting over.</system:String>
 </ResourceDictionary>
