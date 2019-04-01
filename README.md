@@ -12,8 +12,8 @@ Always get the latest development build from [here](https://github.com/changbowe
 If you really like it [![PayPal](https://img.shields.io/badge/%24-PayPal-blue.svg)](https://www.paypal.me/BowenChang) or [支付宝](https://user-images.githubusercontent.com/15975872/29361889-175fef58-82bc-11e7-9e3b-ed3c748456b8.png)
 
 ------------
-### I want to rewrite this thing with C# in the future when I have more free time (when will that be...). The current VB project was written a long time ago and it consists of poorly organized codes with little descriptive comments that makes it so hard to continue to work on...
-### 我有计划想用C#重写这个程序（当我有时间的时候。。）。现在的VB代码是很久之前写的，很乱并且缺少说明，很难继续改良。。
+### For ones who want to generate videos, check out [this repo](https://github.com/remko/kburns).
+### 如需生成视频，可以看看[这个repo](https://github.com/remko/kburns)里的方法。
 ------------
 
 ## Preview
