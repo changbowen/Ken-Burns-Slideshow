@@ -5,6 +5,10 @@ This idea came to me while watching a slideshow on iPad. How nice would it be if
 
 此程序可用Ken Burns等三种效果播放文件夹中的图像，Ken Burns效果可参照iPad照片图库。
 
+#### If you like this one, checkout the new [ZipImageViewer](https://github.com/changbowen/ZipImageViewer), an image browser that supports viewing encrypted archives on the fly, and has a similar slideshow feature.
+#### 如果你喜欢这个软件，可以关注一下新的[ZipImageViewer](https://github.com/changbowen/ZipImageViewer)，作为一个简洁的图片浏览工具，它支持浏览密码保护的压缩文件内容，并且拥有类似的幻灯片效果。
+
+## Downloads
 Always get the latest development build from [here](https://github.com/changbowen/Ken-Burns-Slideshow/raw/master/bin/Release/Ken%20Burns%20Slideshow.exe).
 
 最新开发版[传送门](https://github.com/changbowen/Ken-Burns-Slideshow/raw/master/bin/Release/Ken%20Burns%20Slideshow.exe)。
