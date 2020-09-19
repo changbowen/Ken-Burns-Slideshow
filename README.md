@@ -1,7 +1,7 @@
 ﻿# Ken Burns Slideshow
 Instant, portable, full-screen slideshow application with the Ken Burns effect (**and more**)!
 ## Motivation
-This idea came to me while watching a slideshow on iPad. How nice would it be if we can create instant slideshows on a Windows machine with only a single executable and a folder of images.
+The application tries to achieve similar or better Ken Burns effects an iOS device uses on its slideshow.
 
 此程序可用Ken Burns等三种效果播放文件夹中的图像，Ken Burns效果可参照iPad照片图库。
 
