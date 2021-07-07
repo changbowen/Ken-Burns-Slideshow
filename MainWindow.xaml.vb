@@ -433,6 +433,14 @@ Class MainWindow
         ExecState_Set = True
     End Sub
 
+    Private Sub Window_SizeChanged(sender As Object, e As SizeChangedEventArgs)
+        If Me.WindowState = WindowState.Maximized Then
+            Me.ResizeMode = ResizeMode.NoResize
+        Else
+            Me.ResizeMode = ResizeMode.CanResize
+        End If
+    End Sub
+
     Private Sub Shuffle(ByRef dt As System.Data.DataTable)
         Using dtclone = dt.Clone
             Using dtcopy = dt.Copy

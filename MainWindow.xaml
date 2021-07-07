@@ -1,7 +1,7 @@
 ﻿<Window x:Class="MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Topmost="True"
-    Title="{StaticResource ken burns slideshow}" Height="350" Width="525" Background="{x:Null}" Loaded="Window_Loaded" WindowState="Maximized" AllowsTransparency="True" WindowStyle="None" Cursor="None" Closing="Window_Closing" Icon="KenBurns.ico" PreviewKeyDown="Window_PreviewKeyDown">
+    Title="{StaticResource ken burns slideshow}" WindowStyle="None" Height="350" Width="525" Background="{x:Null}" Loaded="Window_Loaded" SizeChanged="Window_SizeChanged" WindowState="Maximized" ResizeMode="CanResize" Cursor="None" Closing="Window_Closing" Icon="KenBurns.ico" PreviewKeyDown="Window_PreviewKeyDown">
     <Canvas x:Name="mainGrid">
         <Image x:Name="slide_img0" RenderOptions.BitmapScalingMode="HighQuality"/>
         <Image x:Name="slide_img1" RenderOptions.BitmapScalingMode="HighQuality"/>
